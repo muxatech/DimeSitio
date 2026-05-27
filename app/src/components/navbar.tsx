@@ -37,16 +37,16 @@ export default function Navbar() {
       className={cn(
         'z-50 flex h-16 items-center justify-between px-5 transition-all duration-300 sm:px-8 lg:px-12',
         isLanding
-          ? 'absolute inset-x-0 top-0 text-zinc-900'
-          : 'sticky top-0 border-b border-zinc-100 bg-white/90 text-zinc-900 shadow-sm backdrop-blur-md'
+          ? 'absolute inset-x-0 top-0 text-stone-900'
+          : 'sticky top-0 border-b border-stone-100 bg-white/90 text-stone-900 shadow-sm backdrop-blur-md'
       )}
     >
       {/* Logo */}
       <button
         onClick={() => handleNav('home')}
-        className="flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900"
+        className="flex items-center gap-2 text-lg font-bold tracking-tight text-stone-900"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-sm font-bold text-white shadow-sm">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-800 text-sm font-bold text-white shadow-sm">
           D
         </span>
         DimeSitio
@@ -58,14 +58,14 @@ export default function Navbar() {
           <button
             key={link.label}
             onClick={() => handleNav(link.action)}
-            className="rounded-xl px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+            className="rounded-xl px-4 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900"
           >
             {link.label}
           </button>
         ))}
         <button
           onClick={startFlow}
-          className="ml-2 rounded-xl bg-zinc-900 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-zinc-200/50 transition-all hover:bg-zinc-800"
+          className="ml-2 rounded-xl bg-stone-800 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700"
         >
           Empezar
         </button>
@@ -90,12 +90,12 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="absolute left-0 right-0 top-16 flex flex-col gap-1 border-b border-zinc-100 bg-white px-5 pb-5 pt-3 shadow-lg sm:hidden">
+        <div className="absolute left-0 right-0 top-16 flex flex-col gap-1 border-b border-stone-100 bg-white px-5 pb-5 pt-3 shadow-lg sm:hidden">
           {links.map((link) => (
             <button
               key={link.label}
               onClick={() => handleNav(link.action)}
-              className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100"
+              className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100"
             >
               {link.label}
             </button>
@@ -105,7 +105,7 @@ export default function Navbar() {
               setMenuOpen(false)
               startFlow()
             }}
-            className="mt-1 w-full rounded-xl bg-zinc-900 px-4 py-3 text-center text-sm font-semibold text-white"
+            className="mt-1 w-full rounded-xl bg-stone-800 px-4 py-3 text-center text-sm font-semibold text-white"
           >
             Empezar
           </button>

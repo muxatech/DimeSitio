@@ -26,14 +26,14 @@ export default function WinnerView() {
           transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.1 }}
           className="mb-4 inline-flex items-center justify-center"
         >
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 shadow-lg sm:h-16 sm:w-16">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-700 shadow-lg sm:h-16 sm:w-16">
             <PartyPopper className="h-7 w-7 text-white sm:h-8 sm:w-8" />
           </span>
         </motion.div>
-        <p className="text-sm font-medium text-zinc-500 sm:text-base">
+        <p className="text-sm font-medium text-stone-500 sm:text-base">
           Tu elección
         </p>
-        <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl lg:text-5xl">
+        <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
           {winner.name}
         </h2>
       </div>
@@ -44,9 +44,9 @@ export default function WinnerView() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15 }}
-          className="overflow-hidden rounded-2xl bg-zinc-100 shadow-sm sm:flex-1"
+          className="overflow-hidden rounded-2xl bg-stone-100 shadow-sm sm:flex-1"
         >
-          <div className="relative h-56 bg-zinc-100 sm:h-full sm:min-h-64 lg:min-h-80">
+          <div className="relative h-56 bg-stone-100 sm:h-full sm:min-h-64 lg:min-h-80">
             {winner.image_url ? (
               <img
                 src={winner.image_url}
@@ -55,7 +55,7 @@ export default function WinnerView() {
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center">
-                <UtensilsCrossed className="h-10 w-10 text-zinc-300 sm:h-12 sm:w-12" />
+                <UtensilsCrossed className="h-10 w-10 text-stone-300 sm:h-12 sm:w-12" />
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
@@ -64,24 +64,24 @@ export default function WinnerView() {
 
         {/* Info + actions column */}
         <div className="flex flex-col gap-4 sm:w-72 sm:gap-5 lg:w-96 lg:gap-6">
-          <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+          <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
             <div className="flex flex-wrap gap-2">
               {winner.zone && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-600 sm:text-base">
+                <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-3 py-1 text-sm text-stone-600 sm:text-base">
                   <MapPin className="h-3.5 w-3.5" /> {winner.zone}
                 </span>
               )}
-              <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-600 sm:text-base">
+              <span className="rounded-full bg-stone-100 px-3 py-1 text-sm text-stone-600 sm:text-base">
                 {getPriceLabel(winner.price_level)}
               </span>
               {winner.address && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-600 sm:text-base">
+                <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-3 py-1 text-sm text-stone-600 sm:text-base">
                   <MapPin className="h-3.5 w-3.5" /> {winner.address}
                 </span>
               )}
             </div>
             {winner.description && (
-              <p className="pt-1 text-sm leading-relaxed text-zinc-500 sm:text-base">
+              <p className="pt-1 text-sm leading-relaxed text-stone-500 sm:text-base">
                 {winner.description}
               </p>
             )}
@@ -120,7 +120,7 @@ export default function WinnerView() {
         whileTap={{ scale: 0.97 }}
         whileHover={{ scale: 1.02 }}
         onClick={reset}
-        className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-zinc-900 py-4 text-base font-semibold text-white shadow-lg shadow-zinc-200/50 transition-all hover:bg-zinc-800 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
+        className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
       >
         <RotateCcw className="h-5 w-5" />
         Empezar de nuevo
@@ -148,7 +148,7 @@ function ActionButton({
       target={href.startsWith('http') ? '_blank' : undefined}
       rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
       onClick={onTrack}
-      className="inline-flex items-center justify-center gap-3 rounded-2xl border border-zinc-200 bg-white py-4 text-base font-semibold text-zinc-700 shadow-sm transition-all hover:bg-zinc-50 hover:shadow-md sm:py-4 sm:text-lg lg:py-5"
+      className="inline-flex items-center justify-center gap-3 rounded-2xl border border-stone-200 bg-white py-4 text-base font-semibold text-stone-700 shadow-sm transition-all hover:bg-stone-50 hover:shadow-md sm:py-4 sm:text-lg lg:py-5"
     >
       <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
       {label}

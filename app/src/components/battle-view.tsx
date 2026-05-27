@@ -32,15 +32,15 @@ export default function BattleView() {
     <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-700">
+          <div className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-700">
             <Swords className="h-3.5 w-3.5" />
             Batalla culinaria
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl lg:text-3xl">
+          <h2 className="text-xl font-bold tracking-tight text-stone-900 sm:text-2xl lg:text-3xl">
             ¿Cuál prefieres?
           </h2>
         </div>
-        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white sm:self-auto sm:px-4 sm:py-1.5 sm:text-sm">
+        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-orange-700 px-3 py-1 text-xs font-medium text-white sm:self-auto sm:px-4 sm:py-1.5 sm:text-sm">
           <Sparkles className="h-3 w-3" />
           Ronda {battleRound} de {totalRounds}
         </span>
@@ -51,7 +51,7 @@ export default function BattleView() {
           <div
             key={i}
             className={`h-1.5 flex-1 rounded-full transition-all duration-300 sm:h-2 ${
-              i < battleRound ? 'bg-zinc-900' : 'bg-zinc-200'
+              i < battleRound ? 'bg-orange-700' : 'bg-stone-200'
             }`}
           />
         ))}
@@ -74,11 +74,11 @@ export default function BattleView() {
           />
 
           <div className="flex items-center gap-3 sm:flex-col sm:py-16 sm:pt-20">
-            <div className="h-px flex-1 bg-zinc-200 sm:h-16 sm:w-px sm:flex-none" />
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white shadow-md sm:h-12 sm:w-12 sm:text-sm">
+            <div className="h-px flex-1 bg-stone-200 sm:h-16 sm:w-px sm:flex-none" />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-700 text-xs font-bold text-white shadow-md sm:h-12 sm:w-12 sm:text-sm">
               VS
             </span>
-            <div className="h-px flex-1 bg-zinc-200 sm:h-16 sm:w-px sm:flex-none" />
+            <div className="h-px flex-1 bg-stone-200 sm:h-16 sm:w-px sm:flex-none" />
           </div>
 
           <BattleCard
@@ -111,11 +111,11 @@ function BattleCard({
       disabled={disabled}
       className={`relative w-full overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition-all sm:flex-1 ${
         isSelected
-          ? 'border-zinc-900 ring-2 ring-zinc-200 ring-offset-2'
-          : 'border-zinc-200 hover:shadow-md'
+          ? 'border-orange-700 ring-2 ring-orange-200 ring-offset-2'
+          : 'border-stone-200 hover:shadow-md'
       }`}
     >
-      <div className="relative h-44 bg-zinc-100 sm:h-52 lg:h-64">
+      <div className="relative h-44 bg-stone-100 sm:h-52 lg:h-64">
         {restaurant.image_url ? (
           <img
             src={restaurant.image_url}
@@ -125,7 +125,7 @@ function BattleCard({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <UtensilsCrossed className="h-8 w-8 text-zinc-300 sm:h-10 sm:w-10" />
+            <UtensilsCrossed className="h-8 w-8 text-stone-300 sm:h-10 sm:w-10" />
           </div>
         )}
         {isSelected && (
@@ -133,7 +133,7 @@ function BattleCard({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-900 shadow-lg sm:h-20 sm:w-20"
+              className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-700 shadow-lg sm:h-20 sm:w-20"
             >
               <svg className="h-8 w-8 text-white sm:h-10 sm:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -143,10 +143,10 @@ function BattleCard({
         )}
       </div>
       <div className="space-y-1.5 p-4 sm:p-5 lg:p-6">
-        <h3 className="text-lg font-bold text-zinc-900 sm:text-xl lg:text-2xl">
+        <h3 className="text-lg font-bold text-stone-900 sm:text-xl lg:text-2xl">
           {restaurant.name}
         </h3>
-        <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-400 sm:text-base">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-stone-400 sm:text-base">
           {restaurant.zone && (
             <span className="inline-flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5" /> {restaurant.zone}
@@ -155,7 +155,7 @@ function BattleCard({
           <span>{getPriceLabel(restaurant.price_level)}</span>
         </div>
         {restaurant.description && (
-          <p className="line-clamp-2 text-sm leading-relaxed text-zinc-400 sm:text-base">
+          <p className="line-clamp-2 text-sm leading-relaxed text-stone-400 sm:text-base">
             {restaurant.description}
           </p>
         )}

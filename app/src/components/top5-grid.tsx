@@ -22,8 +22,8 @@ export default function Top5Grid() {
   if (top5.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
-        <Frown className="h-12 w-12 text-zinc-300" />
-        <p className="text-base text-zinc-500 sm:text-lg">
+        <Frown className="h-12 w-12 text-stone-300" />
+        <p className="text-base text-stone-500 sm:text-lg">
           No encontramos restaurantes con esos filtros
         </p>
       </div>
@@ -33,11 +33,11 @@ export default function Top5Grid() {
   return (
     <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
       <div className="space-y-1.5 sm:space-y-2">
-        <div className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-700">
+        <div className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-700">
           <Sparkles className="h-3.5 w-3.5" />
           Seleccionamos los mejores para ti
         </div>
-        <h2 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl lg:text-4xl">
+        <h2 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl lg:text-4xl">
           Tus mejores opciones
         </h2>
       </div>
@@ -57,7 +57,7 @@ export default function Top5Grid() {
         whileTap={{ scale: 0.97 }}
         whileHover={{ scale: 1.02 }}
         onClick={initBattle}
-        className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-zinc-900 py-4 text-base font-semibold text-white shadow-lg shadow-zinc-200/50 transition-all hover:bg-zinc-800 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
+        className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
       >
         <Swords className="h-5 w-5" />
         Elegir favorito
@@ -70,9 +70,9 @@ function RestaurantCard({ restaurant, rank }: { restaurant: Restaurant; rank: nu
   return (
     <motion.div
       variants={cardVariants}
-      className="flex items-center gap-4 overflow-hidden rounded-2xl border border-zinc-200 bg-white pr-4 shadow-sm transition-all hover:shadow-md sm:flex-col sm:gap-0 sm:p-0 sm:pr-0"
+      className="flex items-center gap-4 overflow-hidden rounded-2xl border border-stone-200 bg-white pr-4 shadow-sm transition-all hover:shadow-md sm:flex-col sm:gap-0 sm:p-0 sm:pr-0"
     >
-      <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-zinc-100 sm:h-40 sm:w-full lg:h-48">
+      <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-stone-100 sm:h-40 sm:w-full lg:h-48">
         {restaurant.image_url ? (
           <img
             src={restaurant.image_url}
@@ -82,19 +82,19 @@ function RestaurantCard({ restaurant, rank }: { restaurant: Restaurant; rank: nu
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <UtensilsCrossed className="h-6 w-6 text-zinc-300 sm:h-8 sm:w-8" />
+            <UtensilsCrossed className="h-6 w-6 text-stone-300 sm:h-8 sm:w-8" />
           </div>
         )}
-        <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-br-xl bg-zinc-900 text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm">
+        <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-br-xl bg-orange-700 text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm">
           {rank}
         </div>
       </div>
 
       <div className="min-w-0 flex-1 sm:p-4 lg:p-5">
-        <p className="truncate font-bold text-zinc-900 sm:text-lg lg:text-xl">
+        <p className="truncate font-bold text-stone-900 sm:text-lg lg:text-xl">
           {restaurant.name}
         </p>
-        <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-zinc-400 sm:text-base">
+        <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-stone-400 sm:text-base">
           {restaurant.zone && (
             <>
               <MapPin className="h-3 w-3 shrink-0" />
@@ -107,7 +107,7 @@ function RestaurantCard({ restaurant, rank }: { restaurant: Restaurant; rank: nu
       </div>
 
       <svg
-        className="h-5 w-5 shrink-0 text-zinc-300 sm:hidden"
+        className="h-5 w-5 shrink-0 text-stone-300 sm:hidden"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"

@@ -28,10 +28,10 @@ const itemVariants = {
 function Header({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div className="space-y-1.5 sm:space-y-2">
-      <h2 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl lg:text-4xl">
+      <h2 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl lg:text-4xl">
         {title}
       </h2>
-      <p className="text-sm text-zinc-400 sm:text-base lg:text-lg">
+      <p className="text-sm text-stone-400 sm:text-base lg:text-lg">
         {subtitle}
       </p>
     </div>
@@ -70,8 +70,8 @@ export function QuestionCategories({
             className={cn(
               'rounded-2xl border-2 px-4 py-3 text-sm font-medium shadow-sm transition-all sm:px-5 sm:py-3.5 sm:text-base lg:px-6 lg:py-4 lg:text-lg',
               selectedCategoryIds.includes(cat.id)
-                ? 'border-zinc-900 bg-zinc-100 text-zinc-900'
-                : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:shadow-md'
+                ? 'border-orange-700 bg-orange-50 text-orange-800'
+                : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:shadow-md'
             )}
           >
             {cat.name}
@@ -87,8 +87,8 @@ export function QuestionCategories({
         className={cn(
           'w-full rounded-2xl py-4 text-base font-semibold text-white shadow-lg transition-all sm:py-4 sm:text-lg lg:py-5 lg:text-xl',
           selectedCategoryIds.length > 0
-            ? 'bg-zinc-900 shadow-zinc-200/50 hover:bg-zinc-800'
-            : 'bg-zinc-200 text-zinc-400'
+            ? 'bg-stone-800 shadow-stone-200/50 hover:bg-stone-700'
+            : 'bg-stone-200 text-stone-400'
         )}
       >
         {selectedCategoryIds.length > 0
@@ -115,30 +115,30 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
             className={cn(
               'flex items-center gap-4 rounded-2xl border-2 px-5 py-5 text-left shadow-sm transition-all sm:gap-5 sm:px-6 sm:py-6 lg:flex-1 lg:flex-col lg:items-center lg:gap-4 lg:py-8 lg:text-center',
               selectedPriceLevel === opt.value
-                ? 'border-zinc-900 bg-zinc-100 text-zinc-900'
-                : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:shadow-md'
+                ? 'border-orange-700 bg-orange-50 text-orange-800'
+                : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:shadow-md'
             )}
           >
             <span
               className={cn(
                 'flex h-12 w-12 items-center justify-center rounded-xl sm:h-14 sm:w-14 lg:h-16 lg:w-16',
-                selectedPriceLevel === opt.value
-                  ? 'bg-zinc-900 text-white shadow-md'
-                  : 'bg-zinc-100 text-zinc-400'
+                  selectedPriceLevel === opt.value
+                    ? 'bg-orange-700 text-white shadow-md'
+                    : 'bg-stone-100 text-stone-400'
               )}
             >
               <opt.Icon className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
             </span>
             <div className="flex-1 lg:flex-none">
               <p className="text-lg font-semibold sm:text-xl lg:text-2xl">{opt.label}</p>
-              <p className="text-sm text-zinc-400 sm:text-base">{opt.desc}</p>
+              <p className="text-sm text-stone-400 sm:text-base">{opt.desc}</p>
             </div>
             <div
               className={cn(
                 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all sm:h-7 sm:w-7',
-                selectedPriceLevel === opt.value
-                  ? 'border-zinc-900 bg-zinc-900'
-                  : 'border-zinc-300'
+                  selectedPriceLevel === opt.value
+                    ? 'border-orange-700 bg-orange-700'
+                    : 'border-stone-300'
               )}
             >
               {selectedPriceLevel === opt.value && (
@@ -159,8 +159,8 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
         className={cn(
           'w-full rounded-2xl py-4 text-base font-semibold text-white shadow-lg transition-all sm:py-4 sm:text-lg lg:py-5 lg:text-xl',
           selectedPriceLevel !== null
-            ? 'bg-zinc-900 shadow-zinc-200/50 hover:bg-zinc-800'
-            : 'bg-zinc-200 text-zinc-400'
+            ? 'bg-stone-800 shadow-stone-200/50 hover:bg-stone-700'
+            : 'bg-stone-200 text-stone-400'
         )}
       >
         {selectedPriceLevel !== null ? 'Siguiente' : 'Selecciona un precio'}
@@ -194,8 +194,8 @@ export function QuestionZone({
             className={cn(
               'inline-flex items-center gap-2 rounded-2xl border-2 px-5 py-3 text-sm font-medium shadow-sm transition-all sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-lg',
               selectedZone === zone
-                ? 'border-zinc-900 bg-zinc-100 text-zinc-900'
-                : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:shadow-md'
+                ? 'border-orange-700 bg-orange-50 text-orange-800'
+                : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:shadow-md'
             )}
           >
             <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -209,8 +209,8 @@ export function QuestionZone({
           className={cn(
             'inline-flex items-center gap-2 rounded-2xl border-2 border-dashed px-5 py-3 text-sm font-medium transition-all sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-lg',
             selectedZone === null
-              ? 'border-zinc-500 bg-zinc-100 text-zinc-700'
-              : 'border-zinc-300 text-zinc-400 hover:border-zinc-300'
+              ? 'border-orange-500 bg-orange-50 text-orange-700'
+              : 'border-stone-300 text-stone-400 hover:border-stone-300'
           )}
         >
           Cualquier zona
@@ -221,7 +221,7 @@ export function QuestionZone({
         whileTap={{ scale: 0.97 }}
         whileHover={{ scale: 1.02 }}
         onClick={onNext}
-        className="w-full rounded-2xl bg-zinc-900 py-4 text-base font-semibold text-white shadow-lg shadow-zinc-200/50 transition-all hover:bg-zinc-800 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
+        className="w-full rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
       >
         Ver resultados
       </motion.button>

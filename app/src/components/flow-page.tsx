@@ -108,8 +108,8 @@ export default function FlowPage() {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-violet-200 border-t-violet-600" />
-          <p className="text-sm text-zinc-400">Buscando los mejores sitios...</p>
+          <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-orange-200 border-t-orange-700" />
+          <p className="text-sm text-stone-400">Buscando los mejores sitios...</p>
         </div>
       </div>
     )
