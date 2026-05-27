@@ -86,6 +86,10 @@
 
 **Objetivo:** Restaurantes pueden registrarse, gestionar su perfil y activar su cuenta.
 
+> **Importante**: Todo el panel debe respetar `specs/design-system.md`.
+> No introducir nuevos colores, radios, sombras ni patrones de componente sin justificación.
+> El panel debe sentirse como parte de la misma app, no como un dashboard separado.
+
 ### Frontend
 - [ ] Pantalla de login/registro (email + password, Supabase Auth)
 - [ ] Dashboard:

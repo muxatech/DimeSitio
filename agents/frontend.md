@@ -7,7 +7,7 @@ Responsabilidad:
 - Estados frontend
 
 Reglas:
-- Mobile first
+- Mobile first, no mobile only
 - Componentes reutilizables
 - Código limpio
 - UX extremadamente rápida
