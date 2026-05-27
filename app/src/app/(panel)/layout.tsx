@@ -1,0 +1,153 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
+import { LayoutDashboard, Store, LogOut, Menu, X } from 'lucide-react'
+import Link from 'next/link'
+
+const navLinks = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/establecimientos', label: 'Establecimientos', icon: Store },
+]
+
+export default function PanelLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const [session, setSession] = useState<boolean | null>(null)
+  const [userEmail, setUserEmail] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        if (pathname !== '/login' && pathname !== '/register') {
+          router.replace('/login')
+        }
+        setSession(false)
+      } else {
+        setSession(true)
+        setUserEmail(data.session.user.email ?? '')
+        if (pathname === '/login' || pathname === '/register') {
+          router.replace('/dashboard')
+        }
+      }
+    })
+  }, [router, pathname])
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.replace('/login')
+  }
+
+  if (session === null) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-white">
+        <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-stone-200 border-t-stone-900" />
+      </div>
+    )
+  }
+
+  const isAuthPage = pathname === '/login' || pathname === '/register'
+
+  if (isAuthPage) {
+    return <>{children}</>
+  }
+
+  return (
+    <div className="flex min-h-dvh bg-stone-50">
+      {/* Mobile header */}
+      <div className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-stone-200 bg-white px-5 lg:hidden">
+        <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight text-stone-900">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-800 text-sm font-bold text-white">
+            D
+          </span>
+          DimeSitio
+        </Link>
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="flex items-center justify-center rounded-xl p-2 transition-colors hover:bg-stone-100"
+          aria-label="Menú"
+        >
+          {sidebarOpen ? <X className="h-6 w-6 text-stone-700" /> : <Menu className="h-6 w-6 text-stone-700" />}
+        </button>
+      </div>
+
+      {/* Mobile sidebar overlay */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 z-30 bg-black/45 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-stone-900 text-white transition-transform duration-[250ms] lg:static lg:translate-x-0',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        {/* Logo */}
+        <div className="flex h-16 items-center gap-2 border-b border-stone-700 px-6">
+          <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-700 text-sm font-bold text-white">
+              D
+            </span>
+            DimeSitio
+          </Link>
+        </div>
+
+        {/* Nav links */}
+        <nav className="flex-1 space-y-1 px-3 py-6">
+          {navLinks.map((link) => {
+            const Icon = link.icon
+            const active = pathname.startsWith(link.href)
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all',
+                  active
+                    ? 'bg-stone-700 text-white'
+                    : 'text-stone-400 hover:bg-stone-800 hover:text-white'
+                )}
+              >
+                <Icon className="h-5 w-5" />
+                {link.label}
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* User info + logout */}
+        <div className="border-t border-stone-700 px-3 py-4">
+          <div className="mb-2 truncate px-4 text-sm text-stone-400">{userEmail}</div>
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-stone-400 transition-all hover:bg-stone-800 hover:text-white"
+          >
+            <LogOut className="h-5 w-5" />
+            Cerrar sesión
+          </button>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <div className="flex-1 pt-16 lg:pt-0">
+        <div className="mx-auto max-w-5xl px-5 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10">
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}

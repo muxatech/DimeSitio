@@ -23,3 +23,44 @@ export interface Restaurant {
 }
 
 export type FlowStep = 'landing' | 'questions' | 'top5' | 'battle' | 'winner'
+
+export interface RestaurantAdmin {
+  id: string
+  restaurant_id: string
+  user_id: string
+  role: 'owner' | 'manager'
+}
+
+export interface RestaurantWithRole extends Restaurant {
+  role: 'owner' | 'manager'
+  subscription_status: string | null
+  stats: {
+    impressions: number
+    selections: number
+    calls: number
+  }
+}
+
+export interface RestaurantStats {
+  impressions_7d: number
+  impressions_30d: number
+  selections_7d: number
+  selections_30d: number
+  calls_7d: number
+  calls_30d: number
+  conversion_rate: number
+}
+
+export interface RestaurantFormData {
+  name: string
+  description?: string
+  phone?: string
+  address?: string
+  lat?: number | null
+  lng?: number | null
+  price_level: 1 | 2 | 3
+  zone: string
+  image_url?: string
+  menu_url?: string
+  category_ids: string[]
+}
