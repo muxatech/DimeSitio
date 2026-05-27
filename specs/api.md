@@ -87,25 +87,91 @@ Input:
 
 ---
 
-# Dashboard restaurante
+# Panel restaurante (Fase 2)
 
-## GET /restaurant/stats
+## Autenticación
+
+El login/registro se gestiona directamente con Supabase Auth desde el frontend
+(email + password). No requiere Edge Function específica.
+
+## GET /restaurants/mine
+
+Lista todos los restaurantes que el usuario autenticado puede gestionar.
+Busca en `restaurant_admins` donde `user_id = auth.uid()` y joinea `restaurants`.
 
 Output:
-- top5_count
-- wins_count
-- call_clicks
-- conversion_rate
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Restaurante A",
+      "role": "owner",
+      "active": true,
+      "subscription_status": "active",
+      "stats": {
+        "impressions": 42,
+        "selections": 12,
+        "calls": 5
+      }
+    }
+  ]
+}
+```
+
+Devuelve array — un usuario puede tener varios establecimientos.
+
+## POST /restaurants
+
+Crear un restaurante nuevo. Asigna automáticamente al usuario creador como `owner`
+en `restaurant_admins`.
+
+Input:
+- name (required)
+- description
+- phone
+- address
+- lat, lng
+- price_level (required, 1-3)
+- zone (required)
+- image_url
+- menu_url
+- category_ids (array de category_id)
+
+Output: restaurant creado
+
+## PATCH /restaurants/:id
+
+Actualizar información de un restaurante. Verifica que el usuario tiene rol
+`owner` o `manager` en `restaurant_admins` para ese restaurante.
+
+Input: mismos campos que POST (todos opcionales en PATCH)
+
+## DELETE /restaurants/:id
+
+Eliminar un restaurante. Solo `owner` puede eliminar.
+
+## GET /restaurants/:id/stats
+
+Estadísticas de un restaurante concreto. Verifica permisos vía `restaurant_admins`.
+
+Output:
+```json
+{
+  "impressions_7d": 42,
+  "impressions_30d": 180,
+  "selections_7d": 12,
+  "selections_30d": 55,
+  "calls_7d": 5,
+  "calls_30d": 20,
+  "conversion_rate": 0.12
+}
+```
 
 ---
 
-## POST /restaurant/update
-
-Actualizar información negocio.
-
----
-
-# Stripe
+# Stripe (Fase 3)
 
 ## POST /stripe/create-checkout
 

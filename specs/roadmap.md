@@ -87,6 +87,12 @@
 **Objetivo:** Restaurantes pueden registrarse, gestionar su perfil y activar su cuenta.
 
 > **Importante**: Todo el panel debe respetar `specs/design-system.md`.
+>
+> **Modelo multi-establecimiento**: Un usuario puede gestionar varios restaurantes
+> (ej: dueño de 3 locales). Cada establecimiento funciona de forma autónoma:
+> perfil propio, estadísticas propias, suscripción propia (Fase 3).
+> La tabla `restaurant_admins` es la clave: relaciona usuarios con restaurantes
+> y asigna roles (owner = control total, manager = solo editar).
 > No introducir nuevos colores, radios, sombras ni patrones de componente sin justificación.
 > El panel debe sentirse como parte de la misma app, no como un dashboard separado.
 

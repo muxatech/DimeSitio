@@ -13,124 +13,182 @@ PostgreSQL via Supabase.
 Información principal restaurante.
 
 Campos:
-- id
-- owner_id
-- name
-- description
-- phone
-- address
-- city
-- lat
-- lng
-- price_level
-- active
-- subscription_status
-- created_at
+- id (uuid, pk)
+- owner_id (uuid, ref auth.users, nullable — se migrará a restaurant_admins como fuente de verdad)
+- name (text, not null)
+- description (text)
+- phone (text)
+- address (text)
+- city (text, not null, default 'Valencia')
+- lat (numeric)
+- lng (numeric)
+- price_level (int, 1-3)
+- image_url (text)
+- menu_url (text)
+- zone (text)
+- active (boolean, default false — se activa vía suscripción Stripe)
+- created_at (timestamptz)
+
+Indices: active, city, owner_id, zone, price_level
 
 ---
 
-## restaurant_tags
+## restaurant_admins
 
-Tipos de comida y atributos.
-
-Ejemplos:
-- sushi
-- italiano
-- romántico
-- barato
-- terraza
-
----
-
-## searches
-
-Búsquedas realizadas usuarios.
+Relación N:M entre usuarios auth y restaurantes. Permite que un usuario gestione múltiples establecimientos y que cada establecimiento funcione de forma autónoma.
 
 Campos:
-- id
-- session_id
-- answers_json
-- location
-- created_at
+- id (uuid, pk)
+- restaurant_id (uuid, ref restaurants, not null)
+- user_id (uuid, ref auth.users, not null)
+- role (text: 'owner' | 'manager', default 'owner')
+- created_at (timestamptz)
+- unique(restaurant_id, user_id)
+
+Roles:
+- **owner**: control total (editar, eliminar, gestionar suscripción, ver stats)
+- **manager**: solo editar perfil y ver stats (no eliminar, no gestionar suscripción)
+
+Cada restaurante es autónomo:
+- Perfil propio (nombre, descripción, fotos, categorías, etc.)
+- Estadísticas propias (impresiones, selecciones, llamadas)
+- Suscripción propia (Fase 3 — Stripe, cada restaurante paga 29€/mes)
 
 ---
 
-## top5_results
+## categories
 
-Restaurantes mostrados.
+Catálogo de tipos de cocina.
 
 Campos:
-- id
-- search_id
-- restaurant_id
-- score
-- shown_position
+- id (uuid, pk)
+- name (text, unique)
+- icon (text)
+- created_at (timestamptz)
 
 ---
 
-## battles
+## restaurant_categories
 
-Comparaciones tipo Tinder.
-
-Campos:
-- id
-- search_id
-- restaurant_a
-- restaurant_b
-- winner_restaurant_id
-
----
-
-## call_clicks
-
-Clicks botón llamar.
+Relación M:N restaurants ↔ categories.
 
 Campos:
-- id
-- restaurant_id
-- search_id
-- created_at
+- restaurant_id (uuid, ref restaurants)
+- category_id (uuid, ref categories)
+- PK: (restaurant_id, category_id)
 
 ---
 
 ## subscriptions
 
-Datos Stripe.
+Datos Stripe. Una suscripción por restaurante (cada restaurante es autónomo).
 
 Campos:
-- id
-- restaurant_id
-- stripe_customer_id
-- stripe_subscription_id
-- status
-- renews_at
+- id (uuid, pk)
+- restaurant_id (uuid, unique, ref restaurants)
+- stripe_customer_id (text)
+- stripe_subscription_id (text)
+- status (text: 'active' | 'inactive' | 'past_due' | 'canceled', default 'inactive')
+- current_period_end (timestamptz)
+- created_at (timestamptz)
 
 ---
 
-# Relaciones
+## flow_starts
 
-- owner -> restaurants
-- searches -> top5_results
-- searches -> battles
-- restaurants -> analytics
+Inicios de flujo de usuario (tracking).
+
+Campos:
+- id (uuid, pk)
+- session_id (text)
+- created_at (timestamptz)
+
+---
+
+## impressions
+
+Restaurante aparece en Top 5 de un usuario.
+
+Campos:
+- id (uuid, pk)
+- restaurant_id (uuid, ref restaurants)
+- session_id (text)
+- created_at (timestamptz)
+
+---
+
+## selections
+
+Restaurante seleccionado en batalla 1v1.
+
+Campos:
+- id (uuid, pk)
+- restaurant_id (uuid, ref restaurants)
+- session_id (text)
+- round (int)
+- created_at (timestamptz)
+
+---
+
+## calls
+
+Click en botón llamar de un restaurante ganador.
+
+Campos:
+- id (uuid, pk)
+- restaurant_id (uuid, ref restaurants)
+- session_id (text)
+- created_at (timestamptz)
+
+---
+
+# Relaciones clave
+
+```
+auth.users ──< restaurant_admins >── restaurants
+                                          │
+                                    restaurant_categories >── categories
+                                          │
+                                    subscriptions (1:1)
+                                          │
+                                    impressions
+                                    selections
+                                    calls
+                                    flow_starts
+```
+
+- Un auth.user puede ser owner/manager de N restaurantes vía restaurant_admins
+- Cada restaurante tiene 0 o 1 suscripción (Stripe)
+- Cada restaurante tiene sus propias estadísticas (impressions, selections, calls)
+- Los usuarios anónimos generan eventos (flow_starts, impressions, selections, calls) sin estar autenticados
 
 ---
 
 # RLS
 
-## Restaurantes
-Solo pueden ver:
-- sus establecimientos
-- sus estadísticas
+## Restaurantes (público)
+- SELECT: cualquiera puede leer restaurantes con `active = true`
 
-## Usuarios
-No autenticados.
+## Panel restaurante (autenticado vía restaurant_admins)
+- SELECT sobre restaurants: solo si el usuario está en restaurant_admins para ese restaurante
+- INSERT: solo si el usuario crea (se añade automáticamente como owner)
+- UPDATE: solo owner o manager (según operación)
+- DELETE: solo owner
+
+## Estadísticas (autenticado)
+- SELECT sobre impressions/selections/calls: solo restaurantes donde el usuario está en restaurant_admins
+
+## Usuarios finales (no autenticados)
+- INSERT sobre flow_starts/impressions/selections/calls: permitido (tracking anónimo)
 
 ---
 
 # Índices importantes
 
-- city
-- tags
-- lat/lng
-- subscription_status
+- restaurants: active, city, zone, price_level, owner_id
+- restaurant_admins: user_id, restaurant_id
+- subscriptions: restaurant_id, status
+- impressions: restaurant_id, session_id, created_at
+- selections: restaurant_id, session_id
+- calls: restaurant_id, session_id
+- flow_starts: session_id
