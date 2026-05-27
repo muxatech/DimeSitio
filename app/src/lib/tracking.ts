@@ -1,5 +1,12 @@
 import { supabase } from './supabase'
 
+export async function trackStart(session_id: string): Promise<void> {
+  const { error } = await supabase.functions.invoke('events', {
+    body: { type: 'start', session_id },
+  })
+  if (error) console.error('[tracking] trackStart error:', error.message)
+}
+
 export async function trackImpression(
   restaurant_id: string,
   session_id: string

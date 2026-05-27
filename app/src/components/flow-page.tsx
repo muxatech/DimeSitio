@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useFlowStore } from '@/store/flow-store'
@@ -30,29 +30,27 @@ const pageVariants = {
 
 export default function FlowPage() {
   const step = useFlowStore((s) => s.step)
-  const { setStep, setFilteredRestaurants, setTop5, selectedCategoryIds, selectedPriceLevel, selectedZone } =
+  const { setStep, setQIndex, setFilteredRestaurants, setTop5, selectedCategoryIds, selectedPriceLevel, selectedZone } =
     useFlowStore()
-  const [qIndex, setQIndex] = useState(0)
+  const qIndex = useFlowStore((s) => s.qIndex)
 
-  useEffect(() => {
-    if (step === 'landing') setQIndex(0)
-  }, [step])
-
-  const { data: categories, isLoading: catsLoading } = useQuery({
+  const { data: categories, isLoading: catsLoading, isError: catsError } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data } = await supabase.from('categories').select('*').order('name')
+      const { data, error } = await supabase.from('categories').select('*').order('name')
+      if (error) throw new Error(error.message)
       return (data ?? []) as Category[]
     },
   })
 
-  const { data: allRestaurants, isLoading: restLoading } = useQuery({
+  const { data: allRestaurants, isLoading: restLoading, isError: restError } = useQuery({
     queryKey: ['restaurants'],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('restaurants')
         .select('*, restaurant_categories(category_id)')
         .eq('active', true)
+      if (error) throw new Error(error.message)
       return (data ?? []) as Restaurant[]
     },
   })
@@ -70,6 +68,10 @@ export default function FlowPage() {
       return
     }
     setQIndex(next)
+  }
+
+  function handlePrevQuestion() {
+    if (qIndex > 0) setQIndex(qIndex - 1)
   }
 
   function generateTop5() {
@@ -103,6 +105,32 @@ export default function FlowPage() {
   }
 
   if (step === 'landing') return <LandingHero />
+
+  if (catsError || restError) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4 px-6 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50">
+            <svg className="h-7 w-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-base font-semibold text-stone-700 sm:text-lg">
+            Vaya, algo salió mal
+          </p>
+          <p className="max-w-xs text-sm text-stone-400">
+            No hemos podido cargar los datos. Comprueba tu conexión y vuelve a intentarlo.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-2xl bg-stone-800 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-stone-700"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (catsLoading || restLoading) {
     return (
@@ -144,10 +172,10 @@ export default function FlowPage() {
                   />
                 )}
                 {currentQuestion.key === 'price' && (
-                  <QuestionPrice onNext={handleNextQuestion} />
+                  <QuestionPrice onNext={handleNextQuestion} onBack={handlePrevQuestion} />
                 )}
                 {currentQuestion.key === 'zone' && (
-                  <QuestionZone zones={zones} onNext={handleNextQuestion} />
+                  <QuestionZone zones={zones} onNext={handleNextQuestion} onBack={handlePrevQuestion} />
                 )}
               </div>
             )}

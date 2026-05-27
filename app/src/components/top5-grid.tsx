@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel } from '@/lib/utils'
 import type { Restaurant } from '@/types'
-import { Frown, MapPin, UtensilsCrossed, Sparkles, Swords } from 'lucide-react'
+import { Frown, MapPin, UtensilsCrossed, Sparkles, Swords, ArrowLeft } from 'lucide-react'
 
 const containerVariants = {
   hidden: {},
@@ -17,16 +17,29 @@ const cardVariants = {
 }
 
 export default function Top5Grid() {
-  const { top5, initBattle } = useFlowStore()
+  const { top5, initBattle, goBackToQuestions } = useFlowStore()
 
   if (top5.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-4 py-16 text-center">
+      <div className="flex flex-col items-center gap-6 py-16 text-center">
         <Frown className="h-12 w-12 text-stone-300" />
-        <p className="text-base text-stone-500 sm:text-lg">
-          No encontramos restaurantes con esos filtros.
-          Prueba cambiando alguna opción.
-        </p>
+        <div className="space-y-1">
+          <p className="text-base font-semibold text-stone-700 sm:text-lg">
+            No encontramos restaurantes con esos filtros
+          </p>
+          <p className="text-sm text-stone-400">
+            Prueba cambiando el tipo de cocina, el presupuesto o la zona.
+          </p>
+        </div>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.02 }}
+          onClick={goBackToQuestions}
+          className="inline-flex items-center gap-2 rounded-2xl bg-stone-800 px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-all hover:bg-stone-700 sm:px-8 sm:py-4 sm:text-lg"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          Cambiar filtros
+        </motion.button>
       </div>
     )
   }
@@ -86,7 +99,7 @@ function RestaurantCard({ restaurant, rank }: { restaurant: Restaurant; rank: nu
             <UtensilsCrossed className="h-6 w-6 text-stone-300 sm:h-8 sm:w-8" />
           </div>
         )}
-        <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-br-xl bg-gradient-to-r bg-stone-900 text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm">
+        <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-br-xl bg-stone-900 text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm">
           {rank}
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFlowStore } from '@/store/flow-store'
 import { getSessionId } from '@/lib/utils'
+import { trackStart } from '@/lib/tracking'
 import {
   Clock,
   Target,
@@ -117,8 +118,10 @@ export default function LandingHero() {
   }, [words.length])
 
   function handleStart() {
-    setSessionId(getSessionId())
+    const sid = getSessionId()
+    setSessionId(sid)
     setStep('questions')
+    trackStart(sid)
   }
 
   return (
@@ -325,7 +328,7 @@ export default function LandingHero() {
                 className="group relative"
               >
                 <div className="relative flex flex-col items-center gap-5 rounded-3xl border border-stone-100 bg-white p-8 text-center shadow-sm transition-all hover:shadow-lg sm:p-10">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br bg-stone-900 shadow-lg sm:h-20 sm:w-20">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900 shadow-lg sm:h-20 sm:w-20">
                     <item.icon className="h-7 w-7 text-white sm:h-8 sm:w-8" />
                   </div>
                   <div>

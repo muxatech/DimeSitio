@@ -3,10 +3,11 @@
 import { motion } from 'framer-motion'
 import { useFlowStore } from '@/store/flow-store'
 import { cn } from '@/lib/utils'
-import { Banknote, Coins, Crown, MapPin } from 'lucide-react'
+import { Banknote, Coins, Crown, MapPin, ArrowLeft } from 'lucide-react'
 
 interface QuestionStepProps {
   onNext: () => void
+  onBack?: () => void
 }
 
 const priceOptions = [
@@ -99,11 +100,21 @@ export function QuestionCategories({
   )
 }
 
-export function QuestionPrice({ onNext }: QuestionStepProps) {
+export function QuestionPrice({ onNext, onBack }: QuestionStepProps) {
   const { selectedPriceLevel, setSelectedPriceLevel } = useFlowStore()
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+      {onBack && (
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Atrás
+        </motion.button>
+      )}
       <Header title="¿Cuánto quieres gastar?" subtitle="Elige un rango de precio aproximado" />
 
       <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:gap-6">
@@ -123,7 +134,7 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
               className={cn(
                 'flex h-12 w-12 items-center justify-center rounded-xl sm:h-14 sm:w-14 lg:h-16 lg:w-16',
                   selectedPriceLevel === opt.value
-                    ? 'bg-gradient-to-r bg-stone-900 text-white shadow-md'
+                    ? 'bg-stone-900 text-white shadow-md'
                     : 'bg-stone-100 text-stone-400'
               )}
             >
@@ -137,7 +148,7 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
               className={cn(
                 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all sm:h-7 sm:w-7',
                   selectedPriceLevel === opt.value
-                    ? 'border-stone-900 bg-gradient-to-r bg-stone-900'
+                    ? 'border-stone-900 bg-stone-900'
                     : 'border-stone-300'
               )}
             >
@@ -172,11 +183,22 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
 export function QuestionZone({
   zones,
   onNext,
+  onBack,
 }: QuestionStepProps & { zones: string[] }) {
   const { selectedZone, setSelectedZone } = useFlowStore()
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+      {onBack && (
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Atrás
+        </motion.button>
+      )}
       <Header title="¿Por qué zona te viene mejor?" subtitle="Selecciona una zona de Valencia" />
 
       <motion.div

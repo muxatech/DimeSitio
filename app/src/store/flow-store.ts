@@ -4,6 +4,7 @@ import type { FlowStep, Restaurant } from '@/types'
 interface FlowStore {
   step: FlowStep
   sessionId: string
+  qIndex: number
   selectedCategoryIds: string[]
   selectedPriceLevel: number | null
   selectedZone: string | null
@@ -17,6 +18,7 @@ interface FlowStore {
 
   setStep: (step: FlowStep) => void
   setSessionId: (id: string) => void
+  setQIndex: (index: number) => void
   setSelectedCategoryIds: (ids: string[]) => void
   setSelectedPriceLevel: (level: number | null) => void
   setSelectedZone: (zone: string | null) => void
@@ -25,12 +27,14 @@ interface FlowStore {
   initBattle: () => void
   selectBattleWinner: (winner: Restaurant) => void
   setWinner: (restaurant: Restaurant) => void
+  goBackToQuestions: () => void
   reset: () => void
 }
 
 export const useFlowStore = create<FlowStore>((set, get) => ({
   step: 'landing',
   sessionId: '',
+  qIndex: 0,
   selectedCategoryIds: [],
   selectedPriceLevel: null,
   selectedZone: null,
@@ -45,6 +49,8 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
   setStep: (step) => set({ step }),
 
   setSessionId: (id) => set({ sessionId: id }),
+
+  setQIndex: (index) => set({ qIndex: index }),
 
   setSelectedCategoryIds: (ids) => set({ selectedCategoryIds: ids }),
 
@@ -98,6 +104,8 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
   },
 
   setWinner: (restaurant) => set({ winner: restaurant, step: 'winner' }),
+
+  goBackToQuestions: () => set({ step: 'questions', qIndex: 0 }),
 
   reset: () =>
     set({

@@ -40,7 +40,7 @@ export default function BattleView() {
             ¿Cuál te convence más?
           </h2>
         </div>
-        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-gradient-to-r bg-stone-900 px-3 py-1 text-xs font-medium text-white sm:self-auto sm:px-4 sm:py-1.5 sm:text-sm">
+        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white sm:self-auto sm:px-4 sm:py-1.5 sm:text-sm">
           <Sparkles className="h-3 w-3" />
           Ronda {battleRound} de {totalRounds}
         </span>
@@ -51,7 +51,7 @@ export default function BattleView() {
           <div
             key={i}
             className={`h-1.5 flex-1 rounded-full transition-all duration-300 sm:h-2 ${
-              i < battleRound ? 'bg-gradient-to-r bg-stone-900' : 'bg-stone-200'
+              i < battleRound ? 'bg-stone-900' : 'bg-stone-200'
             }`}
           />
         ))}
@@ -75,7 +75,7 @@ export default function BattleView() {
 
           <div className="flex items-center gap-3 sm:flex-col sm:py-16 sm:pt-20">
             <div className="h-px flex-1 bg-stone-200 sm:h-16 sm:w-px sm:flex-none" />
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br bg-stone-900 text-xs font-bold text-white shadow-md sm:h-12 sm:w-12 sm:text-sm">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stone-900 text-xs font-bold text-white shadow-md sm:h-12 sm:w-12 sm:text-sm">
               VS
             </span>
             <div className="h-px flex-1 bg-stone-200 sm:h-16 sm:w-px sm:flex-none" />
@@ -133,7 +133,7 @@ function BattleCard({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br bg-stone-900 shadow-lg sm:h-20 sm:w-20"
+              className="flex h-16 w-16 items-center justify-center rounded-full bg-stone-900 shadow-lg sm:h-20 sm:w-20"
             >
               <svg className="h-8 w-8 text-white sm:h-10 sm:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

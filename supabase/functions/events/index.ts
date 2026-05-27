@@ -23,8 +23,8 @@ serve(async (req) => {
     const body = await req.json()
     console.log('events: received', JSON.stringify({ type: body.type, restaurant_id: body.restaurant_id, session_id: body.session_id, round: body.round }))
 
-    if (!body.type || !body.restaurant_id || !body.session_id) {
-      const msg = 'Missing required fields: type, restaurant_id, session_id'
+    if (!body.type || !body.session_id) {
+      const msg = 'Missing required fields: type, session_id'
       console.error('events: validation failed', msg)
       return new Response(JSON.stringify({ error: msg }), {
         status: 400,
@@ -32,7 +32,16 @@ serve(async (req) => {
       })
     }
 
-    if (!['impression', 'selection', 'call'].includes(body.type)) {
+    if (body.type !== 'start' && !body.restaurant_id) {
+      const msg = 'Missing required field: restaurant_id for type: ' + body.type
+      console.error('events: validation failed', msg)
+      return new Response(JSON.stringify({ error: msg }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!['start', 'impression', 'selection', 'call'].includes(body.type)) {
       const msg = `Invalid type: ${body.type}`
       console.error('events: validation failed', msg)
       return new Response(JSON.stringify({ error: msg }), {
@@ -53,6 +62,18 @@ serve(async (req) => {
     }
 
     switch (body.type) {
+      case 'start': {
+        const { error } = await supabase.from('flow_starts').insert({
+          session_id: body.session_id,
+          created_at: new Date().toISOString(),
+        })
+        if (error) {
+          console.error('events: start insert failed', JSON.stringify(error))
+          throw error
+        }
+        console.log('events: start inserted', body.session_id)
+        break
+      }
       case 'impression': {
         const { error } = await supabase.from('impressions').insert(payload)
         if (error) {
