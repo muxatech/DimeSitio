@@ -70,7 +70,7 @@ export function QuestionCategories({
             className={cn(
               'rounded-2xl border-2 px-4 py-3 text-sm font-medium shadow-sm transition-all sm:px-5 sm:py-3.5 sm:text-base lg:px-6 lg:py-4 lg:text-lg',
               selectedCategoryIds.includes(cat.id)
-                ? 'border-orange-700 bg-orange-50 text-orange-800'
+                ? 'border-orange-500 bg-orange-50 text-orange-600'
                 : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:shadow-md'
             )}
           >
@@ -115,7 +115,7 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
             className={cn(
               'flex items-center gap-4 rounded-2xl border-2 px-5 py-5 text-left shadow-sm transition-all sm:gap-5 sm:px-6 sm:py-6 lg:flex-1 lg:flex-col lg:items-center lg:gap-4 lg:py-8 lg:text-center',
               selectedPriceLevel === opt.value
-                ? 'border-orange-700 bg-orange-50 text-orange-800'
+                ? 'border-orange-500 bg-orange-50 text-orange-600'
                 : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:shadow-md'
             )}
           >
@@ -123,7 +123,7 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
               className={cn(
                 'flex h-12 w-12 items-center justify-center rounded-xl sm:h-14 sm:w-14 lg:h-16 lg:w-16',
                   selectedPriceLevel === opt.value
-                    ? 'bg-orange-700 text-white shadow-md'
+                    ? 'bg-orange-500 text-white shadow-md'
                     : 'bg-stone-100 text-stone-400'
               )}
             >
@@ -137,7 +137,7 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
               className={cn(
                 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all sm:h-7 sm:w-7',
                   selectedPriceLevel === opt.value
-                    ? 'border-orange-700 bg-orange-700'
+                    ? 'border-orange-500 bg-orange-500'
                     : 'border-stone-300'
               )}
             >
@@ -194,7 +194,7 @@ export function QuestionZone({
             className={cn(
               'inline-flex items-center gap-2 rounded-2xl border-2 px-5 py-3 text-sm font-medium shadow-sm transition-all sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-lg',
               selectedZone === zone
-                ? 'border-orange-700 bg-orange-50 text-orange-800'
+                ? 'border-orange-500 bg-orange-50 text-orange-600'
                 : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:shadow-md'
             )}
           >
@@ -209,7 +209,7 @@ export function QuestionZone({
           className={cn(
             'inline-flex items-center gap-2 rounded-2xl border-2 border-dashed px-5 py-3 text-sm font-medium transition-all sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-lg',
             selectedZone === null
-              ? 'border-orange-500 bg-orange-50 text-orange-700'
+              ? 'border-orange-500 bg-orange-50 text-orange-500'
               : 'border-stone-300 text-stone-400 hover:border-stone-300'
           )}
         >

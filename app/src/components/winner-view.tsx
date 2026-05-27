@@ -26,7 +26,7 @@ export default function WinnerView() {
           transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.1 }}
           className="mb-4 inline-flex items-center justify-center"
         >
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-700 shadow-lg sm:h-16 sm:w-16">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500 shadow-lg sm:h-16 sm:w-16">
             <PartyPopper className="h-7 w-7 text-white sm:h-8 sm:w-8" />
           </span>
         </motion.div>

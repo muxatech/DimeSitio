@@ -36,6 +36,21 @@ const problems = [
   },
 ]
 
+const foodPhotos = [
+  '1565299624946-b28f40a0ae38',
+  '1504674900247-0877df9cc836',
+  '1546069901-b8e1f7c5d7a0',
+  '1567620905732-2d1ec7ab7445',
+  '1555939594-58d7cb561ad1',
+  '1476224203421-9ac39bcb332e',
+  '1414235077428-338989a2e8c0',
+  '1517248135467-4c7edcad34c4',
+  '1507048331197-7d4ac70811cf',
+  '1466978913424-d6f5f97f1f2b',
+  '1490645935968-1fb47d0b24c3',
+  '1552566626-52f8b828add9',
+]
+
 const foodTypes = [
   'Italiano', 'Japonés', 'Mexicano', 'Mediterráneo', 'Asiático',
   'Español', 'Argentino', 'Indio', 'Turco', 'Marroquí',
@@ -58,24 +73,27 @@ export default function LandingHero() {
         <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gradient-to-br from-orange-100/60 to-amber-100/30 blur-3xl lg:h-[500px] lg:w-[500px]" />
         <div className="pointer-events-none absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-gradient-to-tr from-stone-100/60 to-orange-50/30 blur-3xl lg:h-[400px] lg:w-[400px]" />
 
-        {/* Decorative food-grid backdrop — suggests abundance */}
-        <div className="pointer-events-none absolute right-0 top-0 hidden h-full w-2/5 overflow-hidden lg:block">
-          <div className="absolute inset-0 grid grid-cols-2 gap-4 p-12 opacity-[0.06]">
-            {[
-              'from-orange-200 to-amber-100',
-              'from-amber-100 to-yellow-100',
-              'from-stone-200 to-orange-100',
-              'from-rose-200 to-orange-100',
-              'from-orange-100 to-amber-200',
-              'from-stone-100 to-amber-100',
-              'from-amber-100 to-rose-100',
-              'from-orange-50 to-stone-200',
-            ].map((g, i) => (
-              <div key={i} className={`rounded-2xl bg-gradient-to-br ${g}`} />
-            ))}
+        {/* Photo grid — real food imagery suggesting abundance */}
+        {foodPhotos.length > 0 && (
+          <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
+            <div className="absolute right-0 top-0 hidden h-full w-3/5 md:grid md:grid-cols-3 md:grid-rows-4 lg:grid-cols-4 lg:grid-rows-3">
+              {foodPhotos.map((id, i) => (
+                <div key={id} className="relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-100/40 to-stone-100/40" />
+                  <img
+                    src={`https://images.unsplash.com/photo-${id}?w=400&h=300&fit=crop&auto=format`}
+                    alt=""
+                    className="h-full w-full object-cover opacity-60"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+            {/* Gradient veil — keeps text area clean */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-white/30" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-white/60" />
           </div>
-          <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-white via-white/80 to-transparent" />
-        </div>
+        )}
 
         {/* Subtle grid */}
         <div
@@ -93,7 +111,7 @@ export default function LandingHero() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700"
+            className="mb-6 inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-2 text-sm font-medium text-orange-600"
           >
             <Sparkles className="h-4 w-4" />
             Encuentra tu sitio ideal en Valencia
@@ -152,7 +170,7 @@ export default function LandingHero() {
             {foodTypes.slice(0, 8).map((t) => (
               <span
                 key={t}
-                className="rounded-lg bg-orange-50/80 px-3 py-1.5 text-xs font-medium text-orange-700/80"
+                className="rounded-lg bg-orange-50/80 px-3 py-1.5 text-xs font-medium text-orange-600/80"
               >
                 {t}
               </span>
@@ -205,7 +223,7 @@ export default function LandingHero() {
                 className="group relative"
               >
                 <div className="relative flex flex-col items-center gap-5 rounded-3xl border border-stone-100 bg-white p-8 text-center shadow-sm transition-all hover:shadow-lg sm:p-10">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-800 shadow-lg sm:h-20 sm:w-20">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-600 shadow-lg sm:h-20 sm:w-20">
                     <item.icon className="h-7 w-7 text-white sm:h-8 sm:w-8" />
                   </div>
                   <div>
