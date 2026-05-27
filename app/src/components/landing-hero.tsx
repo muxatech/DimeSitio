@@ -1,6 +1,7 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useFlowStore } from '@/store/flow-store'
 import { getSessionId } from '@/lib/utils'
 import {
@@ -57,6 +58,50 @@ const foodTypes = [
   'Peruano', 'Tailandés', 'Griego', 'Francés', 'Americano',
 ]
 
+function Carousel({ images }: { images: string[] }) {
+  const [idx, setIdx] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIdx((prev) => (prev + 1) % images.length)
+    }, 4500)
+    return () => clearInterval(interval)
+  }, [images.length])
+
+  return (
+    <div className="pointer-events-none absolute inset-0 select-none">
+      <AnimatePresence initial={false} custom={idx}>
+        <motion.img
+          key={idx}
+          src={`https://images.unsplash.com/photo-${images[idx]}?w=1600&h=1000&fit=crop&auto=format`}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-40"
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '-100%' }}
+          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+        />
+      </AnimatePresence>
+
+      {/* Overlay for contrast */}
+      <div className="absolute inset-0 bg-black/15" />
+
+      {/* Dots indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        {images.map((_, i) => (
+          <div
+            key={i}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === idx ? 'w-6 bg-stone-600' : 'w-1.5 bg-stone-300'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function LandingHero() {
   const { setStep, setSessionId } = useFlowStore()
 
@@ -68,125 +113,152 @@ export default function LandingHero() {
   return (
     <div className="min-h-dvh">
       {/* ===== HERO SECTION ===== */}
-      <section className="relative flex min-h-dvh items-center overflow-hidden bg-white">
-        {/* Warm ambient glow */}
-        <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gradient-to-br from-orange-100/60 to-amber-100/30 blur-3xl lg:h-[500px] lg:w-[500px]" />
-        <div className="pointer-events-none absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-gradient-to-tr from-stone-100/60 to-orange-50/30 blur-3xl lg:h-[400px] lg:w-[400px]" />
+      <section className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-white">
+        {/* Dynamic image carousel */}
+        <Carousel images={foodPhotos} />
 
-        {/* Photo grid — real food imagery suggesting abundance */}
-        {foodPhotos.length > 0 && (
-          <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
-            <div className="absolute right-0 top-0 hidden h-full w-3/5 md:grid md:grid-cols-3 md:grid-rows-4 lg:grid-cols-4 lg:grid-rows-3">
-              {foodPhotos.map((id, i) => (
-                <div key={id} className="relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-100/40 to-stone-100/40" />
-                  <img
-                    src={`https://images.unsplash.com/photo-${id}?w=400&h=300&fit=crop&auto=format`}
-                    alt=""
-                    className="h-full w-full object-cover opacity-60"
-                    loading="lazy"
-                  />
-                </div>
+          <div className="relative mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 py-20 sm:px-8 sm:py-24 lg:gap-10 lg:py-28 xl:px-12">
+            {/* Badge - outside card */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-stone-900"
+            >
+              <Sparkles className="h-4 w-4 text-stone-800" />
+              Encuentra tu sitio ideal en Valencia
+            </motion.div>
+
+            {/* Content card - only title & subtitle */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex w-full flex-col items-center gap-4 rounded-3xl bg-white/60 px-8 py-10 text-center shadow-xl shadow-black/5 backdrop-blur-sm sm:gap-5 sm:px-12 sm:py-12 lg:gap-6 lg:px-16 lg:py-14"
+            >
+              {/* Heading */}
+              <motion.h1
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-5xl font-extrabold tracking-tight text-stone-900 sm:text-6xl md:text-7xl lg:text-8xl"
+              >
+                DimeSitio
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.35 }}
+                className="max-w-xl text-balance text-lg leading-relaxed text-stone-500 sm:text-xl md:text-2xl"
+              >
+                Cientos de restaurantes en Valencia. Una pregunta cada 10 segundos.
+                Tu sitio perfecto en 30.
+              </motion.p>
+            </motion.div>
+
+            {/* Big CTA button - outside card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleStart}
+                className="group inline-flex items-center gap-3 rounded-2xl bg-stone-800 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-black/20 transition-all hover:bg-stone-700 hover:shadow-2xl hover:shadow-black/30 sm:px-10 sm:py-5 sm:text-xl lg:px-12 lg:py-6 lg:text-2xl"
+              >
+                Encuentra dónde comer
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-stone-600 text-white transition-transform group-hover:translate-x-0.5">
+                  <ArrowRight className="h-5 w-5" />
+                </span>
+              </motion.button>
+              <p className="mt-4 text-sm text-stone-400 sm:text-base">
+                Responde 3 preguntas. Te lleva menos de un minuto.
+              </p>
+              <p className="mt-4 text-sm text-stone-400 sm:text-base">
+                Responde 3 preguntas. Te lleva menos de un minuto.
+              </p>
+            </motion.div>
+
+            {/* Food-type tags - outside card */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="flex w-full flex-wrap items-center justify-center gap-2 lg:gap-2.5"
+            >
+              {foodTypes.slice(0, 8).map((t) => (
+                <span
+                  key={t}
+                  className="rounded-lg bg-stone-100/80 px-3 py-1.5 text-xs font-medium text-stone-700/80"
+                >
+                  {t}
+                </span>
               ))}
-            </div>
-            {/* Gradient veil — keeps text area clean */}
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-white/30" />
-            <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-white/60" />
+              <span className="rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-medium text-stone-400">
+                +{foodTypes.length - 8} más
+              </span>
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 1 }}
+              className="text-xs text-stone-400"
+            >
+              Más de {foodTypes.length} tipos de cocina · {stats[0].value} restaurantes · {stats[2].value} zonas
+            </motion.p>
           </div>
-        )}
+      </section>
 
-        {/* Subtle grid */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 1px 1px, #18181b 1px, transparent 0)',
-            backgroundSize: '32px 32px',
-          }}
-        />
-
-        <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-6 pb-20 pt-24 text-center sm:px-8 sm:pb-24 sm:pt-28 lg:items-start lg:text-left xl:px-12 xl:pb-28 xl:pt-32">
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-2 text-sm font-medium text-orange-600"
-          >
-            <Sparkles className="h-4 w-4" />
-            Encuentra tu sitio ideal en Valencia
-          </motion.div>
-
-          {/* Heading */}
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-5xl font-extrabold tracking-tight text-stone-900 sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl"
-          >
-            DimeSitio
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.35 }}
-            className="mt-4 max-w-lg text-balance text-lg leading-relaxed text-stone-500 sm:text-xl md:text-2xl lg:mx-0"
-          >
-            Cientos de restaurantes en Valencia. Una pregunta cada 10 segundos.
-            Tu sitio perfecto en 30.
-          </motion.p>
-
-          {/* Big CTA button */}
+      {/* ===== PHOTO GALLERY ===== */}
+      <section className="overflow-hidden bg-white px-6 py-20 sm:px-8 sm:py-28 lg:px-12 lg:py-32">
+        <div className="mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="mt-10 sm:mt-12"
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5 }}
+            className="mb-10 text-center sm:mb-14"
           >
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={handleStart}
-              className="group inline-flex items-center gap-3 rounded-2xl bg-stone-800 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-stone-800/20 transition-all hover:bg-stone-700 sm:px-10 sm:py-5 sm:text-xl lg:px-12 lg:py-6 lg:text-2xl"
-            >
-              Encuentra dónde comer
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-stone-600 text-white transition-transform group-hover:translate-x-0.5">
-                <ArrowRight className="h-5 w-5" />
-              </span>
-            </motion.button>
-            <p className="mt-4 text-sm text-stone-400 sm:text-base">
-              Responde 3 preguntas. Te lleva menos de un minuto.
-            </p>
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-1.5 text-sm font-medium text-stone-900">
+              <Sparkles className="h-4 w-4" />
+              Variedad para todos los gustos
+            </span>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
+              Más de {foodTypes.length} tipos de cocina
+            </h2>
           </motion.div>
 
-          {/* Food-type tags — show variety / abundance */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="mt-12 flex w-full flex-wrap items-center justify-center gap-2 lg:justify-start lg:gap-2.5"
-          >
-            {foodTypes.slice(0, 8).map((t) => (
-              <span
-                key={t}
-                className="rounded-lg bg-orange-50/80 px-3 py-1.5 text-xs font-medium text-orange-600/80"
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+            {foodPhotos.map((id, i) => (
+              <motion.div
+                key={id}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.4, delay: (i % 8) * 0.06 }}
+                className={i >= 8 ? 'hidden sm:block' : ''}
               >
-                {t}
-              </span>
+                <div className="group relative h-48 overflow-hidden rounded-2xl bg-stone-100 shadow-sm transition-shadow hover:shadow-lg sm:h-56 lg:h-64">
+                  <div className="absolute inset-0 flex items-center justify-center text-stone-200">
+                    <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                    </svg>
+                  </div>
+                  <img
+                    src={`https://images.unsplash.com/photo-${id}?w=600&h=500&fit=crop&auto=format`}
+                    alt=""
+                    className="relative h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                    onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0' }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                </div>
+              </motion.div>
             ))}
-            <span className="rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-medium text-stone-400">
-              +{foodTypes.length - 8} más
-            </span>
-          </motion.div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 1 }}
-            className="mt-3 text-xs text-stone-400"
-          >
-            Más de {foodTypes.length} tipos de cocina · {stats[0].value} restaurantes · {stats[2].value} zonas
-          </motion.p>
+          </div>
         </div>
       </section>
 
@@ -223,7 +295,7 @@ export default function LandingHero() {
                 className="group relative"
               >
                 <div className="relative flex flex-col items-center gap-5 rounded-3xl border border-stone-100 bg-white p-8 text-center shadow-sm transition-all hover:shadow-lg sm:p-10">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-600 shadow-lg sm:h-20 sm:w-20">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br bg-stone-900 shadow-lg sm:h-20 sm:w-20">
                     <item.icon className="h-7 w-7 text-white sm:h-8 sm:w-8" />
                   </div>
                   <div>

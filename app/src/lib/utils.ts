@@ -11,11 +11,18 @@ export function cn(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(' ')
 }
 
+function fallbackUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+}
+
 export function getSessionId(): string {
   if (typeof window === 'undefined') return ''
   let id = sessionStorage.getItem('dimesitio_session')
   if (!id) {
-    id = crypto.randomUUID()
+    id = crypto.randomUUID?.() ?? fallbackUUID()
     sessionStorage.setItem('dimesitio_session', id)
   }
   return id

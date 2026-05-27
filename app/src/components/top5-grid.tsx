@@ -85,7 +85,7 @@ function RestaurantCard({ restaurant, rank }: { restaurant: Restaurant; rank: nu
             <UtensilsCrossed className="h-6 w-6 text-stone-300 sm:h-8 sm:w-8" />
           </div>
         )}
-        <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-br-xl bg-orange-500 text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm">
+        <div className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-br-xl bg-gradient-to-r bg-stone-900 text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm">
           {rank}
         </div>
       </div>
