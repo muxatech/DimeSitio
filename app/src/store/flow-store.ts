@@ -110,6 +110,8 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
   reset: () =>
     set({
       step: 'landing',
+      sessionId: '',
+      qIndex: 0,
       selectedCategoryIds: [],
       selectedPriceLevel: null,
       selectedZone: null,
