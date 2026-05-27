@@ -53,7 +53,7 @@ export function QuestionCategories({
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
-      <Header title="¿Qué te apetece?" subtitle="Elige uno o varios tipos de comida" />
+      <Header title="¿Qué te apetece hoy?" subtitle="Selecciona uno o varios tipos de comida" />
 
       <motion.div
         variants={containerVariants}
@@ -92,8 +92,8 @@ export function QuestionCategories({
         )}
       >
         {selectedCategoryIds.length > 0
-          ? `Siguiente (${selectedCategoryIds.length})`
-          : 'Selecciona al menos uno'}
+          ? `Continuar (${selectedCategoryIds.length})`
+          : 'Selecciona al menos una opción'}
       </motion.button>
     </div>
   )
@@ -104,7 +104,7 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
-      <Header title="¿Cuánto quieres gastar?" subtitle="Selecciona tu rango de precio" />
+      <Header title="¿Cuánto quieres gastar?" subtitle="Elige un rango de precio aproximado" />
 
       <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:gap-6">
         {priceOptions.map((opt) => (
@@ -163,7 +163,7 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
             : 'bg-stone-200 text-stone-400'
         )}
       >
-        {selectedPriceLevel !== null ? 'Siguiente' : 'Selecciona un precio'}
+        {selectedPriceLevel !== null ? 'Continuar' : 'Selecciona un rango de precio'}
       </motion.button>
     </div>
   )
@@ -177,7 +177,7 @@ export function QuestionZone({
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
-      <Header title="¿Dónde prefieres?" subtitle="Selecciona una zona de Valencia" />
+      <Header title="¿Por qué zona te viene mejor?" subtitle="Selecciona una zona de Valencia" />
 
       <motion.div
         variants={containerVariants}
@@ -213,7 +213,7 @@ export function QuestionZone({
               : 'border-stone-300 text-stone-400 hover:border-stone-300'
           )}
         >
-          Cualquier zona
+          Me da igual la zona
         </motion.button>
       </motion.div>
 

@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Sparkles,
   ArrowRight,
+  Star,
 } from 'lucide-react'
 
 const stats = [
@@ -22,33 +23,33 @@ const stats = [
 const problems = [
   {
     icon: Clock,
-    title: 'Decides en 30 segundos',
-    desc: 'Olvídate de perder horas decidiendo dónde comer. Elige tipo de cocina, precio y zona al instante.',
+    title: 'Decides en minutos',
+    desc: 'Olvídate de comparar decenas de restaurantes. Elige tipo de comida, presupuesto y zona, y nosotros hacemos el resto.',
   },
   {
     icon: Target,
-    title: 'Encuentras tu sitio perfecto',
-    desc: 'Sin agobiarte con cien opciones. Te emparejamos con el restaurante ideal para ti.',
+    title: 'Menos opciones, mejores decisiones',
+    desc: 'No necesitas ver cien sitios para encontrar uno bueno. Te enseñamos solo las opciones que realmente encajan contigo.',
   },
   {
     icon: CheckCircle2,
-    title: 'Sales a comer sin estrés',
-    desc: 'Llama, consulta el menú o abre el mapa. Todo en un clic, sin complicaciones.',
+    title: 'Todo listo para salir',
+    desc: 'Consulta el menú, abre la ruta o llama directamente al restaurante. Sin vueltas. Sin estrés.',
   },
 ]
 
 const foodPhotos = [
   '1565299624946-b28f40a0ae38',
   '1504674900247-0877df9cc836',
-  '1546069901-b8e1f7c5d7a0',
+  '1540189549336-e6e99c3679fe',
   '1567620905732-2d1ec7ab7445',
   '1555939594-58d7cb561ad1',
-  '1476224203421-9ac39bcb332e',
+  '1432139555190-58524dae6a55',
   '1414235077428-338989a2e8c0',
   '1517248135467-4c7edcad34c4',
   '1507048331197-7d4ac70811cf',
-  '1466978913424-d6f5f97f1f2b',
-  '1490645935968-1fb47d0b24c3',
+  '1476124369491-e7addf5db371',
+  '1481070555726-e2fe8357725c',
   '1552566626-52f8b828add9',
 ]
 
@@ -85,7 +86,7 @@ function Carousel({ images }: { images: string[] }) {
       </AnimatePresence>
 
       {/* Overlay for contrast */}
-      <div className="absolute inset-0 bg-black/15" />
+      <div className="absolute inset-0 bg-black/45" />
 
       {/* Dots indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
@@ -105,6 +106,16 @@ function Carousel({ images }: { images: string[] }) {
 export default function LandingHero() {
   const { setStep, setSessionId } = useFlowStore()
 
+  const [wordIdx, setWordIdx] = useState(0)
+  const words = ['comer', 'cenar', 'tapear', 'picar']
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWordIdx((prev) => (prev + 1) % words.length)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [words.length])
+
   function handleStart() {
     setSessionId(getSessionId())
     setStep('questions')
@@ -113,51 +124,44 @@ export default function LandingHero() {
   return (
     <div className="min-h-dvh">
       {/* ===== HERO SECTION ===== */}
-      <section className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-white">
+      <section className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-stone-900">
         {/* Dynamic image carousel */}
         <Carousel images={foodPhotos} />
 
           <div className="relative mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 py-20 sm:px-8 sm:py-24 lg:gap-10 lg:py-28 xl:px-12">
-            {/* Badge - outside card */}
+            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-stone-900"
+              className="inline-flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm"
             >
-              <Sparkles className="h-4 w-4 text-stone-800" />
-              Encuentra tu sitio ideal en Valencia
+              <Sparkles className="h-4 w-4 text-white/80" />
+              Encuentra restaurante en Valencia en menos de un minuto
             </motion.div>
 
-            {/* Content card - only title & subtitle */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
+            {/* Heading */}
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="flex w-full flex-col items-center gap-4 rounded-3xl bg-white/60 px-8 py-10 text-center shadow-xl shadow-black/5 backdrop-blur-sm sm:gap-5 sm:px-12 sm:py-12 lg:gap-6 lg:px-16 lg:py-14"
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-center text-5xl font-extrabold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
+              style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}
             >
-              {/* Heading */}
-              <motion.h1
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-5xl font-extrabold tracking-tight text-stone-900 sm:text-6xl md:text-7xl lg:text-8xl"
-              >
-                DimeSitio
-              </motion.h1>
+              DimeSitio
+            </motion.h1>
 
-              <motion.p
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.35 }}
-                className="max-w-xl text-balance text-lg leading-relaxed text-stone-500 sm:text-xl md:text-2xl"
-              >
-                Cientos de restaurantes en Valencia. Una pregunta cada 10 segundos.
-                Tu sitio perfecto en 30.
-              </motion.p>
-            </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.35 }}
+              className="max-w-xl text-balance text-center text-lg leading-relaxed text-white/85 sm:text-xl md:text-2xl"
+              style={{ textShadow: '0 1px 12px rgba(0,0,0,0.25)' }}
+            >
+              Deja de perder 40 minutos eligiendo restaurante.
+            </motion.p>
 
-            {/* Big CTA button - outside card */}
+            {/* Big CTA button */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -167,22 +171,37 @@ export default function LandingHero() {
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleStart}
-                className="group inline-flex items-center gap-3 rounded-2xl bg-stone-800 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-black/20 transition-all hover:bg-stone-700 hover:shadow-2xl hover:shadow-black/30 sm:px-10 sm:py-5 sm:text-xl lg:px-12 lg:py-6 lg:text-2xl"
+                className="group inline-flex items-center gap-3 rounded-2xl border border-white/40 bg-white/20 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:bg-white/30 sm:px-10 sm:py-5 sm:text-xl lg:px-12 lg:py-6 lg:text-2xl"
               >
-                Encuentra dónde comer
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-stone-600 text-white transition-transform group-hover:translate-x-0.5">
+                <span className="inline-flex items-center gap-1">
+                  Encuentra dónde{' '}
+                  <span className="relative inline-flex items-center overflow-hidden" style={{ height: '1.25em' }}>
+                    <span className="invisible">{words.reduce((a, b) => a.length >= b.length ? a : b)}</span>
+                    <span className="absolute inset-0 inline-flex items-center justify-center">
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={words[wordIdx]}
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: -20, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {words[wordIdx]}
+                        </motion.span>
+                      </AnimatePresence>
+                    </span>
+                  </span>
+                </span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/25 text-white transition-transform group-hover:translate-x-0.5">
                   <ArrowRight className="h-5 w-5" />
                 </span>
               </motion.button>
-              <p className="mt-4 text-sm text-stone-400 sm:text-base">
-                Responde 3 preguntas. Te lleva menos de un minuto.
-              </p>
-              <p className="mt-4 text-sm text-stone-400 sm:text-base">
-                Responde 3 preguntas. Te lleva menos de un minuto.
+              <p className="mt-4 text-center text-sm text-white/70 sm:text-base">
+                Rápido, gratis y sin registrarte.
               </p>
             </motion.div>
 
-            {/* Food-type tags - outside card */}
+            {/* Food-type tags */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -192,23 +211,34 @@ export default function LandingHero() {
               {foodTypes.slice(0, 8).map((t) => (
                 <span
                   key={t}
-                  className="rounded-lg bg-stone-100/80 px-3 py-1.5 text-xs font-medium text-stone-700/80"
+                  className="rounded-lg bg-white/25 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm"
                 >
                   {t}
                 </span>
               ))}
-              <span className="rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-medium text-stone-400">
+              <span className="rounded-lg bg-white/20 px-3 py-1.5 text-xs font-medium text-white/50 backdrop-blur-sm">
                 +{foodTypes.length - 8} más
               </span>
             </motion.div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 1 }}
-              className="text-xs text-stone-400"
+              className="flex items-center justify-center gap-5 sm:gap-8"
             >
-              Más de {foodTypes.length} tipos de cocina · {stats[0].value} restaurantes · {stats[2].value} zonas
-            </motion.p>
+              <div className="flex items-center gap-1.5">
+                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                <span className="text-xs font-semibold text-white/80">{foodTypes.length} tipos de cocina</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                <span className="text-xs font-semibold text-white/80">{stats[0].value} restaurantes</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                <span className="text-xs font-semibold text-white/80">{stats[2].value} zonas de Valencia</span>
+              </div>
+            </motion.div>
           </div>
       </section>
 
@@ -224,10 +254,10 @@ export default function LandingHero() {
           >
             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-1.5 text-sm font-medium text-stone-900">
               <Sparkles className="h-4 w-4" />
-              Variedad para todos los gustos
+              Opciones para todos los gustos
             </span>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
-              Más de {foodTypes.length} tipos de cocina
+              Más de {foodTypes.length} tipos de cocina para elegir
             </h2>
           </motion.div>
 
@@ -277,10 +307,10 @@ export default function LandingHero() {
               El problema que resolvemos
             </span>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
-              Comer fuera no debería ser un quebradero de cabeza
+              Elegir restaurante no debería llevar más tiempo que la comida
             </h2>
             <p className="mx-auto mt-3 max-w-lg text-stone-500 sm:text-lg">
-            &ldquo;¿Dónde comemos hoy?&rdquo; — esa conversación de 45 minutos que acaba siempre en el mismo sitio.
+            &ldquo;¿Dónde comemos hoy?&rdquo; — la pregunta que acaba en 40 minutos mirando Google Maps para terminar yendo al mismo sitio de siempre.
             </p>
           </motion.div>
 
@@ -346,10 +376,10 @@ export default function LandingHero() {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
-              ¿Listo para dejar de preguntarte dónde comer?
+              Tu próximo restaurante está a menos de un minuto
             </h2>
             <p className="mt-3 text-stone-500 sm:text-lg">
-              Te llevará menos de un minuto.
+              Responde 3 preguntas y decide sin complicarte.
             </p>
           </motion.div>
 

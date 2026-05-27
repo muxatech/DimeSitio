@@ -24,7 +24,8 @@ export default function Top5Grid() {
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <Frown className="h-12 w-12 text-stone-300" />
         <p className="text-base text-stone-500 sm:text-lg">
-          No encontramos restaurantes con esos filtros
+          No encontramos restaurantes con esos filtros.
+          Prueba cambiando alguna opción.
         </p>
       </div>
     )
@@ -35,10 +36,10 @@ export default function Top5Grid() {
       <div className="space-y-1.5 sm:space-y-2">
         <div className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-700">
           <Sparkles className="h-3.5 w-3.5" />
-          Seleccionamos los mejores para ti
+          Tus mejores opciones
         </div>
         <h2 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl lg:text-4xl">
-          Tus mejores opciones
+          Restaurantes que encajan contigo
         </h2>
       </div>
 

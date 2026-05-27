@@ -19,7 +19,7 @@ export default function Footer() {
             DimeSitio
           </div>
           <p className="text-sm leading-relaxed text-stone-500">
-            Dile lo que te apetece y te recomendamos el mejor sitio para comer en Valencia.
+            Dinos qué te apetece y encuentra restaurante en Valencia sin perder tiempo decidiendo.
           </p>
         </div>
 
@@ -44,7 +44,7 @@ export default function Footer() {
       <div className="border-t border-stone-100 px-6 py-6 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 text-center text-xs text-stone-400 sm:flex-row sm:text-left">
           <span>&copy; {new Date().getFullYear()} DimeSitio. Todos los derechos reservados.</span>
-          <span>Hecho con ❤️ en Valencia</span>
+          <span>Hecho en Valencia ❤️</span>
         </div>
       </div>
     </footer>

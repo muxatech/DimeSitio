@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 
-const labels = ['¿Qué te apetece?', '¿Cuánto gastas?', '¿Dónde prefieres?']
+const labels = ['¿Qué te apetece?', '¿Cuánto gastas?', '¿Por qué zona?']
 
 export default function ProgressBar({
   current,

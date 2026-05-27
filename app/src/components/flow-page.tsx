@@ -18,8 +18,8 @@ import { getSessionId } from '@/lib/utils'
 
 const QUESTIONS = [
   { key: 'categories', label: '¿Qué te apetece?', subtitle: 'Tipo de cocina' },
-  { key: 'price', label: '¿Cuánto quieres gastar?', subtitle: 'Rango de precio' },
-  { key: 'zone', label: '¿Dónde prefieres?', subtitle: 'Zona de Valencia' },
+  { key: 'price', label: '¿Cuánto quieres gastar?', subtitle: 'Presupuesto' },
+  { key: 'zone', label: '¿Por qué zona?', subtitle: 'Zona de Valencia' },
 ] as const
 
 const pageVariants = {
@@ -109,7 +109,7 @@ export default function FlowPage() {
       <div className="flex min-h-dvh items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-stone-200 border-t-stone-900" />
-          <p className="text-sm text-stone-400">Buscando los mejores sitios...</p>
+          <p className="text-sm text-stone-400">Buscando los mejores restaurantes para ti...</p>
         </div>
       </div>
     )

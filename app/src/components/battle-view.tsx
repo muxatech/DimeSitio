@@ -34,10 +34,10 @@ export default function BattleView() {
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-700">
             <Swords className="h-3.5 w-3.5" />
-            Batalla culinaria
+            Elige tu favorito
           </div>
           <h2 className="text-xl font-bold tracking-tight text-stone-900 sm:text-2xl lg:text-3xl">
-            ¿Cuál prefieres?
+            ¿Cuál te convence más?
           </h2>
         </div>
         <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-gradient-to-r bg-stone-900 px-3 py-1 text-xs font-medium text-white sm:self-auto sm:px-4 sm:py-1.5 sm:text-sm">

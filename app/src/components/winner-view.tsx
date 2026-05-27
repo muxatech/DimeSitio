@@ -31,7 +31,7 @@ export default function WinnerView() {
           </span>
         </motion.div>
         <p className="text-sm font-medium text-stone-500 sm:text-base">
-          Tu elección
+          Tu restaurante ideal
         </p>
         <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
           {winner.name}
@@ -123,7 +123,7 @@ export default function WinnerView() {
         className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
       >
         <RotateCcw className="h-5 w-5" />
-        Empezar de nuevo
+        Volver a empezar
       </motion.button>
     </motion.div>
   )
