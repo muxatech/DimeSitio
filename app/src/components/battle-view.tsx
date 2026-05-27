@@ -1,97 +1,163 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel, getSessionId } from '@/lib/utils'
 import { trackSelection } from '@/lib/tracking'
 import type { Restaurant } from '@/types'
+import { MapPin, UtensilsCrossed, Sparkles, Swords } from 'lucide-react'
 
 export default function BattleView() {
   const { battleChampion, battleChallenger, battleRound, selectBattleWinner } = useFlowStore()
   const [picking, setPicking] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const totalRounds = useFlowStore((s) => s.top5.length) - 1
 
   if (!battleChampion || !battleChallenger) return null
 
   function handlePick(winner: Restaurant) {
     if (picking) return
     setPicking(true)
+    setSelectedId(winner.id)
     trackSelection(winner.id, getSessionId(), battleRound)
     setTimeout(() => {
       selectBattleWinner(winner)
+      setSelectedId(null)
       setPicking(false)
-    }, 300)
+    }, 400)
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="text-center text-2xl font-bold text-zinc-900">¿Cuál prefieres?</h2>
-      <p className="text-center text-zinc-500">Elige tu favorito</p>
-
-      <div className="flex flex-col gap-4">
-        <BattleCard
-          restaurant={battleChampion}
-          side="left"
-          onPick={handlePick}
-          disabled={picking}
-        />
-        <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-zinc-200" />
-          <span className="text-sm font-medium text-zinc-400">VS</span>
-          <div className="h-px flex-1 bg-zinc-200" />
+    <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <div className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-700">
+            <Swords className="h-3.5 w-3.5" />
+            Batalla culinaria
+          </div>
+          <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl lg:text-3xl">
+            ¿Cuál prefieres?
+          </h2>
         </div>
-        <BattleCard
-          restaurant={battleChallenger}
-          side="right"
-          onPick={handlePick}
-          disabled={picking}
-        />
+        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white sm:self-auto sm:px-4 sm:py-1.5 sm:text-sm">
+          <Sparkles className="h-3 w-3" />
+          Ronda {battleRound} de {totalRounds}
+        </span>
       </div>
 
-      <p className="text-center text-sm text-zinc-400">
-        Toca el restaurante que más te guste
-      </p>
+      <div className="flex gap-2 sm:gap-3">
+        {Array.from({ length: totalRounds }).map((_, i) => (
+          <div
+            key={i}
+            className={`h-1.5 flex-1 rounded-full transition-all duration-300 sm:h-2 ${
+              i < battleRound ? 'bg-zinc-900' : 'bg-zinc-200'
+            }`}
+          />
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={battleRound}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.25 }}
+          className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6 lg:gap-8"
+        >
+          <BattleCard
+            restaurant={battleChampion}
+            onPick={handlePick}
+            isSelected={selectedId === battleChampion.id}
+            disabled={picking}
+          />
+
+          <div className="flex items-center gap-3 sm:flex-col sm:py-16 sm:pt-20">
+            <div className="h-px flex-1 bg-zinc-200 sm:h-16 sm:w-px sm:flex-none" />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white shadow-md sm:h-12 sm:w-12 sm:text-sm">
+              VS
+            </span>
+            <div className="h-px flex-1 bg-zinc-200 sm:h-16 sm:w-px sm:flex-none" />
+          </div>
+
+          <BattleCard
+            restaurant={battleChallenger}
+            onPick={handlePick}
+            isSelected={selectedId === battleChallenger.id}
+            disabled={picking}
+          />
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }
 
 function BattleCard({
   restaurant,
-  side,
   onPick,
+  isSelected,
   disabled,
 }: {
   restaurant: Restaurant
-  side: 'left' | 'right'
   onPick: (r: Restaurant) => void
+  isSelected: boolean
   disabled: boolean
 }) {
   return (
     <motion.button
-      whileTap={{ scale: 0.96 }}
+      whileTap={{ scale: 0.97 }}
       onClick={() => onPick(restaurant)}
       disabled={disabled}
-      className="w-full overflow-hidden rounded-2xl border border-zinc-100 bg-white text-left shadow-md transition-shadow hover:shadow-lg active:shadow-sm"
+      className={`relative w-full overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition-all sm:flex-1 ${
+        isSelected
+          ? 'border-zinc-900 ring-2 ring-zinc-200 ring-offset-2'
+          : 'border-zinc-200 hover:shadow-md'
+      }`}
     >
-      <div className="h-40 bg-zinc-100 sm:h-48">
+      <div className="relative h-44 bg-zinc-100 sm:h-52 lg:h-64">
         {restaurant.image_url ? (
           <img
             src={restaurant.image_url}
             alt={restaurant.name}
             className="h-full w-full object-cover"
+            loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-5xl">🍽️</div>
+          <div className="flex h-full w-full items-center justify-center">
+            <UtensilsCrossed className="h-8 w-8 text-zinc-300 sm:h-10 sm:w-10" />
+          </div>
+        )}
+        {isSelected && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/5 backdrop-blur-[2px]">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-900 shadow-lg sm:h-20 sm:w-20"
+            >
+              <svg className="h-8 w-8 text-white sm:h-10 sm:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </motion.div>
+          </div>
         )}
       </div>
-      <div className="space-y-1 p-4">
-        <h3 className="text-lg font-bold text-zinc-900">{restaurant.name}</h3>
-        <div className="flex flex-wrap gap-2 text-sm text-zinc-500">
-          {restaurant.zone && <span>{restaurant.zone}</span>}
+      <div className="space-y-1.5 p-4 sm:p-5 lg:p-6">
+        <h3 className="text-lg font-bold text-zinc-900 sm:text-xl lg:text-2xl">
+          {restaurant.name}
+        </h3>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-400 sm:text-base">
+          {restaurant.zone && (
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5" /> {restaurant.zone}
+            </span>
+          )}
           <span>{getPriceLabel(restaurant.price_level)}</span>
         </div>
         {restaurant.description && (
-          <p className="line-clamp-2 text-sm text-zinc-400">{restaurant.description}</p>
+          <p className="line-clamp-2 text-sm leading-relaxed text-zinc-400 sm:text-base">
+            {restaurant.description}
+          </p>
         )}
       </div>
     </motion.button>

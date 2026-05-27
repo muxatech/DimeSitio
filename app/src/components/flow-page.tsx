@@ -16,7 +16,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { trackImpression } from '@/lib/tracking'
 import { getSessionId } from '@/lib/utils'
 
-const QUESTIONS = ['categories', 'price', 'zone'] as const
+const QUESTIONS = [
+  { key: 'categories', label: '¿Qué te apetece?', subtitle: 'Tipo de cocina' },
+  { key: 'price', label: '¿Cuánto quieres gastar?', subtitle: 'Rango de precio' },
+  { key: 'zone', label: '¿Dónde prefieres?', subtitle: 'Zona de Valencia' },
+] as const
+
+const pageVariants = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -16 },
+}
 
 export default function FlowPage() {
   const step = useFlowStore((s) => s.step)
@@ -96,8 +106,11 @@ export default function FlowPage() {
 
   if (catsLoading || restLoading) {
     return (
-      <div className="flex min-h-[60dvh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-200 border-t-orange-500" />
+      <div className="flex min-h-dvh items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-violet-200 border-t-violet-600" />
+          <p className="text-sm text-zinc-400">Buscando los mejores sitios...</p>
+        </div>
       </div>
     )
   }
@@ -105,37 +118,46 @@ export default function FlowPage() {
   const currentQuestion = QUESTIONS[qIndex]
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={step === 'questions' ? currentQuestion : step}
-        initial={{ opacity: 0, x: 32 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -32 }}
-        transition={{ duration: 0.2 }}
-      >
-        {step === 'questions' && (
-          <div className="flex flex-col gap-6">
-            <ProgressBar current={qIndex} total={QUESTIONS.length} />
-            <p className="text-xs font-medium uppercase tracking-wider text-orange-500">
-              Paso {qIndex + 1} de {QUESTIONS.length}
-            </p>
+    <div className="relative min-h-dvh bg-white">
+      <div className="mx-auto flex w-full max-w-2xl flex-col px-5 py-6 sm:px-8 sm:py-10 lg:max-w-4xl lg:px-12 lg:py-16 xl:max-w-5xl">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step === 'questions' ? currentQuestion.key : step}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="flex-1"
+          >
+            {step === 'questions' && (
+              <div className="flex flex-col gap-8 sm:gap-10 lg:gap-12">
+                <ProgressBar
+                  current={qIndex}
+                  total={QUESTIONS.length}
+                />
 
-            {currentQuestion === 'categories' && (
-              <QuestionCategories categories={categories ?? []} onNext={handleNextQuestion} />
+                {currentQuestion.key === 'categories' && (
+                  <QuestionCategories
+                    categories={categories ?? []}
+                    onNext={handleNextQuestion}
+                  />
+                )}
+                {currentQuestion.key === 'price' && (
+                  <QuestionPrice onNext={handleNextQuestion} />
+                )}
+                {currentQuestion.key === 'zone' && (
+                  <QuestionZone zones={zones} onNext={handleNextQuestion} />
+                )}
+              </div>
             )}
-            {currentQuestion === 'price' && (
-              <QuestionPrice onNext={handleNextQuestion} />
-            )}
-            {currentQuestion === 'zone' && (
-              <QuestionZone zones={zones} onNext={handleNextQuestion} />
-            )}
-          </div>
-        )}
 
-        {step === 'top5' && <Top5Grid />}
-        {step === 'battle' && <BattleView />}
-        {step === 'winner' && <WinnerView />}
-      </motion.div>
-    </AnimatePresence>
+            {step === 'top5' && <Top5Grid />}
+            {step === 'battle' && <BattleView />}
+            {step === 'winner' && <WinnerView />}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
   )
 }

@@ -1,9 +1,11 @@
 'use client'
 
+import { type ComponentType } from 'react'
 import { motion } from 'framer-motion'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel, getSessionId } from '@/lib/utils'
 import { trackCall } from '@/lib/tracking'
+import { MapPin, Phone, Navigation, Menu, PartyPopper, UtensilsCrossed, RotateCcw } from 'lucide-react'
 
 export default function WinnerView() {
   const { winner, reset, sessionId } = useFlowStore()
@@ -14,80 +16,115 @@ export default function WinnerView() {
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center gap-6"
+      className="flex flex-col gap-6 sm:gap-8 lg:gap-10"
     >
+      {/* Celebration header */}
       <div className="text-center">
-        <p className="text-sm font-medium text-orange-500">Tu elección</p>
-        <h2 className="mt-1 text-3xl font-bold text-zinc-900">{winner.name}</h2>
-      </div>
-
-      <div className="h-56 w-full overflow-hidden rounded-2xl bg-zinc-100 sm:h-64">
-        {winner.image_url ? (
-          <img
-            src={winner.image_url}
-            alt={winner.name}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-6xl">🍽️</div>
-        )}
-      </div>
-
-      <div className="w-full space-y-3">
-        <div className="flex flex-wrap gap-4 text-sm text-zinc-500">
-          {winner.zone && (
-            <span className="rounded-full bg-zinc-100 px-3 py-1">📍 {winner.zone}</span>
-          )}
-          <span className="rounded-full bg-zinc-100 px-3 py-1">
-            {getPriceLabel(winner.price_level)}
-          </span>
-          {winner.address && (
-            <span className="rounded-full bg-zinc-100 px-3 py-1">🏠 {winner.address}</span>
-          )}
-        </div>
-
-        {winner.description && (
-          <p className="text-zinc-500">{winner.description}</p>
-        )}
-      </div>
-
-      <div className="flex w-full flex-col gap-3">
-        {winner.phone && (
-          <ActionButton
-            href={`tel:${winner.phone}`}
-            label="Llamar"
-            emoji="📞"
-            className="bg-green-500 text-white shadow-lg shadow-green-200 hover:bg-green-600"
-            onTrack={() => trackCall(winner.id, sessionId || getSessionId())}
-          />
-        )}
-
-        {winner.lat && winner.lng && (
-          <ActionButton
-            href={`https://www.google.com/maps/dir/?api=1&destination=${winner.lat},${winner.lng}`}
-            label="Cómo llegar"
-            emoji="🗺️"
-            className="bg-blue-500 text-white shadow-lg shadow-blue-200 hover:bg-blue-600"
-          />
-        )}
-
-        {winner.menu_url && (
-          <ActionButton
-            href={winner.menu_url}
-            label="Ver menú"
-            emoji="📋"
-            className="bg-zinc-800 text-white hover:bg-zinc-900"
-          />
-        )}
-
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={reset}
-          className="mt-2 w-full rounded-full border-2 border-zinc-200 py-4 text-base font-semibold text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-800"
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.1 }}
+          className="mb-4 inline-flex items-center justify-center"
         >
-          Empezar de nuevo
-        </motion.button>
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 shadow-lg sm:h-16 sm:w-16">
+            <PartyPopper className="h-7 w-7 text-white sm:h-8 sm:w-8" />
+          </span>
+        </motion.div>
+        <p className="text-sm font-medium text-zinc-500 sm:text-base">
+          Tu elección
+        </p>
+        <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl lg:text-5xl">
+          {winner.name}
+        </h2>
       </div>
+
+      {/* Desktop: image + info side by side */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:gap-6 lg:gap-8">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.15 }}
+          className="overflow-hidden rounded-2xl bg-zinc-100 shadow-sm sm:flex-1"
+        >
+          <div className="relative h-56 bg-zinc-100 sm:h-full sm:min-h-64 lg:min-h-80">
+            {winner.image_url ? (
+              <img
+                src={winner.image_url}
+                alt={winner.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <UtensilsCrossed className="h-10 w-10 text-zinc-300 sm:h-12 sm:w-12" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
+          </div>
+        </motion.div>
+
+        {/* Info + actions column */}
+        <div className="flex flex-col gap-4 sm:w-72 sm:gap-5 lg:w-96 lg:gap-6">
+          <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+            <div className="flex flex-wrap gap-2">
+              {winner.zone && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-600 sm:text-base">
+                  <MapPin className="h-3.5 w-3.5" /> {winner.zone}
+                </span>
+              )}
+              <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-600 sm:text-base">
+                {getPriceLabel(winner.price_level)}
+              </span>
+              {winner.address && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-600 sm:text-base">
+                  <MapPin className="h-3.5 w-3.5" /> {winner.address}
+                </span>
+              )}
+            </div>
+            {winner.description && (
+              <p className="pt-1 text-sm leading-relaxed text-zinc-500 sm:text-base">
+                {winner.description}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2 sm:gap-3">
+            {winner.phone && (
+              <ActionButton
+                href={`tel:${winner.phone}`}
+                label="Llamar"
+                icon={Phone}
+                onTrack={() => trackCall(winner.id, sessionId || getSessionId())}
+              />
+            )}
+
+            {winner.lat && winner.lng && (
+              <ActionButton
+                href={`https://www.google.com/maps/dir/?api=1&destination=${winner.lat},${winner.lng}`}
+                label="Cómo llegar"
+                icon={Navigation}
+              />
+            )}
+
+            {winner.menu_url && (
+              <ActionButton
+                href={winner.menu_url}
+                label="Ver menú"
+                icon={Menu}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <motion.button
+        whileTap={{ scale: 0.97 }}
+        whileHover={{ scale: 1.02 }}
+        onClick={reset}
+        className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-zinc-900 py-4 text-base font-semibold text-white shadow-lg shadow-zinc-200/50 transition-all hover:bg-zinc-800 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
+      >
+        <RotateCcw className="h-5 w-5" />
+        Empezar de nuevo
+      </motion.button>
     </motion.div>
   )
 }
@@ -95,26 +132,25 @@ export default function WinnerView() {
 function ActionButton({
   href,
   label,
-  emoji,
-  className,
+  icon: Icon,
   onTrack,
 }: {
   href: string
   label: string
-  emoji: string
-  className: string
+  icon: ComponentType<{ className?: string }>
   onTrack?: () => void
 }) {
   return (
     <motion.a
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.97 }}
+      whileHover={{ scale: 1.02 }}
       href={href}
       target={href.startsWith('http') ? '_blank' : undefined}
       rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
       onClick={onTrack}
-      className={`flex items-center justify-center gap-2 rounded-full py-4 text-lg font-semibold transition-colors ${className}`}
+      className="inline-flex items-center justify-center gap-3 rounded-2xl border border-zinc-200 bg-white py-4 text-base font-semibold text-zinc-700 shadow-sm transition-all hover:bg-zinc-50 hover:shadow-md sm:py-4 sm:text-lg lg:py-5"
     >
-      <span>{emoji}</span>
+      <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
       {label}
     </motion.a>
   )

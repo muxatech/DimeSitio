@@ -1,19 +1,38 @@
 'use client'
 
-export default function ProgressBar({ current, total }: { current: number; total: number }) {
+import { motion } from 'framer-motion'
+import { Sparkles } from 'lucide-react'
+
+const labels = ['¿Qué te apetece?', '¿Cuánto gastas?', '¿Dónde prefieres?']
+
+export default function ProgressBar({
+  current,
+  total,
+}: {
+  current: number
+  total: number
+}) {
   const pct = ((current + 1) / total) * 100
 
   return (
-    <div className="w-full">
-      <div className="h-1 w-full rounded-full bg-zinc-200">
-        <div
-          className="h-1 rounded-full bg-orange-500 transition-all duration-300"
-          style={{ width: `${pct}%` }}
+    <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="flex items-center justify-between">
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-700">
+          <Sparkles className="h-3.5 w-3.5" />
+          {labels[current] ?? `Paso ${current + 1}`}
+        </span>
+        <span className="text-sm text-zinc-400">
+          {current + 1} / {total}
+        </span>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+        <motion.div
+          className="h-full rounded-full bg-zinc-900"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
         />
       </div>
-      <p className="mt-1 text-right text-xs text-zinc-400">
-        {current + 1} / {total}
-      </p>
     </div>
   )
 }

@@ -3,21 +3,45 @@
 import { motion } from 'framer-motion'
 import { useFlowStore } from '@/store/flow-store'
 import { cn } from '@/lib/utils'
+import { Banknote, Coins, Crown, MapPin } from 'lucide-react'
 
 interface QuestionStepProps {
   onNext: () => void
 }
 
 const priceOptions = [
-  { value: 1, label: '€', desc: 'Barato' },
-  { value: 2, label: '€€', desc: 'Normal' },
-  { value: 3, label: '€€€', desc: 'Caro' },
+  { value: 1, label: 'Barato', desc: 'Menos de 15€', Icon: Banknote },
+  { value: 2, label: 'Normal', desc: 'Entre 15€ y 30€', Icon: Coins },
+  { value: 3, label: 'Caro', desc: 'Más de 30€', Icon: Crown },
 ]
+
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0 },
+}
+
+function Header({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="space-y-1.5 sm:space-y-2">
+      <h2 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl lg:text-4xl">
+        {title}
+      </h2>
+      <p className="text-sm text-zinc-400 sm:text-base lg:text-lg">
+        {subtitle}
+      </p>
+    </div>
+  )
+}
 
 export function QuestionCategories({
   categories,
   onNext,
-}: QuestionStepProps & { categories: { id: string; name: string; icon: string | null }[] }) {
+}: QuestionStepProps & { categories: { id: string; name: string }[] }) {
   const { selectedCategoryIds, setSelectedCategoryIds } = useFlowStore()
 
   function toggle(id: string) {
@@ -28,39 +52,48 @@ export function QuestionCategories({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="text-2xl font-bold text-zinc-900">¿Qué te apetece?</h2>
-      <p className="text-zinc-500">Elige uno o varios tipos de comida</p>
-      <div className="flex flex-wrap gap-3">
+    <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+      <Header title="¿Qué te apetece?" subtitle="Elige uno o varios tipos de comida" />
+
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="flex flex-wrap gap-2.5 sm:gap-3 lg:gap-4"
+      >
         {categories.map((cat) => (
           <motion.button
             key={cat.id}
+            variants={itemVariants}
             whileTap={{ scale: 0.95 }}
             onClick={() => toggle(cat.id)}
             className={cn(
-              'rounded-xl border-2 px-5 py-3 text-base font-medium transition-colors',
+              'rounded-2xl border-2 px-4 py-3 text-sm font-medium shadow-sm transition-all sm:px-5 sm:py-3.5 sm:text-base lg:px-6 lg:py-4 lg:text-lg',
               selectedCategoryIds.includes(cat.id)
-                ? 'border-orange-500 bg-orange-50 text-orange-700'
-                : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300'
+                ? 'border-zinc-900 bg-zinc-100 text-zinc-900'
+                : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:shadow-md'
             )}
           >
-            {cat.icon && <span className="mr-2">{cat.icon}</span>}
             {cat.name}
           </motion.button>
         ))}
-      </div>
+      </motion.div>
+
       <motion.button
-        whileTap={{ scale: 0.95 }}
+        whileTap={{ scale: 0.97 }}
+        whileHover={{ scale: 1.02 }}
         onClick={onNext}
         disabled={selectedCategoryIds.length === 0}
         className={cn(
-          'mt-4 w-full rounded-full py-4 text-lg font-semibold text-white transition-colors',
+          'w-full rounded-2xl py-4 text-base font-semibold text-white shadow-lg transition-all sm:py-4 sm:text-lg lg:py-5 lg:text-xl',
           selectedCategoryIds.length > 0
-            ? 'bg-orange-500 shadow-lg shadow-orange-200 hover:bg-orange-600'
-            : 'bg-zinc-300'
+            ? 'bg-zinc-900 shadow-zinc-200/50 hover:bg-zinc-800'
+            : 'bg-zinc-200 text-zinc-400'
         )}
       >
-        Siguiente
+        {selectedCategoryIds.length > 0
+          ? `Siguiente (${selectedCategoryIds.length})`
+          : 'Selecciona al menos uno'}
       </motion.button>
     </div>
   )
@@ -70,39 +103,67 @@ export function QuestionPrice({ onNext }: QuestionStepProps) {
   const { selectedPriceLevel, setSelectedPriceLevel } = useFlowStore()
 
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="text-2xl font-bold text-zinc-900">¿Cuánto quieres gastar?</h2>
-      <p className="text-zinc-500">Selecciona tu rango de precio</p>
-      <div className="flex gap-3">
+    <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+      <Header title="¿Cuánto quieres gastar?" subtitle="Selecciona tu rango de precio" />
+
+      <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:gap-6">
         {priceOptions.map((opt) => (
           <motion.button
             key={opt.value}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setSelectedPriceLevel(opt.value as 1 | 2 | 3)}
             className={cn(
-              'flex flex-1 flex-col items-center gap-1 rounded-xl border-2 py-6 transition-colors',
+              'flex items-center gap-4 rounded-2xl border-2 px-5 py-5 text-left shadow-sm transition-all sm:gap-5 sm:px-6 sm:py-6 lg:flex-1 lg:flex-col lg:items-center lg:gap-4 lg:py-8 lg:text-center',
               selectedPriceLevel === opt.value
-                ? 'border-orange-500 bg-orange-50 text-orange-700'
-                : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300'
+                ? 'border-zinc-900 bg-zinc-100 text-zinc-900'
+                : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:shadow-md'
             )}
           >
-            <span className="text-2xl font-bold">{opt.label}</span>
-            <span className="text-sm">{opt.desc}</span>
+            <span
+              className={cn(
+                'flex h-12 w-12 items-center justify-center rounded-xl sm:h-14 sm:w-14 lg:h-16 lg:w-16',
+                selectedPriceLevel === opt.value
+                  ? 'bg-zinc-900 text-white shadow-md'
+                  : 'bg-zinc-100 text-zinc-400'
+              )}
+            >
+              <opt.Icon className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
+            </span>
+            <div className="flex-1 lg:flex-none">
+              <p className="text-lg font-semibold sm:text-xl lg:text-2xl">{opt.label}</p>
+              <p className="text-sm text-zinc-400 sm:text-base">{opt.desc}</p>
+            </div>
+            <div
+              className={cn(
+                'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all sm:h-7 sm:w-7',
+                selectedPriceLevel === opt.value
+                  ? 'border-zinc-900 bg-zinc-900'
+                  : 'border-zinc-300'
+              )}
+            >
+              {selectedPriceLevel === opt.value && (
+                <svg className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
           </motion.button>
         ))}
       </div>
+
       <motion.button
-        whileTap={{ scale: 0.95 }}
+        whileTap={{ scale: 0.97 }}
+        whileHover={{ scale: 1.02 }}
         onClick={onNext}
         disabled={selectedPriceLevel === null}
         className={cn(
-          'mt-4 w-full rounded-full py-4 text-lg font-semibold text-white transition-colors',
+          'w-full rounded-2xl py-4 text-base font-semibold text-white shadow-lg transition-all sm:py-4 sm:text-lg lg:py-5 lg:text-xl',
           selectedPriceLevel !== null
-            ? 'bg-orange-500 shadow-lg shadow-orange-200 hover:bg-orange-600'
-            : 'bg-zinc-300'
+            ? 'bg-zinc-900 shadow-zinc-200/50 hover:bg-zinc-800'
+            : 'bg-zinc-200 text-zinc-400'
         )}
       >
-        Siguiente
+        {selectedPriceLevel !== null ? 'Siguiente' : 'Selecciona un precio'}
       </motion.button>
     </div>
   )
@@ -115,42 +176,52 @@ export function QuestionZone({
   const { selectedZone, setSelectedZone } = useFlowStore()
 
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="text-2xl font-bold text-zinc-900">¿Dónde prefieres?</h2>
-      <p className="text-zinc-500">Selecciona una zona de Valencia</p>
-      <div className="flex flex-wrap gap-3">
+    <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+      <Header title="¿Dónde prefieres?" subtitle="Selecciona una zona de Valencia" />
+
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="flex flex-wrap gap-2.5 sm:gap-3 lg:gap-4"
+      >
         {zones.map((zone) => (
           <motion.button
             key={zone}
+            variants={itemVariants}
             whileTap={{ scale: 0.95 }}
             onClick={() => setSelectedZone(zone === selectedZone ? null : zone)}
             className={cn(
-              'rounded-xl border-2 px-5 py-3 text-base font-medium transition-colors',
+              'inline-flex items-center gap-2 rounded-2xl border-2 px-5 py-3 text-sm font-medium shadow-sm transition-all sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-lg',
               selectedZone === zone
-                ? 'border-orange-500 bg-orange-50 text-orange-700'
-                : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300'
+                ? 'border-zinc-900 bg-zinc-100 text-zinc-900'
+                : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:shadow-md'
             )}
           >
+            <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
             {zone}
           </motion.button>
         ))}
         <motion.button
+          variants={itemVariants}
           whileTap={{ scale: 0.95 }}
           onClick={() => setSelectedZone(null)}
           className={cn(
-            'rounded-xl border-2 border-dashed px-5 py-3 text-base font-medium transition-colors',
+            'inline-flex items-center gap-2 rounded-2xl border-2 border-dashed px-5 py-3 text-sm font-medium transition-all sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-lg',
             selectedZone === null
-              ? 'border-orange-300 bg-orange-50 text-orange-500'
-              : 'border-zinc-200 text-zinc-400 hover:border-zinc-300'
+              ? 'border-zinc-500 bg-zinc-100 text-zinc-700'
+              : 'border-zinc-300 text-zinc-400 hover:border-zinc-300'
           )}
         >
           Cualquier zona
         </motion.button>
-      </div>
+      </motion.div>
+
       <motion.button
-        whileTap={{ scale: 0.95 }}
+        whileTap={{ scale: 0.97 }}
+        whileHover={{ scale: 1.02 }}
         onClick={onNext}
-        className="mt-4 w-full rounded-full bg-orange-500 py-4 text-lg font-semibold text-white shadow-lg shadow-orange-200 transition-colors hover:bg-orange-600"
+        className="w-full rounded-2xl bg-zinc-900 py-4 text-base font-semibold text-white shadow-lg shadow-zinc-200/50 transition-all hover:bg-zinc-800 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
       >
         Ver resultados
       </motion.button>
