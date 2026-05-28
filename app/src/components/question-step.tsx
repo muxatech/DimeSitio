@@ -8,6 +8,8 @@ import { Banknote, Coins, Crown, MapPin, ArrowLeft } from 'lucide-react'
 interface QuestionStepProps {
   onNext: () => void
   onBack?: () => void
+  title?: string
+  subtitle?: string
 }
 
 const priceOptions = [
@@ -42,6 +44,9 @@ function Header({ title, subtitle }: { title: string; subtitle: string }) {
 export function QuestionCategories({
   categories,
   onNext,
+  onBack,
+  title = '¿Qué te apetece hoy?',
+  subtitle = 'Selecciona uno o varios tipos de comida',
 }: QuestionStepProps & { categories: { id: string; name: string }[] }) {
   const { selectedCategoryIds, setSelectedCategoryIds } = useFlowStore()
 
@@ -54,7 +59,17 @@ export function QuestionCategories({
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
-      <Header title="¿Qué te apetece hoy?" subtitle="Selecciona uno o varios tipos de comida" />
+      {onBack && (
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Atrás
+        </motion.button>
+      )}
+      <Header title={title} subtitle={subtitle} />
 
       <motion.div
         variants={containerVariants}
@@ -100,7 +115,7 @@ export function QuestionCategories({
   )
 }
 
-export function QuestionPrice({ onNext, onBack }: QuestionStepProps) {
+export function QuestionPrice({ onNext, onBack, title = '¿Cuánto quieres gastar?', subtitle = 'Elige un rango de precio aproximado' }: QuestionStepProps) {
   const { selectedPriceLevel, setSelectedPriceLevel } = useFlowStore()
 
   return (
@@ -115,7 +130,7 @@ export function QuestionPrice({ onNext, onBack }: QuestionStepProps) {
           Atrás
         </motion.button>
       )}
-      <Header title="¿Cuánto quieres gastar?" subtitle="Elige un rango de precio aproximado" />
+      <Header title={title} subtitle={subtitle} />
 
       <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:gap-6">
         {priceOptions.map((opt) => (
@@ -184,6 +199,8 @@ export function QuestionZone({
   zones,
   onNext,
   onBack,
+  title = '¿Por qué zona te viene mejor?',
+  subtitle = 'Selecciona una zona de Valencia',
 }: QuestionStepProps & { zones: string[] }) {
   const { selectedZone, setSelectedZone } = useFlowStore()
 
@@ -199,7 +216,7 @@ export function QuestionZone({
           Atrás
         </motion.button>
       )}
-      <Header title="¿Por qué zona te viene mejor?" subtitle="Selecciona una zona de Valencia" />
+      <Header title={title} subtitle={subtitle} />
 
       <motion.div
         variants={containerVariants}

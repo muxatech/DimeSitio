@@ -13,62 +13,38 @@ import {
   ArrowRight,
   Star,
 } from 'lucide-react'
-
-const stats = [
-  { value: '18+', label: 'Restaurantes' },
-  { value: '15', label: 'Tipos de cocina' },
-  { value: '5', label: 'Zonas' },
-  { value: '0€', label: 'Siempre gratis' },
-]
+import { FOOD_PHOTOS, FOOD_TYPES, PROBLEMS, HERO_STATS } from '@/lib/constants'
 
 const problems = [
   {
     icon: Clock,
-    title: 'Decides en minutos',
-    desc: 'Olvídate de comparar decenas de restaurantes. Elige tipo de comida, presupuesto y zona, y nosotros hacemos el resto.',
+    title: PROBLEMS[0].title,
+    desc: PROBLEMS[0].desc,
   },
   {
     icon: Target,
-    title: 'Menos opciones, mejores decisiones',
-    desc: 'No necesitas ver cien sitios para encontrar uno bueno. Te enseñamos solo las opciones que realmente encajan contigo.',
+    title: PROBLEMS[1].title,
+    desc: PROBLEMS[1].desc,
   },
   {
     icon: CheckCircle2,
-    title: 'Todo listo para salir',
-    desc: 'Consulta el menú, abre la ruta o llama directamente al restaurante. Sin vueltas. Sin estrés.',
+    title: PROBLEMS[2].title,
+    desc: PROBLEMS[2].desc,
   },
-]
-
-const foodPhotos = [
-  '1565299624946-b28f40a0ae38',
-  '1504674900247-0877df9cc836',
-  '1540189549336-e6e99c3679fe',
-  '1567620905732-2d1ec7ab7445',
-  '1555939594-58d7cb561ad1',
-  '1432139555190-58524dae6a55',
-  '1414235077428-338989a2e8c0',
-  '1517248135467-4c7edcad34c4',
-  '1507048331197-7d4ac70811cf',
-  '1476124369491-e7addf5db371',
-  '1481070555726-e2fe8357725c',
-  '1552566626-52f8b828add9',
-]
-
-const foodTypes = [
-  'Italiano', 'Japonés', 'Mexicano', 'Mediterráneo', 'Asiático',
-  'Español', 'Argentino', 'Indio', 'Turco', 'Marroquí',
-  'Peruano', 'Tailandés', 'Griego', 'Francés', 'Americano',
 ]
 
 function Carousel({ images }: { images: string[] }) {
   const [idx, setIdx] = useState(0)
 
   useEffect(() => {
+    if (images.length === 0) return
     const interval = setInterval(() => {
       setIdx((prev) => (prev + 1) % images.length)
     }, 4500)
     return () => clearInterval(interval)
   }, [images.length])
+
+  if (images.length === 0) return null
 
   return (
     <div className="pointer-events-none absolute inset-0 select-none">
@@ -129,7 +105,7 @@ export default function LandingHero() {
       {/* ===== HERO SECTION ===== */}
       <section className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-stone-900">
         {/* Dynamic image carousel */}
-        <Carousel images={foodPhotos} />
+        <Carousel images={FOOD_PHOTOS} />
 
           <div className="relative mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 py-20 sm:px-8 sm:py-24 lg:gap-10 lg:py-28 xl:px-12">
             {/* Badge */}
@@ -211,7 +187,7 @@ export default function LandingHero() {
               transition={{ duration: 0.6, delay: 0.8 }}
               className="flex w-full flex-wrap items-center justify-center gap-2 lg:gap-2.5"
             >
-              {foodTypes.slice(0, 8).map((t) => (
+              {FOOD_TYPES.slice(0, 8).map((t) => (
                 <span
                   key={t}
                   className="rounded-lg bg-white/25 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm"
@@ -220,7 +196,7 @@ export default function LandingHero() {
                 </span>
               ))}
               <span className="rounded-lg bg-white/20 px-3 py-1.5 text-xs font-medium text-white/50 backdrop-blur-sm">
-                +{foodTypes.length - 8} más
+                +{FOOD_TYPES.length - 8} más
               </span>
             </motion.div>
             <motion.div
@@ -231,15 +207,15 @@ export default function LandingHero() {
             >
               <div className="flex items-center gap-1.5">
                 <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs font-semibold text-white/80">{foodTypes.length} tipos de cocina</span>
+                <span className="text-xs font-semibold text-white/80">{FOOD_TYPES.length} tipos de cocina</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs font-semibold text-white/80">{stats[0].value} restaurantes</span>
+                <span className="text-xs font-semibold text-white/80">{HERO_STATS[0].value} restaurantes</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs font-semibold text-white/80">{stats[2].value} zonas de Valencia</span>
+                <span className="text-xs font-semibold text-white/80">{HERO_STATS[2].value} zonas de Valencia</span>
               </div>
             </motion.div>
           </div>
@@ -260,12 +236,12 @@ export default function LandingHero() {
               Opciones para todos los gustos
             </span>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
-              Más de {foodTypes.length} tipos de cocina para elegir
+              Más de {FOOD_TYPES.length} tipos de cocina para elegir
             </h2>
           </motion.div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
-            {foodPhotos.map((id, i) => (
+            {FOOD_PHOTOS.map((id, i) => (
               <motion.div
                 key={id}
                 initial={{ opacity: 0, y: 16 }}
@@ -349,7 +325,7 @@ export default function LandingHero() {
       {/* ===== STATS BANNER ===== */}
       <section className="border-y border-stone-100 bg-stone-50">
         <div className="mx-auto flex max-w-5xl flex-wrap justify-center gap-8 px-6 py-12 sm:gap-12 sm:py-16 lg:gap-16 lg:px-12">
-          {stats.map((stat) => (
+          {HERO_STATS.map((stat) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, scale: 0.9 }}

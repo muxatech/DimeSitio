@@ -10,7 +10,26 @@ import { MapPin, Phone, Navigation, Menu, PartyPopper, UtensilsCrossed, RotateCc
 export default function WinnerView() {
   const { winner, reset, sessionId } = useFlowStore()
 
-  if (!winner) return null
+  if (!winner) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50">
+          <svg className="h-7 w-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <p className="text-base font-semibold text-stone-700 sm:text-lg">No se ha seleccionado ningún restaurante</p>
+        <p className="max-w-xs text-sm text-stone-400">Vuelve a empezar y busca tu restaurante ideal.</p>
+        <button
+          onClick={reset}
+          className="inline-flex items-center gap-2 rounded-2xl bg-stone-800 px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-all hover:bg-stone-700"
+        >
+          <RotateCcw className="h-5 w-5" />
+          Volver a empezar
+        </button>
+      </div>
+    )
+  }
 
   return (
     <motion.div

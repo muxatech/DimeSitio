@@ -28,6 +28,8 @@ export function getSessionId(): string {
   return id
 }
 
+import { PRICE_LABELS } from './constants'
+
 export function getPriceLabel(level: 1 | 2 | 3): string {
-  return '€'.repeat(level)
+  return PRICE_LABELS[level] ?? '€'.repeat(level)
 }

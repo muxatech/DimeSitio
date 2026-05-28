@@ -67,15 +67,17 @@ export default function Top5Grid() {
         ))}
       </motion.div>
 
-      <motion.button
-        whileTap={{ scale: 0.97 }}
-        whileHover={{ scale: 1.02 }}
-        onClick={initBattle}
-        className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
-      >
-        <Swords className="h-5 w-5" />
-        Elegir favorito
-      </motion.button>
+      {top5.length >= 2 && (
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.02 }}
+          onClick={initBattle}
+          className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
+        >
+          <Swords className="h-5 w-5" />
+          Elegir favorito
+        </motion.button>
+      )}
     </div>
   )
 }

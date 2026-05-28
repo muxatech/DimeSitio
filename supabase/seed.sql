@@ -83,7 +83,7 @@ insert into restaurants (name, description, phone, address, city, lat, lng, pric
     '+34963987654',
     'Plaça de Tapineria',
     'Valencia', 39.4770, -0.3735, 1,
-    'https://images.unsplash.com/photo-1555661054-639727511f0b',
+    'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe',
     'https://mercadotapineria.es',
     'El Centro', true
   ),

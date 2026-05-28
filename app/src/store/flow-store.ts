@@ -1,6 +1,22 @@
 import { create } from 'zustand'
 import type { FlowStep, Restaurant } from '@/types'
 
+export interface FlowDataState {
+  step: FlowStep
+  sessionId: string
+  qIndex: number
+  selectedCategoryIds: string[]
+  selectedPriceLevel: number | null
+  selectedZone: string | null
+  filteredRestaurants: Restaurant[]
+  top5: Restaurant[]
+  battleChampion: Restaurant | null
+  battleChallenger: Restaurant | null
+  battlePool: Restaurant[]
+  battleRound: number
+  winner: Restaurant | null
+}
+
 interface FlowStore {
   step: FlowStep
   sessionId: string
@@ -27,8 +43,10 @@ interface FlowStore {
   initBattle: () => void
   selectBattleWinner: (winner: Restaurant) => void
   setWinner: (restaurant: Restaurant) => void
+  resetQuestionState: () => void
   goBackToQuestions: () => void
   reset: () => void
+  hydrate: (state: Partial<FlowDataState>) => void
 }
 
 export const useFlowStore = create<FlowStore>((set, get) => ({
@@ -76,6 +94,7 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       battleChallenger: challenger,
       battlePool: pool,
       battleRound: 1,
+      winner: null,
     })
   },
 
@@ -105,6 +124,20 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
 
   setWinner: (restaurant) => set({ winner: restaurant, step: 'winner' }),
 
+  resetQuestionState: () =>
+    set({
+      qIndex: 0,
+      selectedCategoryIds: [],
+      selectedPriceLevel: null,
+      selectedZone: null,
+      filteredRestaurants: [],
+      top5: [],
+      battleChampion: null,
+      battleChallenger: null,
+      battlePool: [],
+      battleRound: 0,
+    }),
+
   goBackToQuestions: () => set({ step: 'questions', qIndex: 0 }),
 
   reset: () =>
@@ -123,4 +156,6 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       battleRound: 0,
       winner: null,
     }),
+
+  hydrate: (state) => set(state),
 }))

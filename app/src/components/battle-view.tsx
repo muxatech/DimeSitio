@@ -6,15 +6,34 @@ import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel, getSessionId } from '@/lib/utils'
 import { trackSelection } from '@/lib/tracking'
 import type { Restaurant } from '@/types'
-import { MapPin, UtensilsCrossed, Sparkles, Swords } from 'lucide-react'
+import { MapPin, UtensilsCrossed, Sparkles, Swords, RotateCcw } from 'lucide-react'
 
 export default function BattleView() {
-  const { battleChampion, battleChallenger, battleRound, selectBattleWinner } = useFlowStore()
+  const { battleChampion, battleChallenger, battleRound, selectBattleWinner, reset } = useFlowStore()
   const [picking, setPicking] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const totalRounds = useFlowStore((s) => s.top5.length) - 1
 
-  if (!battleChampion || !battleChallenger) return null
+  if (!battleChampion || !battleChallenger) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50">
+          <svg className="h-7 w-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <p className="text-base font-semibold text-stone-700 sm:text-lg">Algo salió mal</p>
+        <p className="max-w-xs text-sm text-stone-400">No pudimos cargar la comparación. Vuelve a empezar.</p>
+        <button
+          onClick={reset}
+          className="inline-flex items-center gap-2 rounded-2xl bg-stone-800 px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-all hover:bg-stone-700"
+        >
+          <RotateCcw className="h-5 w-5" />
+          Volver a empezar
+        </button>
+      </div>
+    )
+  }
 
   function handlePick(winner: Restaurant) {
     if (picking) return
