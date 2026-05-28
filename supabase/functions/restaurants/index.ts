@@ -469,7 +469,7 @@ async function handleStats(
 // ─── Router ─────────────────────────────────────────────────
 
 function route(method: string, pathname: string): { handler: string; params: Record<string, string> } {
-  const path = pathname.replace(/^\/functions\/v1\/restaurants/, '') || '/'
+  const path = pathname.replace(/^\/functions\/v1\/restaurants/, '').replace(/^\/restaurants/, '') || '/'
 
   if (method === 'POST' && path === '/') return { handler: 'create', params: {} }
   if (method === 'GET' && path === '/mine') return { handler: 'listMine', params: {} }

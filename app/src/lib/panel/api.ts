@@ -10,7 +10,7 @@ async function getToken(): Promise<string> {
 
 async function invoke<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
   const token = await getToken()
-  const { data, error } = await supabase.functions.invoke('restaurants', {
+  const { data, error } = await supabase.functions.invoke(`restaurants${path}`, {
     method,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -18,31 +18,37 @@ async function invoke<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: stri
     },
     body: body ? JSON.stringify(body) : undefined,
   })
-  if (error) throw new Error(error.message)
+  if (error) {
+    let detail = error.message
+    if (error.context && typeof error.context.text === 'function') {
+      try { detail = await error.context.text() } catch {}
+    }
+    throw new Error(detail)
+  }
   return data as T
 }
 
 export async function getMyRestaurants(): Promise<RestaurantWithRole[]> {
-  const res = await invoke<{ success: boolean; data: RestaurantWithRole[] }>('GET', '/restaurants/mine')
+  const res = await invoke<{ success: boolean; data: RestaurantWithRole[] }>('GET', '/mine')
   return res.data ?? []
 }
 
 export async function createRestaurant(data: RestaurantFormData): Promise<RestaurantWithRole> {
-  const res = await invoke<{ success: boolean; data: RestaurantWithRole }>('POST', '/restaurants', data)
+  const res = await invoke<{ success: boolean; data: RestaurantWithRole }>('POST', '/', data)
   return res.data
 }
 
 export async function updateRestaurant(id: string, data: Partial<RestaurantFormData>): Promise<RestaurantWithRole> {
-  const res = await invoke<{ success: boolean; data: RestaurantWithRole }>('PATCH', `/restaurants/${id}`, data)
+  const res = await invoke<{ success: boolean; data: RestaurantWithRole }>('PATCH', `/${id}`, data)
   return res.data
 }
 
 export async function deleteRestaurant(id: string): Promise<void> {
-  await invoke('DELETE', `/restaurants/${id}`)
+  await invoke('DELETE', `/${id}`)
 }
 
 export async function getRestaurantStats(id: string): Promise<RestaurantStats> {
-  const res = await invoke<{ success: boolean; data: RestaurantStats }>('GET', `/restaurants/${id}/stats`)
+  const res = await invoke<{ success: boolean; data: RestaurantStats }>('GET', `/${id}/stats`)
   return res.data
 }
 

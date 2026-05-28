@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -23,9 +22,9 @@ const registerSchema = z
 type RegisterForm = z.infer<typeof registerSchema>
 
 export default function RegisterPage() {
-  const router = useRouter()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [registered, setRegistered] = useState(false)
 
   const {
     register,
@@ -41,13 +40,44 @@ export default function RegisterPage() {
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     })
     setLoading(false)
     if (error) {
       setError(error.message)
       return
     }
-    router.push('/dashboard')
+    setRegistered(true)
+  }
+
+  if (registered) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-white px-5">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: 'easeInOut' }}
+          className="w-full max-w-sm text-center"
+        >
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900 shadow-lg">
+              <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+          <h1 className="mb-1 text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">
+            Revisa tu email
+          </h1>
+          <p className="mb-8 text-sm leading-relaxed text-stone-500 sm:text-base">
+            Te hemos enviado un email de confirmación a tu bandeja de entrada.
+            Haz clic en el enlace para activar tu cuenta y después inicia sesión.
+          </p>
+        </motion.div>
+      </div>
+    )
   }
 
   return (
