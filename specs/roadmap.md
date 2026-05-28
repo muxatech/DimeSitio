@@ -10,9 +10,9 @@
 **Objetivo:** Infraestructura base funcionando localmente.
 
 ### Backend / DB
-- [ ] Inicializar proyecto Supabase (`supabase init`)
-- [ ] Configurar `config.toml` (puertos, schema, seed)
-- [ ] Definir schema SQL inicial:
+- [x] Inicializar proyecto Supabase (`supabase init`)
+- [x] Configurar `config.toml` (puertos, schema, seed)
+- [x] Definir schema SQL inicial:
   - `restaurants` (id, name, description, image_url, food_type, price_range, zone, lat, lng, phone, menu_url, active, created_at)
   - `categories` (id, name, icon)
   - `restaurant_categories` (restaurant_id, category_id)
@@ -20,16 +20,16 @@
   - `impressions` (id, restaurant_id, session_id, created_at)
   - `selections` (id, restaurant_id, session_id, round, created_at)
   - `calls` (id, restaurant_id, session_id, created_at)
-- [ ] Crear seed SQL con 15-20 restaurantes ficticios
-- [ ] Aplicar migración + seed (`supabase db reset`)
-- [ ] Configurar RLS básico (lectura pública para restaurants, escritura solo autenticado)
+- [x] Crear seed SQL con 15-20 restaurantes ficticios
+- [x] Aplicar migración + seed (`supabase db reset`)
+- [x] Configurar RLS básico (lectura pública para restaurants, escritura solo autenticado)
 
 ### Frontend
-- [ ] Inicializar Next.js (App Router) + TypeScript
-- [ ] Configurar Tailwind CSS
-- [ ] Configurar Supabase client (anónimo, para queries públicas)
-- [ ] Configurar ESLint + Prettier
-- [ ] Crear layout base (viewport mobile-first, font, colores)
+- [x] Inicializar Next.js (App Router) + TypeScript
+- [x] Configurar Tailwind CSS
+- [x] Configurar Supabase client (anónimo, para queries públicas)
+- [x] Configurar ESLint + Prettier
+- [x] Crear layout base (viewport mobile-first, font, colores)
 
 ### Dependencias
 - Ninguna. Fase 0 no depende de nada.
@@ -45,30 +45,30 @@
 **Objetivo:** Usuario anónimo llega, responde preguntas, obtiene un restaurante recomendado.
 
 ### Frontend
-- [ ] **Landing page**: hero con CTA "Encuentra dónde comer"
-- [ ] **Flujo de preguntas** (componente tarjetas):
-  - "¿Qué te apetece?" → categorías (botones grandes)
-  - "¿Cuánto quieres gastar?" → rango precio
-  - "¿Qué ambiente buscas?" → tags
-  - "¿Cuánta distancia aceptas?" → slider/radio
-- [ ] **Top 5**: grid de 5 tarjetas con imagen, nombre, tipo, distancia, precio, rating
-- [ ] **Comparador Tinder 1v1**:
-  - Mostrar Restaurante A vs Restaurante B
-  - Tap/click para elegir favorito
-  - Animación de transición
-  - Eliminatoria hasta que queda 1
-- [ ] **Pantalla resultado final**:
-  - Restaurante ganador (imagen grande, nombre, tipo, precio, distancia)
-  - Botón "Llamar" (tel://)
-  - Botón "Cómo llegar" (Google Maps)
-  - Botón "Ver menú" (link externo)
-  - Botón "Empezar de nuevo"
+- [x] **Landing page**: hero con CTA "Encuentra dónde comer"
+- [x] **Flujo de preguntas** (componente tarjetas):
+  - [x] "¿Qué te apetece?" → categorías (botones grandes)
+  - [x] "¿Cuánto quieres gastar?" → rango precio
+  - [ ] "¿Qué ambiente buscas?" → tags
+  - [ ] "¿Cuánta distancia aceptas?" → slider/radio
+- [x] **Top 5**: grid de 5 tarjetas con imagen, nombre, tipo, distancia, precio, rating
+- [x] **Comparador Tinder 1v1**:
+  - [x] Mostrar Restaurante A vs Restaurante B
+  - [x] Tap/click para elegir favorito
+  - [x] Animación de transición
+  - [x] Eliminatoria hasta que queda 1
+- [x] **Pantalla resultado final**:
+  - [x] Restaurante ganador (imagen grande, nombre, tipo, precio, distancia)
+  - [x] Botón "Llamar" (tel://)
+  - [x] Botón "Cómo llegar" (Google Maps)
+  - [x] Botón "Ver menú" (link externo)
+  - [x] Botón "Empezar de nuevo"
 
 ### Backend / DB
-- [ ] Edge Function `GET /restaurants` (filtrado server-side si es necesario, o直接用 query directa desde cliente)
-- [ ] Edge Function `POST /events/impression` (tracking anónimo)
-- [ ] Edge Function `POST /events/selection`
-- [ ] Edge Function `POST /events/call`
+- [x] Edge Function `GET /restaurants` (filtrado server-side si es necesario, o直接用 query directa desde cliente)
+- [x] Edge Function `POST /events/impression` (tracking anónimo)
+- [x] Edge Function `POST /events/selection`
+- [x] Edge Function `POST /events/call`
 
 ### Dependencias
 - DB: `restaurants`, `categories`, `restaurant_categories` deben existir (Fase 0)
@@ -207,10 +207,10 @@
 **Objetivo:** Producto listo para producción.
 
 ### Frontend
-- [ ] SEO básico: meta tags, Open Graph, sitemap.xml
+- [x] SEO básico: meta tags, Open Graph, sitemap.xml
 - [ ] Responsive refinado (mobile → tablet → desktop)
 - [ ] Loading states, error states, empty states en todos los componentes
-- [ ] Optimización de imágenes (next/image)
+- [x] Optimización de imágenes (next/image)
 - [ ] Página 404
 - [ ] Términos y condiciones, política de privacidad
 
