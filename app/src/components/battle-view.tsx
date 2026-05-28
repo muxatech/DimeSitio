@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel, getSessionId } from '@/lib/utils'
 import { trackSelection } from '@/lib/tracking'
@@ -136,11 +137,12 @@ function BattleCard({
     >
       <div className="relative h-44 bg-stone-100 sm:h-52 lg:h-64">
         {restaurant.image_url ? (
-          <img
+          <Image
             src={restaurant.image_url}
             alt={restaurant.name}
+            width={400}
+            height={300}
             className="h-full w-full object-cover"
-            loading="lazy"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">

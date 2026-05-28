@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
 import { getSessionId } from '@/lib/utils'
 import { trackStart } from '@/lib/tracking'
@@ -14,6 +15,8 @@ import {
   Star,
 } from 'lucide-react'
 import { FOOD_PHOTOS, FOOD_TYPES, PROBLEMS, HERO_STATS } from '@/lib/constants'
+
+const MotionImage = motion(Image)
 
 const problems = [
   {
@@ -49,16 +52,18 @@ function Carousel({ images }: { images: string[] }) {
   return (
     <div className="pointer-events-none absolute inset-0 select-none">
       <AnimatePresence initial={false} custom={idx}>
-        <motion.img
+        <MotionImage
           key={idx}
           src={`https://images.unsplash.com/photo-${images[idx]}?w=1600&h=1000&fit=crop&auto=format`}
           alt=""
+          width={1600}
+          height={1000}
           className="absolute inset-0 h-full w-full object-cover opacity-40"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '-100%' }}
           transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          onError={() => { /* ignore broken images */ }}
         />
       </AnimatePresence>
 
@@ -256,11 +261,12 @@ export default function LandingHero() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
                     </svg>
                   </div>
-                  <img
+                  <Image
                     src={`https://images.unsplash.com/photo-${id}?w=600&h=500&fit=crop&auto=format`}
                     alt=""
+                    width={600}
+                    height={500}
                     className="relative h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
                     onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0' }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />

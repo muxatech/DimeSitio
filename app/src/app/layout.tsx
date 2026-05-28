@@ -11,11 +11,28 @@ const jakartaSans = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "DimeSitio — Encuentra dónde comer",
-  description: "Responde unas preguntas y descubre el restaurante perfecto para hoy.",
+  metadataBase: new URL('https://dimesitio.es'),
+  title: {
+    default: 'DimeSitio — Encuentra dónde comer en Valencia',
+    template: '%s | DimeSitio',
+  },
+  description: 'Responde 3 preguntas y descubre el restaurante perfecto para hoy en Valencia. Rápido, gratis y sin registrarte.',
   openGraph: {
-    title: "DimeSitio",
-    description: "Encuentra dónde comer en Valencia",
+    siteName: 'DimeSitio',
+    title: 'DimeSitio — Encuentra dónde comer',
+    description: 'Responde unas preguntas y descubre el restaurante perfecto para hoy.',
+    url: 'https://dimesitio.es',
+    locale: 'es_ES',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DimeSitio — Encuentra dónde comer',
+    description: 'Responde 3 preguntas y descubre el restaurante perfecto para hoy en Valencia.',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 }
 

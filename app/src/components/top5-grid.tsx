@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel } from '@/lib/utils'
 import type { Restaurant } from '@/types'
@@ -90,11 +91,12 @@ function RestaurantCard({ restaurant, rank }: { restaurant: Restaurant; rank: nu
     >
       <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-stone-100 sm:h-40 sm:w-full lg:h-48">
         {restaurant.image_url ? (
-          <img
+          <Image
             src={restaurant.image_url}
             alt={restaurant.name}
+            width={300}
+            height={200}
             className="h-full w-full object-cover"
-            loading="lazy"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
