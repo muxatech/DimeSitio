@@ -49,8 +49,8 @@
 - [x] **Flujo de preguntas** (componente tarjetas):
   - [x] "¿Qué te apetece?" → categorías (botones grandes)
   - [x] "¿Cuánto quieres gastar?" → rango precio
-  - [ ] "¿Qué ambiente buscas?" → tags
-  - [ ] "¿Cuánta distancia aceptas?" → slider/radio
+  - [ ] "¿Qué ambiente buscas?" → tags *(deferido — post-MVP)*
+  - [ ] "¿Cuánta distancia aceptas?" → slider/radio *(deferido — post-MVP)*
 - [x] **Top 5**: grid de 5 tarjetas con imagen, nombre, tipo, distancia, precio, rating
 - [x] **Comparador Tinder 1v1**:
   - [x] Mostrar Restaurante A vs Restaurante B
@@ -97,34 +97,41 @@
 > El panel debe sentirse como parte de la misma app, no como un dashboard separado.
 
 ### Frontend
-- [ ] Pantalla de login/registro (email + password, Supabase Auth)
-- [ ] Dashboard:
+- [x] Pantalla de login/registro (email + password, Supabase Auth)
+- [x] Dashboard:
   - Estadísticas básicas (impresiones, selecciones, llamadas)
   - Estado suscripción (activa/inactiva)
   - Lista de establecimientos
-- [ ] Formulario de creación/edición de establecimiento:
+- [x] Formulario de creación/edición de establecimiento:
   - Nombre
   - Descripción
   - Tipo de comida (selector categorías)
   - Rango de precio
-  - Zona
-  - Dirección / coordenadas
+  - Zona (selector desde ZONES + "Otra...")
+  - Dirección (sin coordenadas)
   - Teléfono
   - URL menú
-  - Horarios
-  - Fotos (subida a Storage)
-- [ ] Nav lateral o header con secciones: Dashboard, Establecimientos, Suscripción
+  - URL imagen (sin Storage)
+  - Switch "Activo" (solo edición)
+- [x] Nav lateral con secciones: Dashboard, Establecimientos, Suscripción
+- [x] Página de suscripción (placeholder para Stripe Fase 3)
 
 ### Backend / DB
-- [ ] Edge Function `POST /restaurants` (crear, requiere auth de restaurante)
-- [ ] Edge Function `PATCH /restaurants/:id` (editar)
-- [ ] Edge Function `DELETE /restaurants/:id`
-- [ ] Configurar Storage bucket `restaurant-images` (RLS: solo dueño escribe, público lee)
-- [ ] Edge Function `GET /restaurants/mine` (lista del restaurante autenticado)
-- [ ] RLS actualizado: escritura solo para owner via `restaurant_admin` table
+- [x] Edge Function `POST /restaurants` (crear, requiere auth)
+- [x] Edge Function `PATCH /restaurants/:id` (editar, permisos owner)
+- [x] Edge Function `DELETE /restaurants/:id`
+- [x] Edge Function `GET /restaurants/mine` (lista del restaurante autenticado)
+- [x] Edge Function `GET /restaurants/:id/stats` (estadísticas)
+- [x] RLS actualizado: escritura solo para admin via `restaurant_admin` table
 
 ### DB nuevas tablas
-- [ ] `restaurant_admins` (id, restaurant_id, user_id, created_at) — relación usuario-restaurante
+- [x] `restaurant_admins` (id, restaurant_id, user_id, role, created_at) — relación usuario-restaurante
+
+### Observaciones
+- **Sin Storage**: Las imágenes son URL externas (no upload a Supabase Storage). Se difiere a Fase 3+ si es necesario.
+- **Sin coordenadas**: `lat`/`lng` eliminados del formulario. "Cómo llegar" usa Google Maps Search con dirección textual.
+- **Sin roles manager**: El backend soporta `owner`/`manager` en DB, pero el frontend solo expone `owner`. Manager es dead code para MVP.
+- **Sin horarios**: Campo diferido a futura iteración.
 
 ### Dependencias
 - Auth de Supabase debe estar habilitado (Fase 0)
@@ -209,7 +216,7 @@
 ### Frontend
 - [x] SEO básico: meta tags, Open Graph, sitemap.xml
 - [ ] Responsive refinado (mobile → tablet → desktop)
-- [ ] Loading states, error states, empty states en todos los componentes
+- [x] Loading states, error states, empty states en todos los componentes
 - [x] Optimización de imágenes (next/image)
 - [ ] Página 404
 - [ ] Términos y condiciones, política de privacidad

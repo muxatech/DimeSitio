@@ -22,30 +22,32 @@ El frontend nunca accede directamente a lógica sensible.
 # Responsabilidades Edge Functions
 
 ## Usuario
-- Generar Top 5
-- Procesar respuestas
-- Registrar analytics
-- Registrar clicks llamadas
+- Registrar analytics (impresiones, selecciones, llamadas)
+- **Nota**: El filtrado de restaurantes, generación del Top 5 y lógica de batalla se ejecutan **en cliente** (React + Zustand), no en Edge Functions.
 
 ## Restaurantes
-- Gestión perfil
-- Dashboard estadísticas
-- Stripe webhooks
-- Suscripciones
+- CRUD de establecimientos (crear, editar, eliminar, listar)
+- Estadísticas por establecimiento
+- Stripe webhooks (Fase 3)
+- Suscripciones (Fase 3)
 
 ---
 
 # Sistema recomendación MVP
 
-## Inputs
-- Tipo comida
-- Distancia
-- Presupuesto
+## Inputs (MVP actual)
+- Tipo de comida (categorías)
+- Presupuesto (1-3)
+- Zona
+
+## Inputs (deferidos — post-MVP)
 - Ambiente
+- Distancia
 - Horario
 
 ## Algoritmo inicial
-Filtrado + scoring simple.
+Filtrado por categorías + precio + zona, shuffle aleatorio, top 5.
+Batalla 1v1 hasta que queda 1 ganador.
 
 No usar IA compleja inicialmente.
 

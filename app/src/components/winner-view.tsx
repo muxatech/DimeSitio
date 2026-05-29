@@ -119,9 +119,9 @@ export default function WinnerView() {
               />
             )}
 
-            {winner.lat && winner.lng && (
+            {winner.address && (
               <ActionButton
-                href={`https://www.google.com/maps/dir/?api=1&destination=${winner.lat},${winner.lng}`}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winner.address + ', Valencia')}`}
                 label="Cómo llegar"
                 icon={Navigation}
               />

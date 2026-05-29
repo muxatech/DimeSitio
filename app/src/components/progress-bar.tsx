@@ -12,8 +12,6 @@ export default function ProgressBar({
   current: number
   total: number
 }) {
-  const pct = ((current + 1) / total) * 100
-
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
       <div className="flex items-center justify-between">
@@ -28,8 +26,8 @@ export default function ProgressBar({
       <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100">
         <motion.div
           className="h-full rounded-full bg-stone-900"
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
+          initial={false}
+          animate={{ width: `${(current / total) * 100}%` }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         />
       </div>

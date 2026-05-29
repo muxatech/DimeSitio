@@ -12,68 +12,26 @@ Nunca acceder directamente a lógica sensible.
 
 # Endpoints MVP
 
-## POST /search/start
+> **Nota**: El filtrado de restaurantes, generación del Top 5 y lógica de batalla 1v1 se ejecutan **completamente en cliente** (React + TanStack Query + Zustand). No existen Edge Functions para search/battle. Solo se usan Edge Functions para eventos y CRUD del panel restaurante.
 
-Inicia búsqueda usuario.
+## Supabase queries directas (cliente público)
 
-Input:
-- session_id
-- location
-- initial_answers
+- `GET /restaurants?select=*,restaurant_categories(category_id)&active=eq.true` — restaurantes activos
+- `GET /categories?select=*` — categorías de comida
 
-Output:
-- search_id
+## Event tracking (Edge Functions)
 
----
+### POST /events/impression
 
-## POST /search/answer
+Registra que un restaurante apareció en el Top 5 de un usuario.
 
-Guarda respuesta usuario.
+### POST /events/selection
 
-Input:
-- search_id
-- question_id
-- answer
+Registra que un restaurante fue seleccionado como favorito en batalla.
 
-Output:
-- next_question
-- progress
+### POST /events/call
 
----
-
-## POST /search/top5
-
-Genera Top 5 restaurantes.
-
-Input:
-- search_id
-
-Output:
-- restaurants[]
-
----
-
-## POST /battle/select
-
-Guarda elección Tinder.
-
-Input:
-- battle_id
-- selected_restaurant_id
-
-Output:
-- next_battle
-- final_result opcional
-
----
-
-## POST /analytics/call
-
-Registra click llamar.
-
-Input:
-- restaurant_id
-- search_id
+Registra click en botón llamar de un restaurante ganador.
 
 ---
 
@@ -132,21 +90,22 @@ Input:
 - description
 - phone
 - address
-- lat, lng
 - price_level (required, 1-3)
 - zone (required)
 - image_url
 - menu_url
+- active
 - category_ids (array de category_id)
 
 Output: restaurant creado
 
 ## PATCH /restaurants/:id
 
-Actualizar información de un restaurante. Verifica que el usuario tiene rol
-`owner` o `manager` en `restaurant_admins` para ese restaurante.
+Actualizar información de un restaurante. Verifica que el usuario tiene acceso
+como admin en `restaurant_admins` para ese restaurante (rol `owner` — el rol `manager`
+existe en backend pero no se expone en frontend MVP).
 
-Input: mismos campos que POST (todos opcionales en PATCH)
+Input: mismos campos que POST (todos opcionales en PATCH), más `active` (boolean)
 
 ## DELETE /restaurants/:id
 

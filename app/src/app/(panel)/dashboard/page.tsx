@@ -147,6 +147,7 @@ export default function DashboardPage() {
                     <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Impresiones</th>
                     <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Selecciones</th>
                     <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Llamadas</th>
+                    <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Suscripción</th>
                     <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Estado</th>
                   </tr>
                 </thead>
@@ -163,6 +164,17 @@ export default function DashboardPage() {
                       <td className="px-4 py-3 text-stone-500 sm:px-5">{r.stats?.impressions ?? 0}</td>
                       <td className="px-4 py-3 text-stone-500 sm:px-5">{r.stats?.selections ?? 0}</td>
                       <td className="px-4 py-3 text-stone-500 sm:px-5">{r.stats?.calls ?? 0}</td>
+                      <td className="px-4 py-3 sm:px-5">
+                        <span
+                          className={
+                            r.subscription_status === 'active'
+                              ? 'rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white'
+                              : 'rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-400'
+                          }
+                        >
+                          {r.subscription_status === 'active' ? 'Activa' : 'Inactiva'}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 sm:px-5">
                         <span
                           className={

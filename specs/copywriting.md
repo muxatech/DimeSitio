@@ -41,7 +41,7 @@ Indio, Turco, Marroquí, Peruano, Tailandés, Griego, Francés, Americano
 
 ## Stats con estrellas
 
-15 tipos de cocina · 18+ restaurantes · 5 zonas de Valencia
+15 tipos de cocina · 18+ restaurantes · 22 zonas de Valencia
 
 ---
 
@@ -51,7 +51,7 @@ Indio, Turco, Marroquí, Peruano, Tailandés, Griego, Francés, Americano
 |-------|-----------|
 | 18+ | Restaurantes |
 | 15 | Tipos de cocina |
-| 5 | Zonas |
+| 22 | Zonas |
 | 0€ | Siempre gratis |
 
 ---

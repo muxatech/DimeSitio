@@ -5,12 +5,13 @@ import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, Store, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Store, LogOut, Menu, X, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/establecimientos', label: 'Establecimientos', icon: Store },
+  { href: '/suscripcion', label: 'Suscripción', icon: CreditCard },
 ]
 
 export default function PanelLayout({ children }: { children: React.ReactNode }) {

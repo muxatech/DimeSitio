@@ -4,6 +4,14 @@ export const PRICE_LABELS: Record<number, string> = {
   3: '€€€',
 }
 
+export const ZONES = [
+  'El Centro', 'El Carmen', 'Ruzafa', 'Ensanche', 'Extramurs',
+  'Campanar', 'Benimaclet', 'Algiros', 'Ciutat Vella', 'Quatre Carreres',
+  'Jesús', 'Marítim', 'Poblats Marítims', 'Camins al Grau',
+  "L'Olivereta", 'Patraix', 'La Saïdia', 'Plà del Real',
+  'Benicalap', 'Pobles del Nord', "Pobles de l'Oest", 'Pobles del Sud',
+]
+
 export const QUESTIONS = [
   { key: 'categories', label: '¿Qué te apetece?', subtitle: 'Tipo de cocina' },
   { key: 'price', label: '¿Cuánto quieres gastar?', subtitle: 'Presupuesto' },
@@ -49,6 +57,6 @@ export const PROBLEMS = [
 export const HERO_STATS = [
   { value: '18+', label: 'Restaurantes' },
   { value: '15', label: 'Tipos de cocina' },
-  { value: '5', label: 'Zonas' },
+  { value: '22', label: 'Zonas' },
   { value: '0€', label: 'Siempre gratis' },
 ]

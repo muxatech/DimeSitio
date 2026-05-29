@@ -48,6 +48,7 @@ Campos:
 Roles:
 - **owner**: control total (editar, eliminar, gestionar suscripción, ver stats)
 - **manager**: solo editar perfil y ver stats (no eliminar, no gestionar suscripción)
+  - **Nota MVP**: El rol `manager` existe en backend pero **no se expone en frontend**. El panel solo gestiona `owner`. Manager es dead code para MVP, listo para cuando se necesiten roles delegados.
 
 Cada restaurante es autónomo:
 - Perfil propio (nombre, descripción, fotos, categorías, etc.)
@@ -172,7 +173,7 @@ auth.users ──< restaurant_admins >── restaurants
 ## Panel restaurante (autenticado vía restaurant_admins)
 - SELECT sobre restaurants: solo si el usuario está en restaurant_admins para ese restaurante
 - INSERT: solo si el usuario crea (se añade automáticamente como owner)
-- UPDATE: solo owner o manager (según operación)
+- UPDATE: cualquier admin en `restaurant_admins` (frontend solo owner en MVP)
 - DELETE: solo owner
 
 ## Estadísticas (autenticado)

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useFlowStore } from '@/store/flow-store'
 import { cn } from '@/lib/utils'
+import { ZONES } from '@/lib/constants'
 import { Banknote, Coins, Crown, MapPin, ArrowLeft } from 'lucide-react'
 
 interface QuestionStepProps {
@@ -196,12 +197,12 @@ export function QuestionPrice({ onNext, onBack, title = '¿Cuánto quieres gasta
 }
 
 export function QuestionZone({
-  zones,
+  zones = ZONES,
   onNext,
   onBack,
   title = '¿Por qué zona te viene mejor?',
   subtitle = 'Selecciona una zona de Valencia',
-}: QuestionStepProps & { zones: string[] }) {
+}: QuestionStepProps & { zones?: string[] }) {
   const { selectedZone, setSelectedZone } = useFlowStore()
 
   return (

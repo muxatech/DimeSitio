@@ -6,37 +6,28 @@ Reducir opciones rápidamente.
 
 ---
 
-# Preguntas MVP
+# Preguntas MVP (3 preguntas)
 
-## Tipo comida
-- italiano
-- sushi
-- hamburguesas
-- tapas
-- mexicano
+## 1. Tipo de comida (categorías)
+El usuario selecciona una o varias categorías de comida de las disponibles en la DB.
+Botones grandes seleccionables. Mínimo 1 para continuar.
 
-## Precio
-- €
-- €€
-- €€€
+## 2. Precio
+- Barato (€) — menos de 15€
+- Normal (€€) — entre 15€ y 30€
+- Caro (€€€) — más de 30€
 
-## Ambiente
-- romántico
-- rápido
-- grupo
-- familiar
-- moderno
+## 3. Zona
+Selector de entre 22 zonas de Valencia (constante `ZONES` en `constants.ts`).
+Opción "Me da igual la zona" para saltar el filtro.
 
-## Distancia
-- menos de 1km
-- menos de 5km
-- cualquier distancia
+---
 
-## Momento
-- desayuno
-- comida
-- cena
-- tardeo
+# Preguntas deferidas (post-MVP)
+
+- **Ambiente**: romántico, rápido, grupo, familiar, moderno
+- **Distancia**: menos de 1km, menos de 5km, cualquier distancia
+- **Momento**: desayuno, comida, cena, tardeo
 
 ---
 

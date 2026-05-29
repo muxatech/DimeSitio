@@ -1,11 +1,11 @@
 'use client'
 
-import { useMemo, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useFlowStore, type FlowDataState } from '@/store/flow-store'
 import { shuffle } from '@/lib/utils'
-import { QUESTIONS } from '@/lib/constants'
+import { QUESTIONS, ZONES } from '@/lib/constants'
 import type { Category, Restaurant, FlowStep } from '@/types'
 import LandingHero from '@/components/landing-hero'
 import { QuestionCategories, QuestionPrice, QuestionZone } from '@/components/question-step'
@@ -117,6 +117,13 @@ export default function FlowPage() {
     prevStep.current = step
   }, [step, qIndex])
 
+  // Scroll to top when entering the questions flow
+  useEffect(() => {
+    if (step !== 'landing') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [step])
+
   // Back button — restore state from history
   useEffect(() => {
     function onPopState(e: PopStateEvent) {
@@ -163,11 +170,7 @@ export default function FlowPage() {
     },
   })
 
-  const zones = useMemo(() => {
-    if (!allRestaurants) return []
-    const unique = new Set(allRestaurants.map((r) => r.zone).filter(Boolean))
-    return [...unique] as string[]
-  }, [allRestaurants])
+  const zones = ZONES
 
   function handleNextQuestion() {
     const next = qIndex + 1

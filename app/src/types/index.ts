@@ -56,11 +56,10 @@ export interface RestaurantFormData {
   description?: string
   phone?: string
   address?: string
-  lat?: number | null
-  lng?: number | null
   price_level: 1 | 2 | 3
   zone: string
   image_url?: string
   menu_url?: string
+  active?: boolean
   category_ids: string[]
 }

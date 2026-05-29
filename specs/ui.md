@@ -17,15 +17,18 @@
   "Encuentra dónde comer"
 
 ## Preguntas
-Formato tarjetas:
-- ¿Qué te apetece?
-- ¿Cuánto quieres gastar?
+Formato tarjetas (3 preguntas MVP):
+- ¿Qué te apetece? (categorías)
+- ¿Cuánto quieres gastar? (precio 1-3)
+- ¿Por qué zona? (selector de zonas)
+
+Deferidas (post-MVP):
 - ¿Qué ambiente buscas?
 - ¿Cuánta distancia aceptas?
 
 Respuesta rápida:
 - Botones grandes
-- Swipe opcional
+- Swipe opcional (futuro)
 
 ---
 
@@ -34,10 +37,10 @@ Respuesta rápida:
 Mostrar:
 - Imagen
 - Nombre
-- Tipo comida
-- Distancia
+- Zona
 - Precio
-- Rating interno
+
+No se muestra distancia ni rating interno en MVP.
 
 ---
 
@@ -73,11 +76,16 @@ Mostrar:
 
 ## Gestión local
 - Editar información
-- Horarios
-- Fotos
 - Tipos de comida
 - Teléfono
 - Zona
+- URL menú
+- URL imagen (sin Storage)
+- Switch activar/desactivar
+
+Deferido:
+- Horarios
+- Subida de fotos a Storage
 
 ---
 

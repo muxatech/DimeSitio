@@ -7,10 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info, x-region',
 }
 
-const OWNER_FIELDS = new Set(['name', 'description', 'phone', 'address', 'lat', 'lng', 'price_level', 'zone', 'image_url', 'menu_url', 'active', 'category_ids'])
-const MANAGER_FIELDS = new Set(['name', 'description', 'phone', 'address', 'lat', 'lng', 'zone', 'image_url', 'menu_url', 'category_ids'])
-const OWNER_ONLY = new Set(['price_level', 'active'])
-
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -34,22 +30,23 @@ async function getUser(authHeader: string | null, supabase: ReturnType<typeof cr
   return data.user
 }
 
-async function getAdminRole(
+async function getAdminAccess(
   supabase: ReturnType<typeof createClient>,
   restaurantId: string,
   userId: string
-): Promise<string | null> {
+): Promise<boolean> {
   const { data, error } = await supabase
     .from('restaurant_admins')
-    .select('role')
+    .select('id')
     .eq('restaurant_id', restaurantId)
     .eq('user_id', userId)
     .maybeSingle()
-  if (error || !data) return null
-  return data.role
+  if (error || !data) return false
+  return true
 }
 
 const VALID_PRICE_LEVELS = new Set([1, 2, 3])
+const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'active', 'category_ids'])
 
 function validateCreate(body: Record<string, unknown>) {
   const errors: string[] = []
@@ -64,12 +61,6 @@ function validateCreate(body: Record<string, unknown>) {
   }
   if (body.address !== undefined && typeof body.address !== 'string') {
     errors.push('address must be a string')
-  }
-  if (body.lat !== undefined && (typeof body.lat !== 'number' || body.lat < -90 || body.lat > 90)) {
-    errors.push('lat must be a number between -90 and 90')
-  }
-  if (body.lng !== undefined && (typeof body.lng !== 'number' || body.lng < -180 || body.lng > 180)) {
-    errors.push('lng must be a number between -180 and 180')
   }
   if (!body.price_level || !VALID_PRICE_LEVELS.has(body.price_level as number)) {
     errors.push('price_level is required and must be 1, 2, or 3')
@@ -103,27 +94,19 @@ function sanitizeStrings(body: Record<string, unknown>) {
   return sanitized
 }
 
-function validateUpdate(
-  body: Record<string, unknown>,
-  role: string
-): string[] {
+function validateUpdate(body: Record<string, unknown>): string[] {
   const errors: string[] = []
-  const allowed = role === 'owner' ? OWNER_FIELDS : MANAGER_FIELDS
 
   for (const key of Object.keys(body)) {
+    if (!VALID_UPDATE_FIELDS.has(key)) {
+      errors.push(`Invalid field: ${key}`)
+      continue
+    }
     if (key === 'category_ids') {
       if (!Array.isArray(body[key])) {
         errors.push('category_ids must be an array')
       } else if (!body[key].every((id: unknown) => typeof id === 'string')) {
         errors.push('category_ids must contain only strings')
-      }
-      continue
-    }
-    if (!allowed.has(key)) {
-      if (role !== 'owner' && OWNER_ONLY.has(key)) {
-        errors.push(`Only owners can change: ${key}`)
-      } else {
-        errors.push(`Invalid field: ${key}`)
       }
       continue
     }
@@ -135,12 +118,6 @@ function validateUpdate(
     }
     if (['description', 'phone', 'address', 'zone', 'image_url', 'menu_url'].includes(key) && typeof body[key] !== 'string') {
       errors.push(`${key} must be a string`)
-    }
-    if (key === 'lat' && (typeof body[key] !== 'number' || body[key] < -90 || body[key] > 90)) {
-      errors.push('lat must be a number between -90 and 90')
-    }
-    if (key === 'lng' && (typeof body[key] !== 'number' || body[key] < -180 || body[key] > 180)) {
-      errors.push('lng must be a number between -180 and 180')
     }
     if (key === 'active' && typeof body[key] !== 'boolean') {
       errors.push('active must be a boolean')
@@ -173,8 +150,6 @@ async function handleCreate(supabase: ReturnType<typeof createClient>, user: { i
       phone: sanitized.phone ?? null,
       address: sanitized.address ?? null,
       city: 'Valencia',
-      lat: sanitized.lat ?? null,
-      lng: sanitized.lng ?? null,
       price_level: sanitized.price_level,
       image_url: sanitized.image_url ?? null,
       menu_url: sanitized.menu_url ?? null,
@@ -308,8 +283,8 @@ async function handleUpdate(
 ) {
   console.log('restaurants: update', restaurantId)
 
-  const role = await getAdminRole(supabase, restaurantId, user.id)
-  if (!role) {
+  const hasAccess = await getAdminAccess(supabase, restaurantId, user.id)
+  if (!hasAccess) {
     return fail('Not found or no permission', 404)
   }
 
@@ -317,7 +292,7 @@ async function handleUpdate(
     return fail('No fields to update')
   }
 
-  const errs = validateUpdate(body, role)
+  const errs = validateUpdate(body)
   if (errs.length) {
     console.error('restaurants: update validation failed', JSON.stringify(errs))
     return fail(errs.join('; '))
@@ -402,8 +377,8 @@ async function handleDelete(
 ) {
   console.log('restaurants: delete', restaurantId)
 
-  const role = await getAdminRole(supabase, restaurantId, user.id)
-  if (role !== 'owner') {
+  const hasAccess = await getAdminAccess(supabase, restaurantId, user.id)
+  if (!hasAccess) {
     return fail('Only owners can delete restaurants', 403)
   }
 
@@ -428,8 +403,8 @@ async function handleStats(
 ) {
   console.log('restaurants: stats', restaurantId)
 
-  const role = await getAdminRole(supabase, restaurantId, user.id)
-  if (!role) {
+  const hasAccess = await getAdminAccess(supabase, restaurantId, user.id)
+  if (!hasAccess) {
     return fail('Not found or no permission', 404)
   }
 

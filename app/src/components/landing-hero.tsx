@@ -86,7 +86,7 @@ function Carousel({ images }: { images: string[] }) {
 }
 
 export default function LandingHero() {
-  const { setStep, setSessionId } = useFlowStore()
+  const { setStep, setSessionId, resetQuestionState } = useFlowStore()
 
   const [wordIdx, setWordIdx] = useState(0)
   const words = ['comer', 'cenar', 'tapear', 'picar']
@@ -101,6 +101,7 @@ export default function LandingHero() {
   function handleStart() {
     const sid = getSessionId()
     setSessionId(sid)
+    resetQuestionState()
     setStep('questions')
     trackStart(sid)
   }
