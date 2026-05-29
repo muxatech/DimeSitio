@@ -218,7 +218,7 @@ async function handleListMine(supabase: ReturnType<typeof createClient>, user: {
 
   const { data: restaurants, error: restError } = await supabase
     .from('restaurants')
-    .select('*')
+    .select('*, restaurant_categories(category_id)')
     .in('id', restaurantIds)
 
   if (restError) {
@@ -258,16 +258,27 @@ async function handleListMine(supabase: ReturnType<typeof createClient>, user: {
     calCount[row.restaurant_id] = (calCount[row.restaurant_id] || 0) + 1
   }
 
-  const result = (restaurants ?? []).map((r: { id: string }) => ({
+  const result = (restaurants ?? []).map((r: Record<string, unknown>) => ({
     id: r.id,
+    owner_id: r.owner_id,
     name: r.name,
-    role: roleMap.get(r.id),
+    description: r.description,
+    phone: r.phone,
+    address: r.address,
+    city: r.city,
+    price_level: r.price_level,
+    zone: r.zone,
+    image_url: r.image_url,
+    menu_url: r.menu_url,
     active: r.active,
-    subscription_status: subMap.get(r.id) ?? null,
+    created_at: r.created_at,
+    restaurant_categories: r.restaurant_categories,
+    role: roleMap.get(r.id as string),
+    subscription_status: subMap.get(r.id as string) ?? null,
     stats: {
-      impressions: impCount[r.id] ?? 0,
-      selections: selCount[r.id] ?? 0,
-      calls: calCount[r.id] ?? 0,
+      impressions: impCount[r.id as string] ?? 0,
+      selections: selCount[r.id as string] ?? 0,
+      calls: calCount[r.id as string] ?? 0,
     },
   }))
 
