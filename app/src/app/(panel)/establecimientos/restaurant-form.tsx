@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
+
 import { useQuery } from '@tanstack/react-query'
 import { getCategories } from '@/lib/panel/api'
 import { ZONES } from '@/lib/constants'
@@ -319,16 +319,18 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting }
               />
               {imageUrlValue && (
                 <div className="mt-3 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50">
-                  <Image
+                  <img
                     src={imageUrlValue}
                     alt="Preview"
-                    width={800}
-                    height={400}
                     className="h-48 w-full object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none'
+                      e.currentTarget.classList.add('hidden')
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden')
                     }}
                   />
+                  <div className="hidden h-48 w-full items-center justify-center bg-stone-100 px-4 text-sm text-stone-400">
+                    No se puede previsualizar la imagen
+                  </div>
                 </div>
               )}
             </div>
