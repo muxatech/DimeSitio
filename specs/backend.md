@@ -31,6 +31,11 @@ El frontend nunca accede directamente a lógica sensible.
 - Stripe webhooks (Fase 3)
 - Suscripciones (Fase 3)
 
+## Staff
+- Tabla `staff_users` para autorizar usuarios
+- Edge Function `POST /staff/create-for-client`: crea restaurante para cliente + genera Stripe Checkout Session con metadata
+- Webhook `checkout.session.completed`: lee metadata, invita al dueño, asigna owner, activa restaurante
+
 ---
 
 # Sistema recomendación MVP

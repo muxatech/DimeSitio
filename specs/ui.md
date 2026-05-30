@@ -83,6 +83,26 @@ Mostrar:
 - URL imagen (sin Storage)
 - Switch activar/desactivar
 
+## Flujo Staff — Crear para un cliente
+### Botones en listado
+- Usuario staff ve botón extra: "Crear para un cliente" (además del "Añadir establecimiento" normal)
+- Si no está en `staff_users`, solo ve "Añadir establecimiento"
+
+### Formulario extendido
+- Mismos campos que el formulario normal
+- Campo extra al final: "Email del propietario" (input texto, visible siempre)
+- Botón submit: "Crear y enviar a pago" (texto diferente al normal "Crear establecimiento")
+
+### Pantalla post-creación
+- Mensaje: ✅ Datos guardados
+- Texto: "Ahora el propietario debe pagar para activar el establecimiento."
+- Botón grande: "Ir a pago →" (abre Stripe Checkout en nueva pestaña/mismo navegador)
+- El dueño gira el iPad y pulsa el botón → Stripe → pone su tarjeta
+
+### Página /pago-exitoso
+- Mensaje: "Te hemos enviado un email a [email] para acceder a tu panel."
+- Instrucciones: "Revisa tu bandeja de entrada y crea una contraseña para gestionar tu restaurante."
+
 Deferido:
 - Horarios
 - Subida de fotos a Storage

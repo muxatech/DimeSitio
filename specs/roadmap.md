@@ -145,27 +145,36 @@
 
 ---
 
-## Fase 3: Suscripciones Stripe
+## Fase 3: Suscripciones Stripe + Flujo Staff
 
-**Objetivo:** Restaurantes pagan 29€/mes y su establecimiento se activa en la app.
+**Objetivo:** Restaurantes pagan 29€/mes y su establecimiento se activa en la app.  
+Staff de DimeSitio puede crear establecimientos para clientes en visitas presenciales (onboarding en iPad).
 
-### Frontend
+### Frontend (dueño autoservicio)
 - [ ] Página de suscripción en el panel restaurante
 - [ ] Botón "Activar suscripción" → redirige a Stripe Checkout
 - [ ] Botón "Gestionar suscripción" → redirige a Stripe Customer Portal
 - [ ] Indicador visual de estado (activo/suspendido/vencido)
 
+### Frontend (flujo staff — "Crear para un cliente")
+- [ ] En `establecimientos/page.tsx`, botón extra "Crear para un cliente" (visible solo para usuarios en `staff_users`)
+- [ ] Formulario de creación con mismo contenido que el actual + campo extra "Email del propietario"
+- [ ] Botón "Crear y enviar a pago" en lugar de "Crear establecimiento"
+- [ ] Pantalla post-creación: "Datos guardados. El propietario debe pagar para activar." + botón "Ir a pago →" (redirige a Stripe Checkout)
+- [ ] Página `/pago-exitoso` tras completar Stripe: "Te hemos enviado un email a [email] para acceder a tu panel"
+
 ### Backend / DB
+- [ ] EDGE FUNCTION: `POST /staff/create-for-client` — crea restaurante (sin owner), genera Stripe Checkout Session con `metadata.owner_email` + `metadata.restaurant_id`, devuelve URL de pago
 - [ ] Edge Function `POST /stripe/create-checkout-session`
 - [ ] Edge Function `POST /stripe/create-customer-portal-session`
 - [ ] Edge Function `POST /stripe/webhook` (recibir eventos de Stripe):
-  - `checkout.session.completed` → crear/actualizar subscription
+  - `checkout.session.completed` → leer `metadata`, invitar dueño via `auth.admin.inviteUserByEmail`, crear `restaurant_admins`, asignar `owner_id`, activar restaurante
   - `invoice.paid` → renovar período
   - `customer.subscription.deleted` → desactivar
 - [ ] Edge Function `POST /stripe/verify` (verificar estado suscripción para frontend)
 
-### DB
-- Tabla `subscriptions` ya definida en Fase 0
+### DB nuevas tablas
+- [ ] `staff_users` (user_id pk, ref auth.users) — usuarios autorizados a crear restaurantes para clientes
 
 ### Dependencias
 - Panel restaurante funcional (Fase 2) — necesario para gestionar suscripción
@@ -174,7 +183,8 @@
 - RLS actualizado: solo restaurante activo aparece en queries de Fase 1
 
 ### Milestone: `pago-funcional`
-- Restaurante paga → establecimiento aparece en resultados de usuario
+- Staff crea restaurante en iPad, dueño paga con tarjeta, recibe email con acceso
+- Restaurante activo aparece en resultados de usuario
 - Suscripción se renueva automáticamente
 - Stripe webhook responde 200
 

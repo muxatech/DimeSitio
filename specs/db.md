@@ -95,6 +95,18 @@ Campos:
 
 ---
 
+## staff_users
+
+Usuarios autorizados a crear restaurantes para clientes (onboarding presencial).
+
+Campos:
+- user_id (uuid, pk, ref auth.users, on delete cascade)
+- created_at (timestamptz, default now())
+
+Se inserta manualmente. Solo usuarios en esta tabla ven el botón "Crear para un cliente".
+
+---
+
 ## flow_starts
 
 Inicios de flujo de usuario (tracking).
@@ -147,15 +159,16 @@ Campos:
 
 ```
 auth.users ──< restaurant_admins >── restaurants
-                                          │
-                                    restaurant_categories >── categories
-                                          │
-                                    subscriptions (1:1)
-                                          │
-                                    impressions
-                                    selections
-                                    calls
-                                    flow_starts
+auth.users ──< staff_users          │
+                                    │
+                              restaurant_categories >── categories
+                                    │
+                              subscriptions (1:1)
+                                    │
+                              impressions
+                              selections
+                              calls
+                              flow_starts
 ```
 
 - Un auth.user puede ser owner/manager de N restaurantes vía restaurant_admins

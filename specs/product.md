@@ -48,6 +48,13 @@ La app:
 - Franquicias pequeñas
 - Restaurantes urbanos
 
+## Onboarding presencial (staff)
+- Staff de DimeSitio capta clientes en visitas presenciales
+- Staff rellena los datos del restaurante en iPad, dueño confirma
+- Dueño paga 29€/mes en el momento vía Stripe Checkout (gira el iPad)
+- Dueño recibe email con invitación para crear contraseña y gestionar su perfil
+- Staff se identifica mediante tabla `staff_users`
+
 ---
 
 # Modelo de negocio

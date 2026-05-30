@@ -130,20 +130,65 @@ Output:
 
 ---
 
+# Flujo Staff — Crear para un cliente (Fase 3)
+
+## POST /staff/create-for-client
+
+Crea un restaurante en nombre de un cliente y genera un Stripe Checkout Session para que el dueño pague.
+
+**Auth**: Requiere que el usuario autenticado esté en `staff_users`.
+
+Input:
+- owner_email (required) — email del propietario real
+- name (required)
+- description
+- phone
+- address
+- price_level (required, 1-3)
+- zone (required)
+- image_url
+- menu_url
+- category_ids (array de category_id)
+
+Output:
+```json
+{
+  "success": true,
+  "data": {
+    "restaurant_id": "uuid",
+    "checkout_url": "https://checkout.stripe.com/..."
+  }
+}
+```
+
+El checkout session incluye en `metadata`:
+- `owner_email`
+- `restaurant_id`
+
+---
+
 # Stripe (Fase 3)
 
 ## POST /stripe/create-checkout
 
-Generar checkout suscripción.
+Generar checkout suscripción para dueño autoservicio (no staff).
+
+---
+
+## POST /stripe/create-customer-portal-session
+
+Generar portal de gestión de suscripción para el dueño.
 
 ---
 
 ## POST /stripe/webhook
 
 Eventos:
-- checkout.session.completed
-- customer.subscription.updated
-- customer.subscription.deleted
+- `checkout.session.completed`:
+  - Si viene de `POST /staff/create-for-client`: leer `metadata`, invitar dueño, crear `restaurant_admins`, asignar `owner_id`, activar restaurante, crear `subscriptions`
+  - Si viene de autoservicio: crear `subscriptions` y activar restaurante
+- `invoice.paid` → renovar período
+- `customer.subscription.deleted` → desactivar restaurante
 
 ---
 
