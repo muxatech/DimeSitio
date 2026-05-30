@@ -1,10 +1,10 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getMyRestaurants, deleteRestaurant } from '@/lib/panel/api'
+import { getMyRestaurants, deleteRestaurant, checkStaffStatus } from '@/lib/panel/api'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Plus, Pencil, Trash2, Frown } from 'lucide-react'
+import { Plus, Pencil, Trash2, Frown, UserPlus } from 'lucide-react'
 import { getPriceLabel } from '@/lib/utils'
 
 const containerVariants = {
@@ -23,6 +23,12 @@ export default function EstablecimientosPage() {
   const { data: restaurants, isLoading, isError, refetch } = useQuery({
     queryKey: ['my-restaurants'],
     queryFn: getMyRestaurants,
+  })
+
+  const { data: isStaff } = useQuery({
+    queryKey: ['staff-status'],
+    queryFn: checkStaffStatus,
+    staleTime: 60000,
   })
 
   const deleteMutation = useMutation({
@@ -86,13 +92,24 @@ export default function EstablecimientosPage() {
         <h1 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl lg:text-4xl">
           Mis establecimientos
         </h1>
-        <Link
-          href="/establecimientos/nuevo"
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-stone-800 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:px-6 sm:py-3.5 sm:text-base"
-        >
-          <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-          Añadir establecimiento
-        </Link>
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+          {isStaff && (
+            <Link
+              href="/establecimientos/crear-para-cliente"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-700 shadow-sm transition-all hover:bg-stone-50 sm:px-6 sm:py-3.5 sm:text-base"
+            >
+              <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
+              Crear para un cliente
+            </Link>
+          )}
+          <Link
+            href="/establecimientos/nuevo"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-stone-800 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:px-6 sm:py-3.5 sm:text-base"
+          >
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+            Añadir establecimiento
+          </Link>
+        </div>
       </div>
 
       {restaurants && restaurants.length === 0 ? (

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { RestaurantWithRole, RestaurantStats, RestaurantFormData, Category } from '@/types'
+import type { RestaurantWithRole, RestaurantStats, RestaurantFormData, Category, StaffCreateData } from '@/types'
 
 async function getToken(): Promise<string> {
   const { data } = await supabase.auth.getSession()
@@ -8,9 +8,10 @@ async function getToken(): Promise<string> {
   return token
 }
 
-async function invoke<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
+async function invoke<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown, functionName?: string): Promise<T> {
   const token = await getToken()
-  const { data, error } = await supabase.functions.invoke(`restaurants${path}`, {
+  const fn = functionName ?? 'restaurants'
+  const { data, error } = await supabase.functions.invoke(`${fn}${path}`, {
     method,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -56,4 +57,28 @@ export async function getCategories(): Promise<Category[]> {
   const { data, error } = await supabase.from('categories').select('*').order('name')
   if (error) throw new Error(error.message)
   return data ?? []
+}
+
+// ─── Stripe ─────────────────────────────────────────────────
+
+export async function createCheckoutSession(restaurantId: string): Promise<string> {
+  const res = await invoke<{ success: boolean; data: { url: string } }>('POST', '/create-checkout', { restaurant_id: restaurantId }, 'stripe')
+  return res.data.url
+}
+
+export async function createPortalSession(restaurantId: string): Promise<string> {
+  const res = await invoke<{ success: boolean; data: { url: string } }>('POST', '/create-portal', { restaurant_id: restaurantId }, 'stripe')
+  return res.data.url
+}
+
+// ─── Staff ──────────────────────────────────────────────────
+
+export async function createForClient(data: StaffCreateData): Promise<{ restaurant_id: string; checkout_url: string }> {
+  const res = await invoke<{ success: boolean; data: { restaurant_id: string; checkout_url: string } }>('POST', '/', data, 'staff')
+  return res.data
+}
+
+export async function checkStaffStatus(): Promise<boolean> {
+  const { data } = await supabase.from('staff_users').select('user_id').maybeSingle()
+  return !!data
 }

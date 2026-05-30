@@ -1,9 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getMyRestaurants } from '@/lib/panel/api'
+import { getMyRestaurants, createCheckoutSession, createPortalSession } from '@/lib/panel/api'
 import { motion } from 'framer-motion'
-import { CreditCard, Frown, RefreshCw, Store } from 'lucide-react'
+import { CreditCard, ExternalLink, Frown, RefreshCw, Store, Loader } from 'lucide-react'
 import Link from 'next/link'
 
 const containerVariants = {
@@ -21,6 +22,32 @@ export default function SuscripcionPage() {
     queryKey: ['my-restaurants'],
     queryFn: getMyRestaurants,
   })
+
+  const [loadingId, setLoadingId] = useState<string | null>(null)
+
+  async function handleCheckout(restaurantId: string) {
+    setLoadingId(restaurantId)
+    try {
+      const url = await createCheckoutSession(restaurantId)
+      window.location.assign(url)
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Error al iniciar el pago')
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
+  async function handlePortal(restaurantId: string) {
+    setLoadingId(restaurantId)
+    try {
+      const url = await createPortalSession(restaurantId)
+      window.location.assign(url)
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Error al abrir el portal')
+    } finally {
+      setLoadingId(null)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -69,7 +96,7 @@ export default function SuscripcionPage() {
           Suscripción
         </h1>
         <p className="mt-1 text-sm text-stone-400 sm:text-base">
-          Gestiona el estado de la suscripción de cada establecimiento
+          Gestiona la suscripción de cada establecimiento — 29€/mes
         </p>
       </div>
 
@@ -94,43 +121,66 @@ export default function SuscripcionPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {restaurants?.map((r) => (
-            <motion.div
-              key={r.id}
-              variants={itemVariants}
-              className="flex items-center justify-between rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 sm:h-12 sm:w-12">
-                  <Store className="h-5 w-5 text-stone-600 sm:h-6 sm:w-6" />
+          {restaurants?.map((r) => {
+            const isLoadingThis = loadingId === r.id
+            const isActive = r.subscription_status === 'active'
+
+            return (
+              <motion.div
+                key={r.id}
+                variants={itemVariants}
+                className="flex items-center justify-between gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 sm:h-12 sm:w-12">
+                    <Store className="h-5 w-5 text-stone-600 sm:h-6 sm:w-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-stone-900 sm:text-base">{r.name}</p>
+                    <p className="mt-0.5 text-sm text-stone-400">29€/mes</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-stone-900 sm:text-base">{r.name}</p>
-                  <p className="mt-0.5 text-sm text-stone-400">
-                    29€/mes
-                  </p>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={
+                      isActive
+                        ? 'rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white'
+                        : 'rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-400'
+                    }
+                  >
+                    {isActive ? 'Activa' : 'Inactiva'}
+                  </span>
+                  {isActive ? (
+                    <button
+                      onClick={() => handlePortal(r.id)}
+                      disabled={isLoadingThis}
+                      className="inline-flex items-center gap-2 rounded-2xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 shadow-sm transition-all hover:bg-stone-50 hover:shadow-md disabled:opacity-50"
+                    >
+                      {isLoadingThis ? (
+                        <Loader className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <CreditCard className="h-4 w-4" />
+                      )}
+                      Gestionar
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleCheckout(r.id)}
+                      disabled={isLoadingThis}
+                      className="inline-flex items-center gap-2 rounded-2xl bg-stone-800 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-stone-700 disabled:opacity-50"
+                    >
+                      {isLoadingThis ? (
+                        <Loader className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ExternalLink className="h-4 w-4" />
+                      )}
+                      Activar
+                    </button>
+                  )}
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <span
-                  className={
-                    r.subscription_status === 'active'
-                      ? 'rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white'
-                      : 'rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-400'
-                  }
-                >
-                  {r.subscription_status === 'active' ? 'Activa' : 'Inactiva'}
-                </span>
-                <Link
-                  href={`/establecimientos/${r.id}`}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 shadow-sm transition-all hover:bg-stone-50 hover:shadow-md"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  Gestionar
-                </Link>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            )
+          })}
         </div>
       )}
     </motion.div>

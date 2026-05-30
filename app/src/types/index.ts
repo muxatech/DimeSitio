@@ -63,3 +63,7 @@ export interface RestaurantFormData {
   active?: boolean
   category_ids: string[]
 }
+
+export interface StaffCreateData extends RestaurantFormData {
+  owner_email: string
+}

@@ -25,6 +25,7 @@ const restaurantSchema = z.object({
   menu_url: z.string().optional(),
   active: z.boolean().optional(),
   category_ids: z.array(z.string()),
+  owner_email: z.string().email('El email del propietario no es válido').optional().or(z.literal('')),
 })
 
 type FormValues = z.infer<typeof restaurantSchema>
@@ -39,9 +40,10 @@ interface RestaurantFormProps {
   defaultValues?: RestaurantWithRole | null
   onSubmit: (data: RestaurantFormData) => Promise<void>
   isSubmitting: boolean
+  staffMode?: boolean
 }
 
-export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting }: RestaurantFormProps) {
+export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, staffMode }: RestaurantFormProps) {
   const [error, setError] = useState('')
   const isEditing = !!defaultValues
 
@@ -282,6 +284,26 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting }
           )}
         </section>
 
+        {staffMode && (
+          <section>
+            <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">Propietario</h2>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
+                Email del propietario <span className="text-red-400">*</span>
+              </label>
+              <input
+                {...register('owner_email')}
+                type="email"
+                placeholder="propietario@ejemplo.com"
+                className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
+              />
+              {errors.owner_email && (
+                <p className="mt-1 text-xs text-red-400">{errors.owner_email.message as string}</p>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* Links & media */}
         <section>
           <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">Enlaces y multimedia</h2>
@@ -387,7 +409,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting }
                 Guardando...
               </span>
             ) : (
-              isEditing ? 'Guardar cambios' : 'Crear establecimiento'
+              isEditing ? 'Guardar cambios' : staffMode ? 'Crear y enviar a pago' : 'Crear establecimiento'
             )}
           </motion.button>
         </div>
