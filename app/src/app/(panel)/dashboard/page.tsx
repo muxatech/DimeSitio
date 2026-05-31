@@ -1,11 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getMyRestaurants } from '@/lib/panel/api'
+import { getMyRestaurants, getRestaurantAnalytics } from '@/lib/panel/api'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Store, Eye, CheckCircle2, Phone, Plus, Frown, RefreshCw } from 'lucide-react'
+import { Store, Eye, CheckCircle2, Phone, Plus, Frown, RefreshCw, TrendingUp, Target } from 'lucide-react'
 import { getPriceLabel } from '@/lib/utils'
+
 
 const containerVariants = {
   hidden: {},
@@ -17,7 +20,113 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 }
 
+function ChartSkeleton() {
+  return (
+    <div className="flex h-64 items-center justify-center rounded-2xl border border-stone-200 bg-white">
+      <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-stone-200 border-t-stone-900" />
+    </div>
+  )
+}
+
+interface AnalyticsSectionProps {
+  restaurantId: string
+  restaurantName: string
+}
+
+function AnalyticsSection({ restaurantId, restaurantName }: AnalyticsSectionProps) {
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['analytics', restaurantId],
+    queryFn: () => getRestaurantAnalytics(restaurantId),
+  })
+
+  if (isLoading) return <ChartSkeleton />
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white p-8 text-center">
+        <RefreshCw className="h-6 w-6 text-red-400" />
+        <p className="text-sm text-stone-500">No se pudieron cargar los datos</p>
+        <button onClick={() => refetch()} className="rounded-xl bg-stone-800 px-4 py-2 text-xs font-semibold text-white">
+          Reintentar
+        </button>
+      </div>
+    )
+  }
+
+  if (!data) return null
+
+  const { totals, daily } = data
+
+  const metrics = [
+    { label: 'Impresiones (7d)', value: totals.impressions_7d, icon: Eye, color: 'text-blue-500' },
+    { label: 'Selecciones (7d)', value: totals.selections_7d, icon: CheckCircle2, color: 'text-green-500' },
+    { label: 'Llamadas (7d)', value: totals.calls_7d, icon: Phone, color: 'text-amber-500' },
+    { label: 'Conversión', value: `${(totals.conversion_rate * 100).toFixed(1)}%`, icon: Target, color: 'text-violet-500' },
+    { label: 'Ratio selección', value: `${(totals.selection_rate * 100).toFixed(1)}%`, icon: TrendingUp, color: 'text-stone-600' },
+  ]
+
+  const chartData = daily.length > 0 ? daily : [{ date: 'Sin datos', impressions: 0, selections: 0, calls: 0 }]
+
+  return (
+    <motion.div variants={itemVariants} className="flex flex-col gap-6">
+      <h3 className="text-base font-bold text-stone-900 sm:text-lg">
+        Analytics: {restaurantName}
+      </h3>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
+        {metrics.map((m) => {
+          const Icon = m.icon
+          return (
+            <div key={m.label} className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <Icon className={`mb-2 h-5 w-5 ${m.color}`} />
+              <p className="text-xl font-bold text-stone-900 sm:text-2xl">{m.value}</p>
+              <p className="text-xs text-stone-400 sm:text-sm">{m.label}</p>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
+        <h4 className="mb-4 text-sm font-semibold text-stone-700">Evolución diaria (últimos 30 días)</h4>
+        <div className="h-64 sm:h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11, fill: '#a8a29e' }}
+                tickFormatter={(v: string) => v.slice(5)}
+                axisLine={{ stroke: '#e7e5e4' }}
+                tickLine={false}
+              />
+              <YAxis tick={{ fontSize: 11, fill: '#a8a29e' }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: 12,
+                  border: '1px solid #e7e5e4',
+                  fontSize: 13,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                }}
+              />
+              <Legend
+                wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                iconType="circle"
+                iconSize={8}
+              />
+              <Bar dataKey="impressions" name="Impresiones" fill="#78716c" radius={[4, 4, 0, 0]} maxBarSize={20} />
+              <Bar dataKey="selections" name="Selecciones" fill="#a8a29e" radius={[4, 4, 0, 0]} maxBarSize={20} />
+              <Bar dataKey="calls" name="Llamadas" fill="#d6d3d1" radius={[4, 4, 0, 0]} maxBarSize={20} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 export default function DashboardPage() {
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
   const { data: restaurants, isLoading, isError, refetch } = useQuery({
     queryKey: ['my-restaurants'],
     queryFn: getMyRestaurants,
@@ -90,7 +199,6 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {/* Metrics cards */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6">
         {metrics.map((metric) => {
           const Icon = metric.icon
@@ -110,7 +218,31 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* Table */}
+      {restaurants && restaurants.length > 0 && (
+        <motion.div variants={itemVariants} className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-stone-900 sm:text-xl">Analytics por restaurante</h2>
+            <select
+              value={selectedId ?? ''}
+              onChange={(e) => setSelectedId(e.target.value || null)}
+              className="rounded-2xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-700 shadow-sm focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200"
+            >
+              <option value="">Selecciona un restaurante...</option>
+              {restaurants.map((r) => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {selectedId && (
+            <AnalyticsSection
+              restaurantId={selectedId}
+              restaurantName={restaurants.find((r) => r.id === selectedId)?.name ?? ''}
+            />
+          )}
+        </motion.div>
+      )}
+
       <div>
         <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">
           Mis establecimientos

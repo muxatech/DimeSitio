@@ -130,6 +130,37 @@ Output:
 
 ---
 
+# Analytics (Fase 4)
+
+## GET /analytics/:restaurant_id
+
+Estadísticas detalladas con evolución diaria para un restaurante. Verifica permisos vía `restaurant_admins` o `staff_users`.
+
+Output:
+```json
+{
+  "restaurant_id": "uuid",
+  "totals": {
+    "impressions_7d": 42,
+    "impressions_30d": 180,
+    "selections_7d": 12,
+    "selections_30d": 55,
+    "calls_7d": 5,
+    "calls_30d": 20,
+    "conversion_rate": 0.12,
+    "selection_rate": 0.31
+  },
+  "daily": [
+    { "date": "2026-05-25", "impressions": 18, "selections": 6, "calls": 2 }
+  ],
+  "recent_events": [
+    { "type": "impression", "created_at": "2026-05-31T12:00:00Z" }
+  ]
+}
+```
+
+---
+
 # Flujo Staff — Crear para un cliente (Fase 3)
 
 ## POST /staff/create-for-client

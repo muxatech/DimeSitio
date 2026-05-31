@@ -195,19 +195,15 @@ Staff de DimeSitio puede crear establecimientos para clientes en visitas presenc
 **Objetivo:** Restaurantes ven datos reales de su rendimiento en la app.
 
 ### Frontend
-- [ ] Dashboard restaurante con gráficos y números:
+- [x] Dashboard restaurante con gráficos y números:
   - Total impresiones (veces en Top 5)
   - Ratio de selección (veces ganador / impresiones)
   - CTR botón llamar
   - Evolución temporal (últimos 7/30 días)
-- [ ] Tabla de eventos recientes
+- [x] Tabla de eventos recientes
 
 ### Backend / DB
-- [ ] Edge Function `GET /analytics/:restaurant_id` (agregaciones)
-  - `COUNT(impressions)` agrupado por día
-  - `COUNT(selections)` donde ganó
-  - `COUNT(calls)`
-- [ ] Edge Function `GET /analytics/:restaurant_id/events` (events recientes, paginados)
+- [x] Edge Function `GET /analytics/:restaurant_id` (agregaciones + daily + eventos recientes)
 
 ### Dependencias
 - Tracking de eventos funcionando (Fase 1)

@@ -67,3 +67,28 @@ export interface RestaurantFormData {
 export interface StaffCreateData extends RestaurantFormData {
   owner_email: string
 }
+
+export interface AnalyticsTotals {
+  impressions_7d: number
+  impressions_30d: number
+  selections_7d: number
+  selections_30d: number
+  calls_7d: number
+  calls_30d: number
+  conversion_rate: number
+  selection_rate: number
+}
+
+export interface AnalyticsDaily {
+  date: string
+  impressions: number
+  selections: number
+  calls: number
+}
+
+export interface AnalyticsData {
+  restaurant_id: string
+  totals: AnalyticsTotals
+  daily: AnalyticsDaily[]
+  recent_events: { type: 'impression'; created_at: string }[]
+}

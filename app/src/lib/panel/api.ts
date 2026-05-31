@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { RestaurantWithRole, RestaurantStats, RestaurantFormData, Category, StaffCreateData } from '@/types'
+import type { RestaurantWithRole, RestaurantStats, RestaurantFormData, Category, StaffCreateData, AnalyticsData } from '@/types'
 
 async function getToken(): Promise<string> {
   const { data } = await supabase.auth.getSession()
@@ -57,6 +57,13 @@ export async function getCategories(): Promise<Category[]> {
   const { data, error } = await supabase.from('categories').select('*').order('name')
   if (error) throw new Error(error.message)
   return data ?? []
+}
+
+// ─── Analytics ───────────────────────────────────────────────
+
+export async function getRestaurantAnalytics(id: string): Promise<AnalyticsData> {
+  const res = await invoke<{ success: boolean; data: AnalyticsData }>('GET', `/${id}`, undefined, 'analytics')
+  return res.data
 }
 
 // ─── Stripe ─────────────────────────────────────────────────
