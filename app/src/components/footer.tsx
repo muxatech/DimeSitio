@@ -2,7 +2,6 @@ import Link from 'next/link'
 
 const quickLinks = [
   { label: 'Inicio', href: '/' },
-  { label: 'Explorar', href: '/explorar' },
   { label: 'Para restaurantes', href: '/restaurantes' },
 ]
 

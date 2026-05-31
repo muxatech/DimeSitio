@@ -140,7 +140,7 @@ async function handleCreatePortal(
 // ─── Verify Subscription ───────────────────────────────────
 
 async function handleVerify(
-  _supabase: ReturnType<typeof createClient>,
+  supabase: ReturnType<typeof createClient>,
   user: { id: string },
   body: { restaurant_id: string }
 ) {
@@ -245,7 +245,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
           return fail('Failed to save subscription', 500)
         }
 
-        const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(ownerEmail, {
+        const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(ownerEmail, {
           data: { onboarded: true },
         })
 
@@ -253,8 +253,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
           console.error('stripe: failed to invite user', JSON.stringify(inviteError))
         }
 
-        const { data: invitedUser } = await supabase.auth.admin.getUserByEmail(ownerEmail)
-        const invitedUserId = invitedUser?.user?.id
+        const invitedUserId = inviteData?.user?.id
 
         if (invitedUserId) {
           const { error: adminError } = await supabase.from('restaurant_admins').insert({
@@ -285,13 +284,17 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
         .maybeSingle()
 
       if (subs) {
+        const periodEnd = invoice.lines?.data?.[0]?.period?.end
+          ? new Date(invoice.lines.data[0].period.end * 1000).toISOString()
+          : new Date(Date.now() + 30 * 86400000).toISOString()
+
         await supabase
           .from('subscriptions')
-          .update({ status: 'active', current_period_end: new Date(Date.now() + 30 * 86400000).toISOString() })
+          .update({ status: 'active', current_period_end: periodEnd })
           .eq('restaurant_id', subs.restaurant_id)
 
         await supabase.from('restaurants').update({ active: true }).eq('id', subs.restaurant_id)
-        console.log('stripe: invoice paid, subscription renewed', subs.restaurant_id)
+        console.log('stripe: invoice paid, subscription renewed', subs.restaurant_id, { periodEnd })
       }
       break
     }

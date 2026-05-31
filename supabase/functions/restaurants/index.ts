@@ -45,6 +45,35 @@ async function getAdminAccess(
   return true
 }
 
+async function getStaffAccess(
+  supabase: ReturnType<typeof createClient>,
+  userId: string
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('staff_users')
+    .select('user_id')
+    .eq('user_id', userId)
+    .maybeSingle()
+  return !!data
+}
+
+async function canAccessAsStaff(
+  supabase: ReturnType<typeof createClient>,
+  restaurantId: string,
+  userId: string
+): Promise<boolean> {
+  const isStaff = await getStaffAccess(supabase, userId)
+  if (!isStaff) return false
+
+  const { data: restaurant } = await supabase
+    .from('restaurants')
+    .select('owner_id')
+    .eq('id', restaurantId)
+    .maybeSingle()
+
+  return !!restaurant && restaurant.owner_id === null
+}
+
 const VALID_PRICE_LEVELS = new Set([1, 2, 3])
 const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'active', 'category_ids'])
 
@@ -294,7 +323,10 @@ async function handleUpdate(
 ) {
   console.log('restaurants: update', restaurantId)
 
-  const hasAccess = await getAdminAccess(supabase, restaurantId, user.id)
+  let hasAccess = await getAdminAccess(supabase, restaurantId, user.id)
+  if (!hasAccess) {
+    hasAccess = await canAccessAsStaff(supabase, restaurantId, user.id)
+  }
   if (!hasAccess) {
     return fail('Not found or no permission', 404)
   }
@@ -386,9 +418,14 @@ async function handleDelete(
   user: { id: string },
   restaurantId: string
 ) {
-  console.log('restaurants: delete', restaurantId)
+  console.log('restaurants: delete requested', JSON.stringify({ restaurantId, userId: user.id }))
 
-  const hasAccess = await getAdminAccess(supabase, restaurantId, user.id)
+  let via = 'admin'
+  let hasAccess = await getAdminAccess(supabase, restaurantId, user.id)
+  if (!hasAccess) {
+    hasAccess = await canAccessAsStaff(supabase, restaurantId, user.id)
+    via = 'staff'
+  }
   if (!hasAccess) {
     return fail('Only owners can delete restaurants', 403)
   }
@@ -399,12 +436,12 @@ async function handleDelete(
     .eq('id', restaurantId)
 
   if (error) {
-    console.error('restaurants: delete failed', JSON.stringify(error))
+    console.error('restaurants: delete failed', JSON.stringify({ restaurantId, error }))
     return fail('Failed to delete restaurant', 500)
   }
 
-  console.log('restaurants: deleted', restaurantId)
-  return ok({ id: restaurantId, deleted: true })
+  console.log('restaurants: deleted', JSON.stringify({ restaurantId, userId: user.id, via }))
+  return ok({ id: restaurantId, deleted: true, via })
 }
 
 async function handleStats(
