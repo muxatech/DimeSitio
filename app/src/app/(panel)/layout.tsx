@@ -107,7 +107,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 space-y-1 px-3 py-6">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-6">
           {navLinks.map((link) => {
             const Icon = link.icon
             const active = pathname.startsWith(link.href)

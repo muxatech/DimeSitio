@@ -73,6 +73,7 @@ export default function CrearParaClientePage() {
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
         staffMode
+        hideBackButton
       />
     </>
   )

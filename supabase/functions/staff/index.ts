@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import Stripe from 'npm:stripe@17'
+import Stripe from 'npm:stripe@22'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,6 +64,9 @@ function validateCreate(body: Record<string, unknown>) {
   if (body.menu_url !== undefined && typeof body.menu_url !== 'string') {
     errors.push('menu_url must be a string')
   }
+  if (body.reservations_url !== undefined && typeof body.reservations_url !== 'string') {
+    errors.push('reservations_url must be a string')
+  }
   if (body.category_ids !== undefined) {
     if (!Array.isArray(body.category_ids)) {
       errors.push('category_ids must be an array')
@@ -76,7 +79,7 @@ function validateCreate(body: Record<string, unknown>) {
 
 function sanitizeStrings(body: Record<string, unknown>) {
   const sanitized = { ...body }
-  for (const key of ['name', 'description', 'phone', 'address', 'zone', 'image_url', 'menu_url', 'owner_email']) {
+  for (const key of ['name', 'description', 'phone', 'address', 'zone', 'image_url', 'menu_url', 'reservations_url', 'owner_email']) {
     if (typeof sanitized[key] === 'string') {
       sanitized[key] = sanitized[key].trim()
     }
@@ -125,6 +128,7 @@ async function handleCreateForClient(
       price_level: sanitized.price_level,
       image_url: sanitized.image_url ?? null,
       menu_url: sanitized.menu_url ?? null,
+      reservations_url: sanitized.reservations_url ?? null,
       zone: sanitized.zone,
       active: false,
     })
@@ -159,7 +163,7 @@ async function handleCreateForClient(
   }
 
   const stripe = new Stripe(stripeKey, {
-    apiVersion: '2025-03-31' as any,
+    apiVersion: '2026-04-22',
     httpClient: Stripe.createFetchHttpClient(),
   })
 

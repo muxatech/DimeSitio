@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel, getSessionId } from '@/lib/utils'
 import { trackCall } from '@/lib/tracking'
-import { MapPin, Phone, Navigation, Menu, PartyPopper, UtensilsCrossed, RotateCcw } from 'lucide-react'
+import { MapPin, Phone, Navigation, Menu, Calendar, PartyPopper, UtensilsCrossed, RotateCcw } from 'lucide-react'
 
 export default function WinnerView() {
   const { winner, reset, sessionId } = useFlowStore()
@@ -132,6 +132,14 @@ export default function WinnerView() {
                 href={winner.menu_url}
                 label="Ver menú"
                 icon={Menu}
+              />
+            )}
+
+            {winner.reservations_url && (
+              <ActionButton
+                href={winner.reservations_url}
+                label="Reservar"
+                icon={Calendar}
               />
             )}
           </div>

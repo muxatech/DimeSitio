@@ -17,6 +17,7 @@ export interface Restaurant {
   price_level: 1 | 2 | 3
   image_url: string | null
   menu_url: string | null
+  reservations_url: string | null
   zone: string | null
   active: boolean
   restaurant_categories?: { category_id: string }[]
@@ -60,6 +61,7 @@ export interface RestaurantFormData {
   zone: string
   image_url?: string
   menu_url?: string
+  reservations_url?: string
   active?: boolean
   category_ids: string[]
 }

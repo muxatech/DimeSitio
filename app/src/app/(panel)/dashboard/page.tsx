@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getMyRestaurants, getRestaurantAnalytics } from '@/lib/panel/api'
+import { getMyRestaurants, getRestaurantAnalytics, checkStaffStatus } from '@/lib/panel/api'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Store, Eye, CheckCircle2, Phone, Plus, Frown, RefreshCw, TrendingUp, Target } from 'lucide-react'
-import { getPriceLabel } from '@/lib/utils'
+import { Store, Eye, CheckCircle2, Phone, Plus, Frown, RefreshCw, TrendingUp, Target, UserPlus } from 'lucide-react'
+import RestaurantPanelCard from '@/components/restaurant-panel-card'
 
 
 const containerVariants = {
@@ -34,6 +34,8 @@ interface AnalyticsSectionProps {
 }
 
 function AnalyticsSection({ restaurantId, restaurantName }: AnalyticsSectionProps) {
+  const [chartRange, setChartRange] = useState<'7d' | '30d'>('30d')
+
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['analytics', restaurantId],
     queryFn: () => getRestaurantAnalytics(restaurantId),
@@ -66,11 +68,12 @@ function AnalyticsSection({ restaurantId, restaurantName }: AnalyticsSectionProp
   ]
 
   const chartData = daily.length > 0 ? daily : [{ date: 'Sin datos', impressions: 0, selections: 0, calls: 0 }]
+  const slicedChartData = chartRange === '7d' ? chartData.slice(-7) : chartData
 
   return (
     <motion.div variants={itemVariants} className="flex flex-col gap-6">
       <h3 className="text-base font-bold text-stone-900 sm:text-lg">
-        Analytics: {restaurantName}
+        {restaurantName}
       </h3>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
@@ -87,10 +90,36 @@ function AnalyticsSection({ restaurantId, restaurantName }: AnalyticsSectionProp
       </div>
 
       <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
-        <h4 className="mb-4 text-sm font-semibold text-stone-700">Evolución diaria (últimos 30 días)</h4>
+        <div className="mb-4 flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-stone-700">Evolución diaria</h4>
+          <div className="flex gap-1 rounded-xl bg-stone-100 p-0.5">
+            <button
+              type="button"
+              onClick={() => setChartRange('7d')}
+              className={
+                chartRange === '7d'
+                  ? 'rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-stone-900 shadow-sm'
+                  : 'rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:text-stone-700'
+              }
+            >
+              7 días
+            </button>
+            <button
+              type="button"
+              onClick={() => setChartRange('30d')}
+              className={
+                chartRange === '30d'
+                  ? 'rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-stone-900 shadow-sm'
+                  : 'rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:text-stone-700'
+              }
+            >
+              30 días
+            </button>
+          </div>
+        </div>
         <div className="h-64 sm:h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+            <BarChart data={slicedChartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
               <XAxis
                 dataKey="date"
@@ -113,9 +142,9 @@ function AnalyticsSection({ restaurantId, restaurantName }: AnalyticsSectionProp
                 iconType="circle"
                 iconSize={8}
               />
-              <Bar dataKey="impressions" name="Impresiones" fill="#78716c" radius={[4, 4, 0, 0]} maxBarSize={20} />
-              <Bar dataKey="selections" name="Selecciones" fill="#a8a29e" radius={[4, 4, 0, 0]} maxBarSize={20} />
-              <Bar dataKey="calls" name="Llamadas" fill="#d6d3d1" radius={[4, 4, 0, 0]} maxBarSize={20} />
+              <Bar dataKey="impressions" name="Impresiones" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={20} />
+              <Bar dataKey="selections" name="Selecciones" fill="#f97316" radius={[4, 4, 0, 0]} maxBarSize={20} />
+              <Bar dataKey="calls" name="Llamadas" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={20} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -125,11 +154,23 @@ function AnalyticsSection({ restaurantId, restaurantName }: AnalyticsSectionProp
 }
 
 export default function DashboardPage() {
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string>('')
 
   const { data: restaurants, isLoading, isError, refetch } = useQuery({
     queryKey: ['my-restaurants'],
     queryFn: getMyRestaurants,
+  })
+
+  useEffect(() => {
+    if (restaurants && restaurants.length > 0 && !selectedId) {
+      setSelectedId(restaurants[0].id)
+    }
+  }, [restaurants, selectedId])
+
+  const { data: isStaff } = useQuery({
+    queryKey: ['staff-status'],
+    queryFn: checkStaffStatus,
+    staleTime: 60000,
   })
 
   const totalImpressions = restaurants?.reduce((sum, r) => sum + (r.stats?.impressions ?? 0), 0) ?? 0
@@ -186,18 +227,31 @@ export default function DashboardPage() {
       animate="visible"
       className="flex flex-col gap-8 sm:gap-10"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl lg:text-4xl">
           Panel de control
         </h1>
-        <Link
-          href="/establecimientos/nuevo"
-          className="inline-flex items-center gap-2 rounded-2xl bg-stone-800 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:px-6 sm:py-3.5 sm:text-base"
-        >
-          <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-          Añadir establecimiento
-        </Link>
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+          {isStaff && (
+            <Link
+              href="/establecimientos/crear-para-cliente"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-700 shadow-sm transition-all hover:bg-stone-50 sm:px-6 sm:py-3.5 sm:text-base"
+            >
+              <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
+              Crear para un cliente
+            </Link>
+          )}
+          <Link
+            href="/establecimientos/nuevo"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-stone-800 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:px-6 sm:py-3.5 sm:text-base"
+          >
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+            Añadir establecimiento
+          </Link>
+        </div>
       </div>
+
+      <h2 className="text-lg font-bold text-stone-900 sm:text-xl">Estadísticas generales</h2>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6">
         {metrics.map((metric) => {
@@ -221,18 +275,18 @@ export default function DashboardPage() {
       {restaurants && restaurants.length > 0 && (
         <motion.div variants={itemVariants} className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-stone-900 sm:text-xl">Analytics por restaurante</h2>
+            <h2 className="text-lg font-bold text-stone-900 sm:text-xl">Estadísticas por restaurante</h2>
             <select
-              value={selectedId ?? ''}
-              onChange={(e) => setSelectedId(e.target.value || null)}
+              value={selectedId || ''}
+              onChange={(e) => setSelectedId(e.target.value)}
               className="rounded-2xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-700 shadow-sm focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200"
             >
-              <option value="">Selecciona un restaurante...</option>
+              {!selectedId && <option value="">Selecciona un restaurante...</option>}
               {restaurants.map((r) => (
                 <option key={r.id} value={r.id}>{r.name}</option>
               ))}
             </select>
-          </div>
+            </div>
 
           {selectedId && (
             <AnalyticsSection
@@ -268,61 +322,14 @@ export default function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <div className="w-full overflow-hidden rounded-2xl border border-stone-200 shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-stone-50">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Nombre</th>
-                    <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Zona</th>
-                    <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Precio</th>
-                    <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Impresiones</th>
-                    <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Selecciones</th>
-                    <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Llamadas</th>
-                    <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Suscripción</th>
-                    <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-200">
-                  {restaurants?.map((r) => (
-                    <tr key={r.id} className="bg-white transition-colors hover:bg-stone-50">
-                      <td className="px-4 py-3 font-medium text-stone-900 sm:px-5">
-                        <Link href={`/establecimientos/${r.id}`} className="hover:underline">
-                          {r.name}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-stone-500 sm:px-5">{r.zone ?? '—'}</td>
-                      <td className="px-4 py-3 text-stone-500 sm:px-5">{getPriceLabel(r.price_level)}</td>
-                      <td className="px-4 py-3 text-stone-500 sm:px-5">{r.stats?.impressions ?? 0}</td>
-                      <td className="px-4 py-3 text-stone-500 sm:px-5">{r.stats?.selections ?? 0}</td>
-                      <td className="px-4 py-3 text-stone-500 sm:px-5">{r.stats?.calls ?? 0}</td>
-                      <td className="px-4 py-3 sm:px-5">
-                        <span
-                          className={
-                            r.subscription_status === 'active'
-                              ? 'rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white'
-                              : 'rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-400'
-                          }
-                        >
-                          {r.subscription_status === 'active' ? 'Activa' : 'Inactiva'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 sm:px-5">
-                        <span
-                          className={
-                            r.active
-                              ? 'rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white'
-                              : 'rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-400'
-                          }
-                        >
-                          {r.active ? 'Activo' : 'Inactivo'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {restaurants?.map((r) => (
+              <RestaurantPanelCard
+                key={r.id}
+                restaurant={r}
+                showStats
+              />
+            ))}
           </div>
         )}
       </div>

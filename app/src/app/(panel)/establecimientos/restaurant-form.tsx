@@ -5,13 +5,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ExternalLink } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowLeft, ExternalLink, MapPin, UtensilsCrossed } from 'lucide-react'
 import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
 import { getCategories } from '@/lib/panel/api'
 import { ZONES } from '@/lib/constants'
-import { cn } from '@/lib/utils'
+import { cn, getPriceLabel } from '@/lib/utils'
 import type { RestaurantFormData, RestaurantWithRole } from '@/types'
 
 const restaurantSchema = z.object({
@@ -23,6 +24,7 @@ const restaurantSchema = z.object({
   zone: z.string().min(1, 'La zona es obligatoria'),
   image_url: z.string().optional(),
   menu_url: z.string().optional(),
+  reservations_url: z.string().optional(),
   active: z.boolean().optional(),
   category_ids: z.array(z.string()),
   owner_email: z.string().email('El email del propietario no es válido').optional().or(z.literal('')),
@@ -36,16 +38,102 @@ const priceOptions = [
   { value: 3, label: 'Caro' },
 ]
 
+const phoneCountries = [
+  { value: '+34', label: '+34' },
+  { value: '+33', label: '+33' },
+  { value: '+44', label: '+44' },
+  { value: '+1', label: '+1' },
+  { value: '+49', label: '+49' },
+  { value: '+39', label: '+39' },
+  { value: '+351', label: '+351' },
+  { value: '+52', label: '+52' },
+  { value: '+54', label: '+54' },
+  { value: '+57', label: '+57' },
+  { value: '+56', label: '+56' },
+  { value: '+598', label: '+598' },
+]
+
+function parsePhone(phone: string | null | undefined): { prefix: string; number: string } {
+  if (!phone) return { prefix: '+34', number: '' }
+  const space = phone.indexOf(' ')
+  if (space === -1) return { prefix: '+34', number: phone }
+  return { prefix: phone.slice(0, space), number: phone.slice(space + 1) }
+}
+
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 9)
+  const parts: string[] = []
+  if (digits.length > 0) parts.push(digits.slice(0, 3))
+  if (digits.length > 3) parts.push(digits.slice(3, 6))
+  if (digits.length > 6) parts.push(digits.slice(6, 9))
+  return parts.join(' ')
+}
+
+function LivePreviewCard({ name, imageUrl, zone, priceLevel, description }: {
+  name?: string
+  imageUrl?: string
+  zone?: string
+  priceLevel?: 1 | 2 | 3
+  description?: string
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+      <div className="relative h-32 w-full overflow-hidden bg-stone-100 sm:h-36">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={name || 'Preview'}
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              e.currentTarget.classList.add('hidden')
+              e.currentTarget.nextElementSibling?.classList.remove('hidden')
+            }}
+          />
+        ) : null}
+        <div className={imageUrl ? 'hidden' : 'flex h-full w-full items-center justify-center'}>
+          <UtensilsCrossed className="h-7 w-7 text-stone-300" />
+        </div>
+      </div>
+      <div className="p-3 sm:p-4">
+        <p className="truncate font-bold text-stone-900 sm:text-lg">
+          {name || 'Nombre del restaurante'}
+        </p>
+        <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-stone-400">
+          {zone && (
+            <>
+              <MapPin className="h-3 w-3 shrink-0" />
+              {zone}
+              <span className="mx-1">·</span>
+            </>
+          )}
+          {getPriceLabel(priceLevel ?? 1)}
+        </p>
+        {description && (
+          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-stone-500 sm:text-sm">
+            {description}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 interface RestaurantFormProps {
   defaultValues?: RestaurantWithRole | null
   onSubmit: (data: RestaurantFormData) => Promise<void>
   isSubmitting: boolean
   staffMode?: boolean
+  hideBackButton?: boolean
 }
 
-export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, staffMode }: RestaurantFormProps) {
+export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, staffMode, hideBackButton }: RestaurantFormProps) {
   const [error, setError] = useState('')
   const isEditing = !!defaultValues
+
+  const parsedPhone = parsePhone(defaultValues?.phone)
+  const [phonePrefix, setPhonePrefix] = useState(parsedPhone.prefix)
+  const [phoneNumber, setPhoneNumber] = useState(parsedPhone.number)
+  const [hasReservations, setHasReservations] = useState(!!defaultValues?.reservations_url)
 
   const { data: categories, isLoading: catsLoading } = useQuery({
     queryKey: ['categories'],
@@ -70,6 +158,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       zone: defaultValues?.zone ?? '',
       image_url: defaultValues?.image_url ?? '',
       menu_url: defaultValues?.menu_url ?? '',
+      reservations_url: defaultValues?.reservations_url ?? '',
       active: defaultValues?.active ?? false,
       category_ids: defaultValues?.restaurant_categories?.map((c: { category_id: string }) => c.category_id) ?? [],
     },
@@ -79,7 +168,11 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
   const selectedCategoryIds = watch('category_ids')
   const imageUrlValue = watch('image_url')
   const menuUrlValue = watch('menu_url')
+  const reservationsUrlValue = watch('reservations_url')
   const zoneValue = watch('zone')
+  const previewName = watch('name')
+  const previewDescription = watch('description')
+  const previewPriceLevel = watch('price_level')
 
   const [customZone, setCustomZone] = useState(
     defaultValues?.zone && !ZONES.includes(defaultValues.zone) ? defaultValues.zone : ''
@@ -99,6 +192,10 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
   async function onFormSubmit(data: FormValues) {
     setError('')
     try {
+      data.phone = phonePrefix + ' ' + phoneNumber
+      if (!hasReservations || !data.reservations_url) {
+        data.reservations_url = ''
+      }
       await onSubmit(data as RestaurantFormData)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al guardar')
@@ -111,19 +208,22 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: 'easeInOut' }}
     >
-      <Link
-        href="/establecimientos"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Volver a establecimientos
-      </Link>
+      {!hideBackButton && (
+        <Link
+          href="/establecimientos"
+          className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Volver a establecimientos
+        </Link>
+      )}
 
       <h1 className="mb-8 text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl lg:text-4xl">
         {isEditing ? 'Editar establecimiento' : 'Nuevo establecimiento'}
       </h1>
 
-      <form onSubmit={handleSubmit(onFormSubmit)} className="flex flex-col gap-8">
+      <div className="lg:grid lg:grid-cols-3 lg:gap-8 xl:gap-12">
+        <form onSubmit={handleSubmit(onFormSubmit)} className="flex flex-col gap-8 lg:col-span-2">
         {/* Basic info */}
         <section>
           <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">Información básica</h2>
@@ -152,17 +252,32 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
               />
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
                   Teléfono
                 </label>
-                <input
-                  {...register('phone')}
-                  placeholder="+34 600 00 00 00"
-                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
-                />
+                <div className="flex gap-2">
+                  <select
+                    value={phonePrefix}
+                    onChange={(e) => setPhonePrefix(e.target.value)}
+                    className="w-24 shrink-0 rounded-2xl border border-stone-200 bg-white px-2 py-3 text-sm text-stone-900 shadow-sm transition-all focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-3 sm:text-base"
+                  >
+                    {phoneCountries.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
+                  </select>
+                  <input
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(formatPhone(e.target.value))}
+                    placeholder="666 66 66 66"
+                    className="flex-1 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
+                  />
+                </div>
               </div>
+            </div>
+
+            <div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
                   Dirección
@@ -356,6 +471,62 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                 </div>
               )}
             </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
+                Reservas web
+              </label>
+              <div className="mb-3 flex gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setHasReservations(true)}
+                  className={cn(
+                    'rounded-xl border-2 px-4 py-2 text-sm font-medium shadow-sm transition-all',
+                    hasReservations
+                      ? 'border-stone-900 bg-stone-100 text-stone-900'
+                      : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
+                  )}
+                >
+                  Sí
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHasReservations(false)}
+                  className={cn(
+                    'rounded-xl border-2 px-4 py-2 text-sm font-medium shadow-sm transition-all',
+                    !hasReservations
+                      ? 'border-stone-900 bg-stone-100 text-stone-900'
+                      : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
+                  )}
+                >
+                  No
+                </button>
+              </div>
+              {hasReservations && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
+                    URL de la página de reservas
+                  </label>
+                  <div className="relative">
+                    <input
+                      {...register('reservations_url')}
+                      placeholder="https://..."
+                      className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 pr-12 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
+                    />
+                    {reservationsUrlValue && (
+                      <a
+                        href={reservationsUrlValue}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </section>
 
@@ -413,7 +584,34 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
             )}
           </motion.button>
         </div>
-      </form>
+        </form>
+
+        {/* Desktop sidebar preview */}
+        <div className="hidden lg:block">
+          <div className="sticky top-8">
+            <h3 className="mb-3 text-sm font-semibold text-stone-500">Vista previa</h3>
+            <LivePreviewCard
+              name={previewName}
+              imageUrl={imageUrlValue}
+              zone={zoneValue}
+              priceLevel={previewPriceLevel as 1 | 2 | 3}
+              description={previewDescription}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile preview below form */}
+      <div className="lg:hidden">
+        <h3 className="mb-3 text-sm font-semibold text-stone-500">Vista previa</h3>
+        <LivePreviewCard
+          name={previewName}
+          imageUrl={imageUrlValue}
+          zone={zoneValue}
+          priceLevel={previewPriceLevel as 1 | 2 | 3}
+          description={previewDescription}
+        />
+      </div>
     </motion.div>
   )
 }

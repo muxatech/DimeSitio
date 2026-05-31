@@ -4,17 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getMyRestaurants, deleteRestaurant, checkStaffStatus } from '@/lib/panel/api'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Plus, Pencil, Trash2, Frown, UserPlus } from 'lucide-react'
-import { getPriceLabel } from '@/lib/utils'
+import { Plus, Frown, UserPlus } from 'lucide-react'
+import RestaurantPanelCard from '@/components/restaurant-panel-card'
 
 const containerVariants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.04 } },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0 },
 }
 
 export default function EstablecimientosPage() {
@@ -132,63 +127,16 @@ export default function EstablecimientosPage() {
           </Link>
         </div>
       ) : (
-        <div className="w-full overflow-hidden rounded-2xl border border-stone-200 shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-stone-50">
-                <tr>
-                  <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Nombre</th>
-                  <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Zona</th>
-                  <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Precio</th>
-                  <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Estado</th>
-                  <th className="px-4 py-3 font-semibold text-stone-700 sm:px-5">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-200">
-                {restaurants?.map((r) => (
-                  <motion.tr
-                    key={r.id}
-                    variants={itemVariants}
-                    className="bg-white transition-colors hover:bg-stone-50"
-                  >
-                    <td className="px-4 py-3 font-medium text-stone-900 sm:px-5">{r.name}</td>
-                    <td className="px-4 py-3 text-stone-500 sm:px-5">{r.zone ?? '—'}</td>
-                    <td className="px-4 py-3 text-stone-500 sm:px-5">{getPriceLabel(r.price_level)}</td>
-                    <td className="px-4 py-3 sm:px-5">
-                      <span
-                        className={
-                          r.active
-                            ? 'rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white'
-                            : 'rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-400'
-                        }
-                      >
-                        {r.active ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 sm:px-5">
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/establecimientos/${r.id}`}
-                          className="inline-flex items-center justify-center rounded-xl p-2 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-700"
-                          aria-label="Editar"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(r.id, r.name)}
-                          disabled={deleteMutation.isPending}
-                          className="inline-flex items-center justify-center rounded-xl p-2 text-stone-400 transition-colors hover:bg-red-50 hover:text-red-400 disabled:opacity-50"
-                          aria-label="Eliminar"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {restaurants?.map((r) => (
+            <RestaurantPanelCard
+              key={r.id}
+              restaurant={r}
+              showActions
+              onDelete={handleDelete}
+              isDeleting={deleteMutation.isPending}
+            />
+          ))}
         </div>
       )}
     </motion.div>

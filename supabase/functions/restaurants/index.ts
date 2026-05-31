@@ -75,7 +75,7 @@ async function canAccessAsStaff(
 }
 
 const VALID_PRICE_LEVELS = new Set([1, 2, 3])
-const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'active', 'category_ids'])
+const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'reservations_url', 'active', 'category_ids'])
 
 function validateCreate(body: Record<string, unknown>) {
   const errors: string[] = []
@@ -103,6 +103,9 @@ function validateCreate(body: Record<string, unknown>) {
   if (body.menu_url !== undefined && typeof body.menu_url !== 'string') {
     errors.push('menu_url must be a string')
   }
+  if (body.reservations_url !== undefined && typeof body.reservations_url !== 'string') {
+    errors.push('reservations_url must be a string')
+  }
   if (body.category_ids !== undefined) {
     if (!Array.isArray(body.category_ids)) {
       errors.push('category_ids must be an array')
@@ -115,7 +118,7 @@ function validateCreate(body: Record<string, unknown>) {
 
 function sanitizeStrings(body: Record<string, unknown>) {
   const sanitized = { ...body }
-  for (const key of ['name', 'description', 'phone', 'address', 'zone', 'image_url', 'menu_url']) {
+  for (const key of ['name', 'description', 'phone', 'address', 'zone', 'image_url', 'menu_url', 'reservations_url']) {
     if (typeof sanitized[key] === 'string') {
       sanitized[key] = sanitized[key].trim()
     }
@@ -145,7 +148,7 @@ function validateUpdate(body: Record<string, unknown>): string[] {
     if (key === 'name' && (typeof body[key] !== 'string' || !(body[key] as string).trim())) {
       errors.push('name must be a non-empty string')
     }
-    if (['description', 'phone', 'address', 'zone', 'image_url', 'menu_url'].includes(key) && typeof body[key] !== 'string') {
+    if (['description', 'phone', 'address', 'zone', 'image_url', 'menu_url', 'reservations_url'].includes(key) && typeof body[key] !== 'string') {
       errors.push(`${key} must be a string`)
     }
     if (key === 'active' && typeof body[key] !== 'boolean') {
@@ -182,6 +185,7 @@ async function handleCreate(supabase: ReturnType<typeof createClient>, user: { i
       price_level: sanitized.price_level,
       image_url: sanitized.image_url ?? null,
       menu_url: sanitized.menu_url ?? null,
+      reservations_url: sanitized.reservations_url ?? null,
       zone: sanitized.zone,
       active: false,
     })

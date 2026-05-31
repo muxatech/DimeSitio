@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import Stripe from 'npm:stripe@17'
+import Stripe from 'npm:stripe@22'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,7 +34,7 @@ async function getUser(authHeader: string | null, supabase: ReturnType<typeof cr
 function getStripe(): Stripe {
   const key = Deno.env.get('STRIPE_SECRET_KEY')
   if (!key) throw new Error('STRIPE_SECRET_KEY not configured')
-  return new Stripe(key, { apiVersion: '2025-03-31' as any, httpClient: Stripe.createFetchHttpClient() })
+  return new Stripe(key, { apiVersion: '2026-04-22', httpClient: Stripe.createFetchHttpClient() })
 }
 
 const PRICE_ID = Deno.env.get('STRIPE_PRICE_ID') ?? ''
