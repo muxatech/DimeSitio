@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-export const alt = 'DimeSitio — Encuentra dónde comer en Valencia'
+export const alt = 'DimeSitio — Elige restaurante en 60 segundos'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -52,7 +52,7 @@ export default async function Image() {
         >
           <span
             style={{
-              fontSize: 80,
+              fontSize: 100,
               fontWeight: 700,
               color: '#fafaf9',
               letterSpacing: '-0.03em',
@@ -63,35 +63,35 @@ export default async function Image() {
           </span>
           <span
             style={{
-              fontSize: 32,
+              fontSize: 38,
               color: '#e7e5e4',
-              marginTop: 16,
+              marginTop: 20,
               lineHeight: 1.3,
             }}
           >
-            Encuentra dónde comer en Valencia
+            Elige restaurante en 60 segundos
           </span>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 12,
-              marginTop: 40,
+              gap: 16,
+              marginTop: 48,
             }}
           >
             {['Rápido', 'Gratis', 'Sin registrarte'].map((label) => (
               <span
                 key={label}
                 style={{
-                  fontSize: 20,
+                  fontSize: 24,
                   color: '#d6d3d1',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
+                  gap: 8,
                 }}
               >
-                <svg width="6" height="6" viewBox="0 0 6 6">
-                  <circle cx="3" cy="3" r="3" fill="#d6d3d1" />
+                <svg width="8" height="8" viewBox="0 0 8 8">
+                  <circle cx="4" cy="4" r="4" fill="#d6d3d1" />
                 </svg>
                 {label}
               </span>
