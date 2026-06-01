@@ -38,11 +38,18 @@ function Carousel({ images }: { images: string[] }) {
 
   useEffect(() => {
     if (images.length === 0) return
-    const interval = setInterval(() => {
-      setIdx((prev) => (prev + 1) % images.length)
+    let cancelled = false
+
+    const timeout = setTimeout(() => {
+      const nextIdx = (idx + 1) % images.length
+      const img = document.createElement('img')
+      img.onload = () => { if (!cancelled) setIdx(nextIdx) }
+      img.onerror = () => { if (!cancelled) setIdx(nextIdx) }
+      img.src = `https://images.unsplash.com/photo-${images[nextIdx]}?w=1600&h=1000&fit=crop&auto=format&q=75`
     }, 4500)
-    return () => clearInterval(interval)
-  }, [images.length])
+
+    return () => { cancelled = true; clearTimeout(timeout) }
+  }, [images.length, idx])
 
   if (images.length === 0) return null
 
