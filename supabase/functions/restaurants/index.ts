@@ -530,7 +530,7 @@ function route(method: string, pathname: string): { handler: string; params: Rec
 
 // ─── Main ───────────────────────────────────────────────────
 
-serve(async (req) => {
+async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders })
   }
@@ -557,21 +557,26 @@ serve(async (req) => {
       }
     }
 
+    const authedUser = user
+    if (requiresAuth && !authedUser) {
+      return fail('Unauthorized', 401)
+    }
+
     switch (handler) {
       case 'create': {
         const body = await req.json()
-        return await handleCreate(supabase, user!, body)
+        return await handleCreate(supabase, authedUser!, body)
       }
       case 'listMine':
-        return await handleListMine(supabase, user!)
+        return await handleListMine(supabase, authedUser!)
       case 'update': {
         const body = await req.json()
-        return await handleUpdate(supabase, user!, params.id, body)
+        return await handleUpdate(supabase, authedUser!, params.id, body)
       }
       case 'delete':
-        return await handleDelete(supabase, user!, params.id)
+        return await handleDelete(supabase, authedUser!, params.id)
       case 'stats':
-        return await handleStats(supabase, user!, params.id)
+        return await handleStats(supabase, authedUser!, params.id)
       default:
         return fail('Not found', 404)
     }
@@ -579,4 +584,9 @@ serve(async (req) => {
     console.error('restaurants: unhandled error', err instanceof Error ? err.message : String(err))
     return json({ success: false, data: null, error: err instanceof Error ? err.message : 'Internal server error' }, 500)
   }
-})
+}
+
+if (import.meta.main) {
+  serve(handler)
+}
+export { handler }

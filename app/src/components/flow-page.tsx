@@ -222,7 +222,7 @@ export default function FlowPage() {
     }
     const sid = getSessionId()
     for (const r of top) {
-      trackImpression(r.id, sid)
+      trackImpression(r.id, sid).catch(() => {})
     }
   }
 

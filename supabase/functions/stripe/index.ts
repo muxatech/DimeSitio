@@ -39,6 +39,10 @@ function getStripe(): Stripe {
 
 const PRICE_ID = Deno.env.get('STRIPE_PRICE_ID') ?? ''
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 // ─── Checkout Session (self-service) ────────────────────────
 
 async function handleCreateCheckout(
@@ -232,7 +236,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
         .eq('id', restaurantId)
         .single()
 
-      const restaurantName = restaurantData?.name ?? 'tu restaurante'
+      const restaurantName = escapeHtml(restaurantData?.name ?? 'tu restaurante')
       const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
       const headers = {
         'Content-Type': 'application/json',
@@ -430,7 +434,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
             const ownerEmail = userData?.user?.email
             if (ownerEmail) {
               const { data: rData } = await supabase.from('restaurants').select('name').eq('id', subs.restaurant_id).single()
-              const rName = rData?.name ?? 'tu restaurante'
+              const rName = escapeHtml(rData?.name ?? 'tu restaurante')
               const invoiceTotal = (invoice.amount_paid / 100).toFixed(2)
 
               await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
@@ -553,7 +557,7 @@ function route(method: string, pathname: string): { handler: string; params: Rec
 
 // ─── Main ───────────────────────────────────────────────────
 
-serve(async (req) => {
+async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders })
   }
@@ -603,4 +607,9 @@ serve(async (req) => {
     console.error('stripe: unhandled error', err instanceof Error ? err.message : String(err))
     return json({ success: false, data: null, error: err instanceof Error ? err.message : 'Internal server error' }, 500)
   }
-})
+}
+
+if (import.meta.main) {
+  serve(handler)
+}
+export { handler }

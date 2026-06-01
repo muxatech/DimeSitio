@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info, x-region',
 }
 
-serve(async (req) => {
+async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders })
   }
@@ -33,7 +33,7 @@ serve(async (req) => {
     }
 
     if (body.type !== 'start' && !body.restaurant_id) {
-      const msg = 'Missing required field: restaurant_id for type: ' + body.type
+      const msg = 'Missing required field: restaurant_id'
       console.error('events: validation failed', msg)
       return new Response(JSON.stringify({ error: msg }), {
         status: 400,
@@ -41,135 +41,126 @@ serve(async (req) => {
       })
     }
 
-    if (!['start', 'impression', 'selection', 'call'].includes(body.type)) {
-      const msg = `Invalid type: ${body.type}`
-      console.error('events: validation failed', msg)
-      return new Response(JSON.stringify({ error: msg }), {
+    const allowedTypes = ['start', 'impression', 'detail_view', 'swipe', 'click', 'add_contact', 'share']
+    if (!allowedTypes.includes(body.type)) {
+      console.error('events: invalid type', body.type)
+      return new Response(JSON.stringify({ error: 'Invalid type' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    )
+    if (body.restaurant_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.restaurant_id)) {
+      console.error('events: invalid restaurant_id format', body.restaurant_id)
+      return new Response(JSON.stringify({ error: 'Invalid restaurant_id format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
-    const payload = {
-      restaurant_id: body.restaurant_id,
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+
+    const { error } = await supabase.from('events').insert({
+      type: body.type,
       session_id: body.session_id,
-      created_at: new Date().toISOString(),
+      restaurant_id: body.restaurant_id || null,
+      round: body.round || 1,
+      metadata: body.metadata || null,
+    })
+
+    if (error) {
+      console.error('events: insert error', error.message)
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
-    switch (body.type) {
-      case 'start': {
-        const { error } = await supabase.from('flow_starts').insert({
-          session_id: body.session_id,
-          created_at: new Date().toISOString(),
-        })
-        if (error) {
-          console.error('events: start insert failed', JSON.stringify(error))
-          throw error
+    // If first_call event, send email to admin
+    if (body.type === 'first_call') {
+      try {
+        const { data: restaurant } = await supabase
+          .from('restaurants')
+          .select('name, admin_email')
+          .eq('id', body.restaurant_id)
+          .single()
+
+        if (restaurant?.admin_email) {
+          const safeName = escapeHtml(restaurant.name ?? '')
+          const emailRes = await fetch(
+            `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/api/send-email`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: restaurant.admin_email,
+                subject: `📞 ¡${safeName} ha recibido una llamada!`,
+                html: `
+                  <h2>Nueva llamada registrada</h2>
+                  <p>El restaurante <strong>${safeName}</strong> ha recibido una llamada desde DimeSitio.</p>
+                  <p>Gracias por usar DimeSitio.</p>
+                `,
+                type: 'first_call',
+              }),
+            }
+          )
+
+          if (!emailRes.ok) {
+            const emailError = await emailRes.text()
+            console.error('events: failed to send email', emailError)
+          }
         }
-        console.log('events: start inserted', body.session_id)
-        break
+      } catch (emailErr) {
+        console.error('events: email error', emailErr.message)
       }
-      case 'impression': {
-        const { error } = await supabase.from('impressions').insert(payload)
-        if (error) {
-          console.error('events: impression insert failed', JSON.stringify(error))
-          throw error
-        }
-        console.log('events: impression inserted', payload.restaurant_id)
-        break
-      }
-      case 'selection': {
-        const { error } = await supabase.from('selections').insert({
-          ...payload,
-          round: body.round ?? 0,
-        })
-        if (error) {
-          console.error('events: selection insert failed', JSON.stringify(error))
-          throw error
-        }
-        console.log('events: selection inserted', payload.restaurant_id, 'round', body.round ?? 0)
-        break
-      }
-      case 'call': {
-        const { error } = await supabase.from('calls').insert(payload)
-        if (error) {
-          console.error('events: call insert failed', JSON.stringify(error))
-          throw error
-        }
-        console.log('events: call inserted', payload.restaurant_id)
+    }
 
-        try {
-          const { count } = await supabase
-            .from('calls')
-            .select('*', { count: 'exact', head: true })
-            .eq('restaurant_id', payload.restaurant_id)
+    if (body.type === 'swipe' || body.type === 'click') {
+      try {
+        const { data: restaurant } = await supabase
+          .from('restaurants')
+          .select('name, admin_email')
+          .eq('id', body.restaurant_id)
+          .single()
 
-          if (count === 1) {
-            const { data: rName } = await supabase
-              .from('restaurants')
-              .select('name')
-              .eq('id', payload.restaurant_id)
-              .single()
+        if (restaurant) {
+          const restaurantId = body.restaurant_id
+          const { data: votes } = await supabase
+            .from('events')
+            .select('type')
+            .eq('restaurant_id', restaurantId)
+            .eq('type', 'swipe')
 
-            const restaurantName = rName?.name ?? 'tu restaurante'
+          const swipeCount = votes?.length ?? 0
 
-            const { data: admins } = await supabase
-              .from('restaurant_admins')
-              .select('user_id')
-              .eq('restaurant_id', payload.restaurant_id)
-              .limit(1)
-
-            const adminUserId = admins?.[0]?.user_id
-
-            if (adminUserId) {
-              const { data: userData } = await supabase.auth.admin.getUserById(adminUserId)
-              const ownerEmail = userData?.user?.email
-              if (ownerEmail) {
-                const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
-                await fetch(fnUrl, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-                  },
-                  body: JSON.stringify({
-                    to: ownerEmail,
-                    type: 'first_call',
-                    restaurant_id: payload.restaurant_id,
-                    subject: '¡Han llamado a tu restaurante desde DimeSitio!',
-                    html: `<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Primera llamada</title></head>
-<body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
-<tr><td align="center" style="padding:40px 16px;">
-<table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
-<tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
-<tr><td style="padding:24px 24px 8px;text-align:center;">
-<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">¡Buenas noticias!<br/>Alguien ha llamado a <strong>${restaurantName}</strong> desde DimeSitio.</p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Tu listado en DimeSitio ya está generando clientes reales. Sigue así.</p>
-</td></tr>
-<tr><td align="center" style="padding:24px;">
-<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/dashboard" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
-</td></tr>
-<tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
-</table>
-</td></tr></table></body>
-</html>`,
-                  }),
-                })
+          if (swipeCount === 5) {
+            const safeName = escapeHtml(restaurant.name ?? '')
+            const emailRes = await fetch(
+              `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/api/send-email`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  to: restaurant.admin_email,
+                  subject: `🔥 ${safeName} está en racha — 5 swipes`,
+                  html: `
+                    <h2>¡Tu restaurante está sonando!</h2>
+                    <p><strong>${safeName}</strong> ha recibido 5 swipes en DimeSitio.</p>
+                    <p>Es una buena señal de los usuarios están interesados.</p>
+                  `,
+                  type: 'swipe_milestone',
+                }),
               }
+            )
+
+            if (!emailRes.ok) {
+              const emailError = await emailRes.text()
+              console.error('events: failed to send milestone email', emailError)
             }
           }
-        } catch (emailErr) {
-          console.error('events: first-call email failed', emailErr.message)
         }
-        break
+      } catch (emailErr) {
+        console.error('events: milestone email error', emailErr.message)
       }
     }
 
@@ -184,4 +175,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
-})
+}
+
+if (import.meta.main) {
+  serve(handler)
+}
+export { handler }

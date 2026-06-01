@@ -27,8 +27,10 @@ export default function SuscripcionPage() {
   const [verifyingId, setVerifyingId] = useState<string | null>(null)
   const [timeoutId, setTimeoutId] = useState<string | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const mountedRef = useRef(true)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -40,12 +42,19 @@ export default function SuscripcionPage() {
   }, [])
 
   useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
+
+  useEffect(() => {
     if (!verifyingId) return
 
     pollingRef.current = setInterval(async () => {
+      if (!mountedRef.current) return
       const result = await refetch()
       const target = result.data?.find((r) => r.id === verifyingId)
       if (target?.subscription_status === 'active') {
+        if (!mountedRef.current) return
         setShowSuccessModal(true)
         setVerifyingId(null)
         setTimeoutId(null)
@@ -55,6 +64,7 @@ export default function SuscripcionPage() {
     }, 2000)
 
     timeoutRef.current = setTimeout(() => {
+      if (!mountedRef.current) return
       if (pollingRef.current) clearInterval(pollingRef.current)
       setTimeoutId(verifyingId)
       setVerifyingId(null)
@@ -72,7 +82,7 @@ export default function SuscripcionPage() {
       const url = await createCheckoutSession(restaurantId)
       window.location.assign(url)
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Error al iniciar el pago')
+      setErrorMessage(e instanceof Error ? e.message : 'Error al iniciar el pago')
     } finally {
       setLoadingId(null)
     }
@@ -84,7 +94,7 @@ export default function SuscripcionPage() {
       const url = await createPortalSession(restaurantId)
       window.location.assign(url)
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Error al abrir el portal')
+      setErrorMessage(e instanceof Error ? e.message : 'Error al abrir el portal')
     } finally {
       setLoadingId(null)
     }
@@ -150,6 +160,11 @@ export default function SuscripcionPage() {
         </button>
       </div>
 
+      {errorMessage && (
+        <div className="rounded-xl bg-red-50 p-3 text-sm text-red-600">
+          {errorMessage}
+        </div>
+      )}
       {restaurants && restaurants.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <Frown className="h-12 w-12 text-stone-300" />

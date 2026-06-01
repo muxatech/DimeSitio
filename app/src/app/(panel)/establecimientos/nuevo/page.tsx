@@ -14,6 +14,7 @@ export default function NuevoEstablecimientoPage() {
   const queryClient = useQueryClient()
   const [createdId, setCreatedId] = useState<string | null>(null)
   const [paying, setPaying] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const mutation = useMutation({
     mutationFn: createRestaurant,
@@ -34,7 +35,7 @@ export default function NuevoEstablecimientoPage() {
       const url = await createCheckoutSession(createdId)
       window.location.assign(url)
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Error al iniciar el pago')
+      setErrorMessage(e instanceof Error ? e.message : 'Error al iniciar el pago')
       setPaying(false)
     }
   }
@@ -59,6 +60,11 @@ export default function NuevoEstablecimientoPage() {
               Falta completar el pago para activarlo — 29€/mes
             </p>
           </div>
+          {errorMessage && (
+            <div className="w-full rounded-xl bg-red-50 p-3 text-sm text-red-600">
+              {errorMessage}
+            </div>
+          )}
           <div className="flex w-full flex-col gap-3">
             <button
               onClick={handlePay}

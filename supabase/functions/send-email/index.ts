@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import Resend from 'npm:resend@4'
+import { Resend } from 'npm:resend@4'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 const FROM = Deno.env.get('RESEND_FROM') ?? 'DimeSitio <dimesitio@resend.dev>'
@@ -20,7 +20,7 @@ function json(body: unknown, status = 200) {
   })
 }
 
-serve(async (req) => {
+async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders })
   }
@@ -81,4 +81,9 @@ serve(async (req) => {
     console.error('send-email: unhandled error', err.message)
     return json({ error: err.message }, 500)
   }
-})
+}
+
+if (import.meta.main) {
+  serve(handler)
+}
+export { handler }

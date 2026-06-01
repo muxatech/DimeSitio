@@ -38,6 +38,11 @@ Thumbs.db
 *.tsbuildinfo
 next-env.d.ts
 
+# testing
+coverage/
+playwright-report/
+test-results/
+
 # supabase local
 supabase/.branches
 supabase/.temp
