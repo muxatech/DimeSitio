@@ -7,31 +7,27 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 export default async function Image() {
-  const fontData = await readFile(
-    join(process.cwd(), 'node_modules/next/dist/compiled/@vercel/og/Geist-Regular.ttf'),
-  )
+  const [fontData, imageSrc] = await Promise.all([
+    readFile(join(process.cwd(), 'node_modules/next/dist/compiled/@vercel/og/Geist-Regular.ttf')),
+    fetchImageAsDataUri(),
+  ])
 
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          position: 'relative',
-        }}
-      >
-        <img
-          src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1200&h=630&fit=crop&auto=format&q=75"
-          alt=""
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
-        />
+      <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative' }}>
+        {imageSrc && (
+          <img
+            src={imageSrc}
+            alt=""
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        )}
         <div
           style={{
             position: 'absolute',
@@ -112,4 +108,18 @@ export default async function Image() {
       ],
     },
   )
+}
+
+async function fetchImageAsDataUri(): Promise<string | null> {
+  try {
+    const res = await fetch(
+      'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1200&h=630&fit=crop&auto=format&q=75',
+    )
+    if (!res.ok) return null
+    const buffer = await res.arrayBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
+    return `data:image/jpeg;base64,${base64}`
+  } catch {
+    return null
+  }
 }
