@@ -15,8 +15,6 @@ import {
 } from 'lucide-react'
 import { FOOD_PHOTOS, FOOD_TYPES, PROBLEMS, HERO_STATS } from '@/lib/constants'
 
-const MotionImage = motion.create(Image)
-
 const problems = [
   {
     icon: Clock,
@@ -51,18 +49,15 @@ function Carousel({ images }: { images: string[] }) {
   return (
     <div className="pointer-events-none absolute inset-0 select-none">
       <AnimatePresence initial={false} custom={idx}>
-        <MotionImage
+        <motion.img
           key={idx}
           src={`https://images.unsplash.com/photo-${images[idx]}?w=1600&h=1000&fit=crop&auto=format&q=75`}
           alt=""
-          width={1600}
-          height={1000}
           className="absolute inset-0 h-full w-full object-cover opacity-40"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '-100%' }}
           transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-          onError={() => { /* ignore broken images */ }}
         />
       </AnimatePresence>
 
