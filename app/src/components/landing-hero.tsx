@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
 import { getSessionId } from '@/lib/utils'
-import { trackStart } from '@/lib/tracking'
 import {
   Clock,
   Target,
@@ -16,7 +15,7 @@ import {
 } from 'lucide-react'
 import { FOOD_PHOTOS, FOOD_TYPES, PROBLEMS, HERO_STATS } from '@/lib/constants'
 
-const MotionImage = motion(Image)
+const MotionImage = motion.create(Image)
 
 const problems = [
   {
@@ -98,11 +97,12 @@ export default function LandingHero() {
     return () => clearInterval(interval)
   }, [words.length])
 
-  function handleStart() {
+  async function handleStart() {
     const sid = getSessionId()
     setSessionId(sid)
     resetQuestionState()
     setStep('questions')
+    const { trackStart } = await import('@/lib/tracking')
     trackStart(sid)
   }
 

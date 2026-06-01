@@ -345,6 +345,18 @@ async function handleUpdate(
     return fail(errs.join('; '))
   }
 
+  if (body.active === true) {
+    const { data: sub } = await supabase
+      .from('subscriptions')
+      .select('status')
+      .eq('restaurant_id', restaurantId)
+      .maybeSingle()
+    if (!sub || sub.status !== 'active') {
+      console.log('restaurants: blocked active=true — no active subscription', restaurantId)
+      return fail('Se necesita una suscripción activa para publicar el establecimiento', 403)
+    }
+  }
+
   const sanitized = sanitizeStrings(body)
   const categoryIds: string[] | undefined = sanitized.category_ids as string[] | undefined
   const updateFields = { ...sanitized } as Record<string, unknown>

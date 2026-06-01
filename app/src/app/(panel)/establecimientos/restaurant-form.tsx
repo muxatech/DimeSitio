@@ -534,19 +534,43 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
         {isEditing && (
           <section>
             <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">Visibilidad</h2>
-            <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-all hover:border-stone-300 sm:p-5">
-              <div>
-                <p className="text-sm font-medium text-stone-900 sm:text-base">Activo</p>
-                <p className="mt-0.5 text-sm text-stone-400">
-                  Visible en la página pública y en las búsquedas de usuarios
-                </p>
+            {defaultValues?.subscription_status === 'active' ? (
+              <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-all hover:border-stone-300 sm:p-5">
+                <div>
+                  <p className="text-sm font-medium text-stone-900 sm:text-base">Activo</p>
+                  <p className="mt-0.5 text-sm text-stone-400">
+                    Visible en la página pública y en las búsquedas de usuarios
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  {...register('active')}
+                  className="h-5 w-5 rounded border-stone-300 text-stone-900 focus:ring-stone-900"
+                />
+              </label>
+            ) : (
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 sm:p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-stone-400 sm:text-base">Activo</p>
+                    <p className="mt-0.5 text-sm text-stone-400">
+                      Necesitas una suscripción activa para publicar el establecimiento
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    disabled
+                    className="h-5 w-5 rounded border-stone-200 bg-stone-100 opacity-50"
+                  />
+                </div>
+                <Link
+                  href="/suscripcion"
+                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 underline underline-offset-2 transition-colors hover:text-stone-800"
+                >
+                  Gestionar suscripción &rarr;
+                </Link>
               </div>
-              <input
-                type="checkbox"
-                {...register('active')}
-                className="h-5 w-5 rounded border-stone-300 text-stone-900 focus:ring-stone-900"
-              />
-            </label>
+            )}
           </section>
         )}
 

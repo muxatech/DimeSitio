@@ -7,7 +7,7 @@ export interface FlowDataState {
   qIndex: number
   selectedCategoryIds: string[]
   selectedPriceLevel: number | null
-  selectedZone: string | null
+  selectedZoneIds: string[]
   filteredRestaurants: Restaurant[]
   top5: Restaurant[]
   battleChampion: Restaurant | null
@@ -23,7 +23,7 @@ interface FlowStore {
   qIndex: number
   selectedCategoryIds: string[]
   selectedPriceLevel: number | null
-  selectedZone: string | null
+  selectedZoneIds: string[]
   filteredRestaurants: Restaurant[]
   top5: Restaurant[]
   battleChampion: Restaurant | null
@@ -37,7 +37,7 @@ interface FlowStore {
   setQIndex: (index: number) => void
   setSelectedCategoryIds: (ids: string[]) => void
   setSelectedPriceLevel: (level: number | null) => void
-  setSelectedZone: (zone: string | null) => void
+  setSelectedZoneIds: (ids: string[]) => void
   setFilteredRestaurants: (restaurants: Restaurant[]) => void
   setTop5: (restaurants: Restaurant[]) => void
   initBattle: () => void
@@ -55,7 +55,7 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
   qIndex: 0,
   selectedCategoryIds: [],
   selectedPriceLevel: null,
-  selectedZone: null,
+  selectedZoneIds: [],
   filteredRestaurants: [],
   top5: [],
   battleChampion: null,
@@ -74,7 +74,7 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
 
   setSelectedPriceLevel: (level) => set({ selectedPriceLevel: level }),
 
-  setSelectedZone: (zone) => set({ selectedZone: zone }),
+  setSelectedZoneIds: (ids) => set({ selectedZoneIds: ids }),
 
   setFilteredRestaurants: (restaurants) => set({ filteredRestaurants: restaurants }),
 
@@ -129,7 +129,7 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       qIndex: 0,
       selectedCategoryIds: [],
       selectedPriceLevel: null,
-      selectedZone: null,
+      selectedZoneIds: [],
       filteredRestaurants: [],
       top5: [],
       battleChampion: null,
@@ -147,7 +147,7 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       qIndex: 0,
       selectedCategoryIds: [],
       selectedPriceLevel: null,
-      selectedZone: null,
+      selectedZoneIds: [],
       filteredRestaurants: [],
       top5: [],
       battleChampion: null,

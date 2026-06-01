@@ -1,7 +1,5 @@
-'use client'
-
-import FlowPage from '@/components/flow-page'
+import HomePage from '@/components/home-page'
 
 export default function Home() {
-  return <FlowPage />
+  return <HomePage />
 }

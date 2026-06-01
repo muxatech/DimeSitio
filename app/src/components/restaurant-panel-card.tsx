@@ -94,25 +94,20 @@ export default function RestaurantPanelCard({
           </div>
         )}
 
-        <div className="mt-3 flex items-center gap-2">
-          <span
-            className={
-              restaurant.subscription_status === 'active'
-                ? 'rounded-full bg-stone-900 px-2.5 py-0.5 text-[11px] font-medium text-white'
-                : 'rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-400'
-            }
-          >
-            {restaurant.subscription_status === 'active' ? 'Activa' : 'Inactiva'}
-          </span>
-          <span
-            className={
-              restaurant.active
-                ? 'rounded-full bg-stone-200 px-2.5 py-0.5 text-[11px] font-medium text-stone-700'
-                : 'rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-400'
-            }
-          >
-            {restaurant.active ? 'Activo' : 'Inactivo'}
-          </span>
+        <div className="mt-3">
+          {restaurant.active ? (
+            <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-medium text-white">
+              Activo
+            </span>
+          ) : restaurant.subscription_status === 'active' ? (
+            <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-400">
+              Oculto
+            </span>
+          ) : (
+            <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-400">
+              Sin suscripción
+            </span>
+          )}
         </div>
 
         {showActions && (

@@ -88,7 +88,7 @@ async function handleCreateCheckout(
     mode: 'subscription',
     line_items: [{ price: PRICE_ID, quantity: 1 }],
     metadata: { restaurant_id: body.restaurant_id, source: 'self-service' },
-    success_url: body.success_url ?? `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/establecimientos`,
+    success_url: body.success_url ?? `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/suscripcion?checking=true&restaurant_id=${body.restaurant_id}`,
     cancel_url: body.cancel_url ?? `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/suscripcion`,
   })
 
@@ -184,9 +184,14 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(rawBody, signature ?? '', webhookSecret)
+    event = await stripe.webhooks.constructEventAsync(rawBody, signature ?? '', webhookSecret)
   } catch (err) {
-    console.error('stripe: webhook signature verification failed', err instanceof Error ? err.message : String(err))
+    console.error('stripe: webhook signature verification failed', JSON.stringify({
+      error: err instanceof Error ? err.message : String(err),
+      bodyLength: rawBody?.length,
+      signaturePrefix: signature?.slice(0, 20),
+      secretPrefix: webhookSecret?.slice(0, 10),
+    }))
     return fail('Invalid signature', 401)
   }
 
@@ -293,31 +298,42 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
           console.error('stripe: failed to invite user', JSON.stringify(inviteError))
         }
 
-        const invitedUserId = inviteData?.user?.id
+        let ownerUserId = inviteData?.user?.id
 
-        if (invitedUserId) {
+        if (!ownerUserId) {
+          const { data: usersData } = await supabase.auth.admin.listUsers()
+          const existingUser = usersData?.users?.find((u) => u.email === ownerEmail)
+          if (existingUser) {
+            ownerUserId = existingUser.id
+            console.log('stripe: found existing user for staff flow', ownerUserId)
+          }
+        }
+
+        if (ownerUserId) {
           const { error: adminError } = await supabase.from('restaurant_admins').insert({
             restaurant_id: restaurantId,
-            user_id: invitedUserId,
+            user_id: ownerUserId,
             role: 'owner',
           })
 
           if (adminError) {
             console.error('stripe: failed to insert admin', JSON.stringify(adminError))
           } else {
-            await supabase.from('restaurants').update({ owner_id: invitedUserId, active: true }).eq('id', restaurantId)
-            console.log('stripe: staff flow completed', { restaurantId, ownerEmail, invitedUserId })
+            await supabase.from('restaurants').update({ owner_id: ownerUserId, active: true }).eq('id', restaurantId)
+            console.log('stripe: staff flow completed', { restaurantId, ownerEmail, ownerUserId })
+          }
+        }
 
-            try {
-              await fetch(fnUrl, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                  to: ownerEmail,
-                  type: 'payment_receipt',
-                  restaurant_id: restaurantId,
-                  subject: '¡Tu restaurante ya está activo en DimeSitio!',
-                  html: `<!DOCTYPE html>
+        try {
+          await fetch(fnUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              to: ownerEmail,
+              type: 'payment_receipt',
+              restaurant_id: restaurantId,
+              subject: '¡Tu restaurante ya está activo en DimeSitio!',
+              html: `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Restaurante activo</title></head>
 <body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
@@ -330,18 +346,16 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 <p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil. Revisa tu bandeja de entrada.</p>
 </td></tr>
 <tr><td align="center" style="padding:24px;">
-<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/dashboard" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
+<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/set-password" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
 </td></tr>
 <tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
 </table>
 </td></tr></table></body>
 </html>`,
-                }),
-              })
-            } catch (emailErr) {
-              console.error('stripe: receipt email failed', emailErr.message)
-            }
-          }
+            }),
+          })
+        } catch (emailErr) {
+          console.error('stripe: receipt email failed', emailErr.message)
         }
       }
       break
@@ -350,12 +364,44 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
     case 'invoice.paid': {
       const invoice = event.data.object as Stripe.Invoice
       const subscriptionId = invoice.subscription as string
+      const stripe = getStripe()
 
-      const { data: subs } = await supabase
+      let { data: subs } = await supabase
         .from('subscriptions')
         .select('restaurant_id')
         .eq('stripe_subscription_id', subscriptionId)
         .maybeSingle()
+
+      if (!subs) {
+        console.log('stripe: invoice paid but no subscription record — trying fallback lookup')
+        const checkoutSessionId = (invoice as Record<string, unknown>).checkout_session as string | undefined
+        if (checkoutSessionId) {
+          try {
+            const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId)
+            const restaurantId = checkoutSession.metadata?.restaurant_id
+            const customerId = checkoutSession.customer as string
+            if (restaurantId) {
+              const { error: upsertError } = await supabase.from('subscriptions').upsert({
+                restaurant_id: restaurantId,
+                stripe_customer_id: customerId,
+                stripe_subscription_id: subscriptionId,
+                status: 'active',
+                current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
+              }, { onConflict: 'restaurant_id' })
+
+              if (upsertError) {
+                console.error('stripe: invoice paid fallback upsert failed', JSON.stringify(upsertError))
+              } else {
+                await supabase.from('restaurants').update({ active: true }).eq('id', restaurantId)
+                subs = { restaurant_id: restaurantId }
+                console.log('stripe: invoice paid fallback created subscription', restaurantId)
+              }
+            }
+          } catch (csErr) {
+            console.error('stripe: invoice paid fallback checkout retrieval failed', csErr.message)
+          }
+        }
+      }
 
       if (subs) {
         const periodEnd = invoice.lines?.data?.[0]?.period?.end
@@ -430,6 +476,44 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
       break
     }
 
+    case 'customer.subscription.created': {
+      const createdSub = event.data.object as Stripe.Subscription
+      console.log('stripe: subscription created', createdSub.id)
+
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('restaurant_id')
+        .eq('stripe_subscription_id', createdSub.id)
+        .maybeSingle()
+
+      if (!existingSub) {
+        const checkoutSessionId = (createdSub as Record<string, unknown>).checkout_session as string | undefined
+        if (checkoutSessionId) {
+          try {
+            const stripe = getStripe()
+            const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId)
+            const restaurantId = checkoutSession.metadata?.restaurant_id
+            const customerId = checkoutSession.customer as string
+            if (restaurantId) {
+              await supabase.from('subscriptions').upsert({
+                restaurant_id: restaurantId,
+                stripe_customer_id: customerId,
+                stripe_subscription_id: createdSub.id,
+                status: 'active',
+                current_period_end: new Date(createdSub.current_period_end * 1000).toISOString(),
+              }, { onConflict: 'restaurant_id' })
+
+              await supabase.from('restaurants').update({ active: true }).eq('id', restaurantId)
+              console.log('stripe: subscription created fallback — activated', restaurantId)
+            }
+          } catch (csErr) {
+            console.error('stripe: subscription created fallback failed', csErr.message)
+          }
+        }
+      }
+      break
+    }
+
     case 'customer.subscription.deleted': {
       const deletedSub = event.data.object as Stripe.Subscription
 
@@ -448,7 +532,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
     }
 
     default:
-      console.log('stripe: unhandled event type', event.type)
+      console.log('stripe: unhandled event type', event.type, JSON.stringify({ id: event.id }))
   }
 
   return ok({ received: true })
@@ -459,7 +543,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 function route(method: string, pathname: string): { handler: string; params: Record<string, string> } {
   const path = pathname.replace(/^\/functions\/v1\/stripe/, '').replace(/^\/stripe/, '') || '/'
 
-  if (method === 'POST' && path === '/webhook') return { handler: 'webhook', params: {} }
+  if (method === 'POST' && (path === '/webhook' || path === '/')) return { handler: 'webhook', params: {} }
   if (method === 'POST' && path === '/create-checkout') return { handler: 'createCheckout', params: {} }
   if (method === 'POST' && path === '/create-portal') return { handler: 'createPortal', params: {} }
   if (method === 'POST' && path === '/verify') return { handler: 'verify', params: {} }
@@ -486,8 +570,10 @@ serve(async (req) => {
 
     // Webhook doesn't need auth (uses signature verification)
     if (handler === 'webhook') {
-      const rawBody = await req.text()
+      const rawBytes = await req.arrayBuffer()
+      const rawBody = new TextDecoder().decode(rawBytes)
       const signature = req.headers.get('stripe-signature')
+      console.log('stripe: webhook request', JSON.stringify({ bodyLength: rawBody.length, hasSignature: !!signature }))
       return await handleWebhook(supabase, rawBody, signature)
     }
 

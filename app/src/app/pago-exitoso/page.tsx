@@ -32,10 +32,10 @@ export default function PagoExitosoPage() {
           </p>
         </div>
         <Link
-          href="/"
+          href="/dashboard"
           className="rounded-2xl bg-stone-800 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700"
         >
-          Ir a la página principal
+          Ir al panel
         </Link>
         <p className="text-xs text-stone-300">
           ¿No recibiste el email? Revisa la carpeta de spam.

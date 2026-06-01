@@ -39,7 +39,7 @@ function persistFlowState() {
     qIndex: store.qIndex,
     selectedCategoryIds: store.selectedCategoryIds,
     selectedPriceLevel: store.selectedPriceLevel,
-    selectedZone: store.selectedZone,
+    selectedZoneIds: store.selectedZoneIds,
     filteredRestaurants: store.filteredRestaurants,
     top5: store.top5,
     battleChampion: store.battleChampion,
@@ -68,7 +68,7 @@ function stepBack(store: ReturnType<typeof useFlowStore.getState>) {
 
 export default function FlowPage() {
   const step = useFlowStore((s) => s.step)
-  const { setStep, setQIndex, setFilteredRestaurants, setTop5, selectedCategoryIds, selectedPriceLevel, selectedZone } =
+  const { setStep, setQIndex, setFilteredRestaurants, setTop5, setWinner, selectedCategoryIds, selectedPriceLevel, selectedZoneIds } =
     useFlowStore()
   const qIndex = useFlowStore((s) => s.qIndex)
 
@@ -96,7 +96,7 @@ export default function FlowPage() {
   // Persist to sessionStorage on every state change
   useEffect(() => {
     persistFlowState()
-  }, [step, qIndex, selectedCategoryIds, selectedPriceLevel, selectedZone])
+  }, [step, qIndex, selectedCategoryIds, selectedPriceLevel, selectedZoneIds])
 
   // Push a history entry on forward navigation (not popState)
   // Replace on landing to prevent old flow entries from lingering
@@ -206,15 +206,20 @@ export default function FlowPage() {
       })
     }
 
-    if (selectedZone) {
-      filtered = filtered.filter((r) => r.zone === selectedZone)
+    if (selectedZoneIds.length > 0) {
+      filtered = filtered.filter((r) => r.zone && selectedZoneIds.includes(r.zone))
     }
 
     setFilteredRestaurants(filtered)
 
     const top = shuffle(filtered).slice(0, 5)
     setTop5(top)
-    setStep('top5')
+    if (top.length === 1) {
+      setWinner(top[0])
+      setStep('winner')
+    } else {
+      setStep('top5')
+    }
     const sid = getSessionId()
     for (const r of top) {
       trackImpression(r.id, sid)

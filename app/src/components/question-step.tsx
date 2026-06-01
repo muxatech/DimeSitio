@@ -201,9 +201,16 @@ export function QuestionZone({
   onNext,
   onBack,
   title = '¿Por qué zona te viene mejor?',
-  subtitle = 'Selecciona una zona de Valencia',
+  subtitle = 'Selecciona una o varias zonas',
 }: QuestionStepProps & { zones?: string[] }) {
-  const { selectedZone, setSelectedZone } = useFlowStore()
+  const { selectedZoneIds, setSelectedZoneIds } = useFlowStore()
+
+  function toggle(zone: string) {
+    const next = selectedZoneIds.includes(zone)
+      ? selectedZoneIds.filter((z) => z !== zone)
+      : [...selectedZoneIds, zone]
+    setSelectedZoneIds(next)
+  }
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
@@ -230,10 +237,10 @@ export function QuestionZone({
             key={zone}
             variants={itemVariants}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setSelectedZone(zone === selectedZone ? null : zone)}
+            onClick={() => toggle(zone)}
             className={cn(
               'inline-flex items-center gap-2 rounded-2xl border-2 px-5 py-3 text-sm font-medium shadow-sm transition-all sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-lg',
-              selectedZone === zone
+              selectedZoneIds.includes(zone)
                 ? 'border-stone-900 bg-stone-100 text-stone-900'
                 : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:shadow-md'
             )}
@@ -245,10 +252,10 @@ export function QuestionZone({
         <motion.button
           variants={itemVariants}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setSelectedZone(null)}
+          onClick={() => setSelectedZoneIds([])}
           className={cn(
             'inline-flex items-center gap-2 rounded-2xl border-2 border-dashed px-5 py-3 text-sm font-medium transition-all sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-lg',
-            selectedZone === null
+            selectedZoneIds.length === 0
               ? 'border-stone-900 bg-stone-100 text-stone-800'
               : 'border-stone-300 text-stone-400 hover:border-stone-300'
           )}
