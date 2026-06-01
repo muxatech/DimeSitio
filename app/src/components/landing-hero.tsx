@@ -53,10 +53,11 @@ function Carousel({ images }: { images: string[] }) {
       <AnimatePresence initial={false} custom={idx}>
         <MotionImage
           key={idx}
-          src={`https://images.unsplash.com/photo-${images[idx]}?w=1600&h=1000&fit=crop&auto=format`}
+          src={`https://images.unsplash.com/photo-${images[idx]}?w=1600&h=1000&fit=crop&auto=format&q=75`}
           alt=""
           width={1600}
           height={1000}
+          priority={idx === 0}
           className="absolute inset-0 h-full w-full object-cover opacity-40"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
@@ -263,10 +264,11 @@ export default function LandingHero() {
                     </svg>
                   </div>
                   <Image
-                    src={`https://images.unsplash.com/photo-${id}?w=600&h=500&fit=crop&auto=format`}
+                    src={`https://images.unsplash.com/photo-${id}?w=600&h=500&fit=crop&auto=format&q=75`}
                     alt=""
                     width={600}
                     height={500}
+                    priority={i < 4}
                     className="relative h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0' }}
                   />
