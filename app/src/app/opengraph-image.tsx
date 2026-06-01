@@ -18,17 +18,36 @@ export default async function Image() {
           width: '100%',
           height: '100%',
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)',
+          position: 'relative',
         }}
       >
+        <img
+          src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1200&h=630&fit=crop&auto=format&q=75"
+          alt=""
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+        />
         <div
           style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0.15))',
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           <span
@@ -45,40 +64,39 @@ export default async function Image() {
           <span
             style={{
               fontSize: 32,
-              color: '#a8a29e',
+              color: '#e7e5e4',
               marginTop: 16,
               lineHeight: 1.3,
             }}
           >
             Encuentra dónde comer en Valencia
           </span>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            marginTop: 40,
-          }}
-        >
-          {['Rápido', 'Gratis', 'Sin registrarte'].map((label) => (
-            <span
-              key={label}
-              style={{
-                fontSize: 20,
-                color: '#78716c',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <svg width="6" height="6" viewBox="0 0 6 6">
-                <circle cx="3" cy="3" r="3" fill="#d6d3d1" />
-              </svg>
-              {label}
-            </span>
-          ))}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              marginTop: 40,
+            }}
+          >
+            {['Rápido', 'Gratis', 'Sin registrarte'].map((label) => (
+              <span
+                key={label}
+                style={{
+                  fontSize: 20,
+                  color: '#d6d3d1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <svg width="6" height="6" viewBox="0 0 6 6">
+                  <circle cx="3" cy="3" r="3" fill="#d6d3d1" />
+                </svg>
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     ),
