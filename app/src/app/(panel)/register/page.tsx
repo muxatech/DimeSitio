@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import DsMonogram from '@/components/ds-monogram'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -90,9 +91,7 @@ export default function RegisterPage() {
       >
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2 text-2xl font-bold tracking-tight text-stone-900">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-800 text-lg font-bold text-white">
-              D
-            </span>
+            <DsMonogram className="h-9 w-9 rounded-xl" />
             DimeSitio
           </Link>
         </div>

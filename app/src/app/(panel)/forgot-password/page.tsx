@@ -53,10 +53,8 @@ export default function ForgotPasswordPage() {
         >
           <div className="mb-8">
             <Link href="/" className="inline-flex items-center gap-2 text-2xl font-bold tracking-tight text-stone-900">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-800 text-lg font-bold text-white">
-                D
-              </span>
-              DimeSitio
+            <DsMonogram className="h-9 w-9 rounded-xl" />
+            DimeSitio
             </Link>
           </div>
           <h1 className="mb-3 text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">

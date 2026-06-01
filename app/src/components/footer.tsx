@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import DsMonogram from '@/components/ds-monogram'
 
 const quickLinks = [
   { label: 'Inicio', href: '/' },
@@ -12,9 +13,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="flex max-w-xs flex-col gap-3">
           <div className="flex items-center gap-2 text-lg font-bold text-stone-900">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-800 text-sm font-bold text-white shadow-sm">
-              D
-            </span>
+            <DsMonogram className="h-8 w-8 shadow-sm" />
             DimeSitio
           </div>
           <p className="text-sm leading-relaxed text-stone-500">
