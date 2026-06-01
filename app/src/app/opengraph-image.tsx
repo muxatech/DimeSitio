@@ -7,32 +7,32 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 export default async function Image() {
-  const [fontData, imageSrc] = await Promise.all([
+  const [fontData, imgBuffer] = await Promise.all([
     readFile(join(process.cwd(), 'node_modules/next/dist/compiled/@vercel/og/Geist-Regular.ttf')),
-    fetchImageAsDataUri(),
+    fetchImage(),
   ])
 
   return new ImageResponse(
     (
-      <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative' }}>
-        {imageSrc && (
+      <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative', overflow: 'hidden' }}>
+        {imgBuffer && (
           <img
-            src={imageSrc}
+            src={imgBuffer as unknown as string}
             alt=""
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
         )}
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0.15))',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.1))',
           }}
         />
         <div
@@ -110,15 +110,13 @@ export default async function Image() {
   )
 }
 
-async function fetchImageAsDataUri(): Promise<string | null> {
+async function fetchImage(): Promise<ArrayBuffer | null> {
   try {
     const res = await fetch(
       'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1200&h=630&fit=crop&auto=format&q=75',
     )
     if (!res.ok) return null
-    const buffer = await res.arrayBuffer()
-    const base64 = Buffer.from(buffer).toString('base64')
-    return `data:image/jpeg;base64,${base64}`
+    return await res.arrayBuffer()
   } catch {
     return null
   }
