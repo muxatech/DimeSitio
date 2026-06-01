@@ -57,7 +57,6 @@ function Carousel({ images }: { images: string[] }) {
           alt=""
           width={1600}
           height={1000}
-          priority={idx === 0}
           className="absolute inset-0 h-full w-full object-cover opacity-40"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
@@ -268,7 +267,6 @@ export default function LandingHero() {
                     alt=""
                     width={600}
                     height={500}
-                    priority={i < 4}
                     className="relative h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0' }}
                   />
