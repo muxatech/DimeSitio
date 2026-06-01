@@ -34,7 +34,7 @@ async function getUser(authHeader: string | null, supabase: ReturnType<typeof cr
 function getStripe(): Stripe {
   const key = Deno.env.get('STRIPE_SECRET_KEY')
   if (!key) throw new Error('STRIPE_SECRET_KEY not configured')
-  return new Stripe(key, { apiVersion: '2026-04-22', httpClient: Stripe.createFetchHttpClient() })
+  return new Stripe(key, { apiVersion: '2026-04-22.dahlia', httpClient: Stripe.createFetchHttpClient() })
 }
 
 const PRICE_ID = Deno.env.get('STRIPE_PRICE_ID') ?? ''
@@ -203,25 +203,79 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
         return ok({ received: true })
       }
 
+      const customerId = session.customer as string
+      const subscriptionId = session.subscription as string
+
+      const { error: upsertError } = await supabase.from('subscriptions').upsert({
+        restaurant_id: restaurantId,
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscriptionId,
+        status: 'active',
+        current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
+      }, { onConflict: 'restaurant_id' })
+
+      if (upsertError) {
+        console.error('stripe: failed to upsert subscription', JSON.stringify(upsertError))
+        return fail('Failed to save subscription', 500)
+      }
+
+      await supabase.from('restaurants').update({ active: true }).eq('id', restaurantId)
+
+      const { data: restaurantData } = await supabase
+        .from('restaurants')
+        .select('name')
+        .eq('id', restaurantId)
+        .single()
+
+      const restaurantName = restaurantData?.name ?? 'tu restaurante'
+      const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+      }
+
       if (source === 'self-service') {
-        const customerId = session.customer as string
-        const subscriptionId = session.subscription as string
-
-        const { error: upsertError } = await supabase.from('subscriptions').upsert({
-          restaurant_id: restaurantId,
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscriptionId,
-          status: 'active',
-          current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
-        }, { onConflict: 'restaurant_id' })
-
-        if (upsertError) {
-          console.error('stripe: failed to upsert subscription', JSON.stringify(upsertError))
-          return fail('Failed to save subscription', 500)
-        }
-
-        await supabase.from('restaurants').update({ active: true }).eq('id', restaurantId)
         console.log('stripe: subscription activated (self-service)', restaurantId)
+
+        const customerEmails = session.customer_email || session.customer_details?.email
+        const ownerEmail = customerEmails as string | undefined
+
+        if (ownerEmail) {
+          try {
+            await fetch(fnUrl, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({
+                to: ownerEmail,
+                type: 'payment_receipt',
+                restaurant_id: restaurantId,
+                subject: '¡Pago confirmado! Tu restaurante ya está activo en DimeSitio',
+                html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Pago confirmado</title></head>
+<body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
+<tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
+<tr><td style="padding:24px 24px 8px;text-align:center;">
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">¡Pago confirmado!</p>
+<p style="margin:12px 0 0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${restaurantName}</strong> ya está activo en DimeSitio.</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Tu suscripción de 29€/mes está al día. Puedes gestionar tu perfil y ver estadísticas desde el panel.</p>
+</td></tr>
+<tr><td align="center" style="padding:24px;">
+<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/dashboard" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
+</td></tr>
+<tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
+</table>
+</td></tr></table></body>
+</html>`,
+              }),
+            })
+          } catch (emailErr) {
+            console.error('stripe: welcome email failed', emailErr.message)
+          }
+        }
       } else {
         const ownerEmail = session.metadata?.owner_email
         if (!ownerEmail) {
@@ -229,21 +283,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
           return ok({ received: true })
         }
 
-        const customerId = session.customer as string
-        const subscriptionId = session.subscription as string
-
-        const { error: upsertError } = await supabase.from('subscriptions').upsert({
-          restaurant_id: restaurantId,
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscriptionId,
-          status: 'active',
-          current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
-        }, { onConflict: 'restaurant_id' })
-
-        if (upsertError) {
-          console.error('stripe: failed to upsert subscription', JSON.stringify(upsertError))
-          return fail('Failed to save subscription', 500)
-        }
+        console.log('stripe: subscription activated (staff)', restaurantId)
 
         const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(ownerEmail, {
           data: { onboarded: true },
@@ -267,6 +307,40 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
           } else {
             await supabase.from('restaurants').update({ owner_id: invitedUserId, active: true }).eq('id', restaurantId)
             console.log('stripe: staff flow completed', { restaurantId, ownerEmail, invitedUserId })
+
+            try {
+              await fetch(fnUrl, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                  to: ownerEmail,
+                  type: 'payment_receipt',
+                  restaurant_id: restaurantId,
+                  subject: '¡Tu restaurante ya está activo en DimeSitio!',
+                  html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Restaurante activo</title></head>
+<body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
+<tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
+<tr><td style="padding:24px 24px 8px;text-align:center;">
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${restaurantName}</strong> ya está activo en DimeSitio.</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil. Revisa tu bandeja de entrada.</p>
+</td></tr>
+<tr><td align="center" style="padding:24px;">
+<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/dashboard" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
+</td></tr>
+<tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
+</table>
+</td></tr></table></body>
+</html>`,
+                }),
+              })
+            } catch (emailErr) {
+              console.error('stripe: receipt email failed', emailErr.message)
+            }
           }
         }
       }
@@ -295,6 +369,63 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 
         await supabase.from('restaurants').update({ active: true }).eq('id', subs.restaurant_id)
         console.log('stripe: invoice paid, subscription renewed', subs.restaurant_id, { periodEnd })
+
+        try {
+          const { data: admins } = await supabase
+            .from('restaurant_admins')
+            .select('user_id')
+            .eq('restaurant_id', subs.restaurant_id)
+            .eq('role', 'owner')
+            .limit(1)
+
+          const adminUserId = admins?.[0]?.user_id
+          if (adminUserId) {
+            const { data: userData } = await supabase.auth.admin.getUserById(adminUserId)
+            const ownerEmail = userData?.user?.email
+            if (ownerEmail) {
+              const { data: rData } = await supabase.from('restaurants').select('name').eq('id', subs.restaurant_id).single()
+              const rName = rData?.name ?? 'tu restaurante'
+              const invoiceTotal = (invoice.amount_paid / 100).toFixed(2)
+
+              await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+                },
+                body: JSON.stringify({
+                  to: ownerEmail,
+                  type: 'invoice',
+                  restaurant_id: subs.restaurant_id,
+                  subject: 'Recibo de tu suscripción DimeSitio',
+                  html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Recibo</title></head>
+<body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
+<tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
+<tr><td style="padding:24px 24px 8px;text-align:center;">
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">Recibo de suscripción</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;"><strong>${rName}</strong></p>
+<p style="margin:4px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Importe: <strong>${invoiceTotal}€</strong></p>
+<p style="margin:4px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Tu suscripción sigue activa. Gracias por confiar en DimeSitio.</p>
+</td></tr>
+<tr><td align="center" style="padding:24px;">
+<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/dashboard" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
+</td></tr>
+<tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
+</table>
+</td></tr></table></body>
+</html>`,
+                }),
+              })
+            }
+          }
+        } catch (emailErr) {
+          console.error('stripe: invoice email failed', emailErr.message)
+        }
       }
       break
     }

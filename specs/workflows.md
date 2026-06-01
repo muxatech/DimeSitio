@@ -47,6 +47,46 @@ Cada click:
 
 ---
 
+---
+
+# Flujo emails
+
+## Invitación staff → cliente
+
+1. Staff crea restaurante para cliente
+2. Se genera Stripe Checkout Session
+3. Cliente paga
+4. Webhook `checkout.session.completed`:
+   - Activa restaurante
+   - Envía email de invitación (Auth SMTP)
+   - Envía email de confirmación de pago (transaccional)
+5. Cliente recibe email de invitación → crea cuenta → accede al panel
+
+## Autoservicio
+
+1. Usuario se registra → email de confirmación de registro (Auth SMTP)
+2. Usuario inicia sesión, crea restaurante, paga
+3. Webhook `checkout.session.completed`:
+   - Activa restaurante
+   - Envía email de bienvenida + recibo (transaccional)
+
+## Primera llamada
+
+1. Usuario final llama a un restaurante desde la app
+2. Edge Function `events` inserta en `calls`
+3. Si es la primera llamada de ese restaurante:
+   - Obtiene email del dueño
+   - Envía email de notificación (transaccional)
+
+## Facturación mensual
+
+1. Stripe cobra suscripción
+2. Webhook `invoice.paid`:
+   - Renueva suscripción
+   - Envía email de recibo al dueño (transaccional)
+
+---
+
 # Moderación futura
 
 - Revisar restaurantes fake

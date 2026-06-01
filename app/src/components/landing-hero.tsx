@@ -119,7 +119,7 @@ export default function LandingHero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm"
+              className="inline-flex items-center justify-center gap-2 text-center rounded-full bg-white/25 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm"
             >
               <Sparkles className="h-4 w-4 text-white/80" />
               Encuentra restaurante en Valencia en menos de un minuto

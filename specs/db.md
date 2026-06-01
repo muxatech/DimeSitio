@@ -155,6 +155,23 @@ Campos:
 
 ---
 
+## email_logs
+
+Seguimiento de emails transaccionales enviados.
+
+Campos:
+- id (uuid, pk)
+- to_email (text, not null)
+- type (text, not null) — 'welcome' | 'invite' | 'first_call' | 'payment_receipt' | 'invoice'
+- restaurant_id (uuid, nullable, ref restaurants, on delete set null)
+- status (text, not null) — 'sent' | 'failed'
+- error (text, nullable)
+- created_at (timestamptz, default now())
+
+Nota: Los emails de Auth (confirmación registro, reset password) los envía Supabase internamente vía SMTP y no se registran en esta tabla. Solo se loguean los que pasan por la Edge Function `send-email`.
+
+---
+
 # Relaciones clave
 
 ```

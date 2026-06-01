@@ -175,6 +175,24 @@ Playwright
 
 ---
 
+# Email
+
+## Proveedor
+Resend.
+
+Tipos:
+- Auth: Supabase SMTP con Resend (registro, invitación, reset password)
+- Transaccionales: Edge Function `send-email` vía Resend API (bienvenida, primera llamada, recibos)
+
+## Plantillas
+HTML con CSS inline siguiendo la identidad visual (stone palette, botones redondeados, responsive).
+Archivos en `supabase/templates/`.
+
+## Seguimiento
+Tabla `email_logs` en DB para tracking de envíos.
+
+---
+
 # Gestión entorno
 
 Variables:
@@ -183,5 +201,7 @@ Variables:
 - SUPABASE_SERVICE_ROLE_KEY
 - STRIPE_SECRET_KEY
 - STRIPE_WEBHOOK_SECRET
+- **RESEND_API_KEY**
+- **RESEND_FROM** (opcional)
 
 Nunca hardcodear secretos.

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import DsMonogram from '@/components/ds-monogram'
 import { useFlowStore } from '@/store/flow-store'
 import { getSessionId } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -32,11 +33,10 @@ export default function Navbar() {
   function handleNav(action: 'home' | 'explore' | 'restaurantes') {
     setMenuOpen(false)
     if (action === 'home') {
-      if (isHome) {
-        reset()
-      } else {
-        router.push('/')
-      }
+      reset()
+      sessionStorage.removeItem('dimesitio-flow')
+      router.push('/')
+      return
     }
     if (action === 'explore') {
       startFlow()
@@ -62,9 +62,7 @@ export default function Navbar() {
         onClick={() => handleNav('home')}
         className={cn('flex cursor-pointer items-center gap-2 text-lg font-bold tracking-tight', isDark ? 'text-white' : 'text-stone-900')}
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-800 text-sm font-bold text-white shadow-sm">
-          D
-        </span>
+        <DsMonogram className="h-8 w-8 shadow-sm" />
         DimeSitio
       </button>
 

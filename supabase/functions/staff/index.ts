@@ -163,7 +163,7 @@ async function handleCreateForClient(
   }
 
   const stripe = new Stripe(stripeKey, {
-    apiVersion: '2026-04-22',
+    apiVersion: '2026-04-22.dahlia',
     httpClient: Stripe.createFetchHttpClient(),
   })
 

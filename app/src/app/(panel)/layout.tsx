@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
+import DsMonogram from '@/components/ds-monogram'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LayoutDashboard, Store, LogOut, Menu, X, CreditCard } from 'lucide-react'
 import Link from 'next/link'
+import { useFlowStore } from '@/store/flow-store'
 
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -38,7 +40,15 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
     })
   }, [router, pathname])
 
+  function handleHome() {
+    useFlowStore.getState().reset()
+    sessionStorage.removeItem('dimesitio-flow')
+    router.push('/')
+  }
+
   async function handleLogout() {
+    useFlowStore.getState().reset()
+    sessionStorage.removeItem('dimesitio-flow')
     await supabase.auth.signOut()
     router.replace('/login')
   }
@@ -61,12 +71,10 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
     <div className="flex min-h-dvh bg-stone-50">
       {/* Mobile header */}
       <div className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-stone-200 bg-white px-5 lg:hidden">
-        <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight text-stone-900">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-800 text-sm font-bold text-white">
-            D
-          </span>
+        <button onClick={handleHome} className="flex items-center gap-2 text-lg font-bold tracking-tight text-stone-900">
+          <DsMonogram className="h-8 w-8" />
           DimeSitio
-        </Link>
+        </button>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="flex items-center justify-center rounded-xl p-2 transition-colors hover:bg-stone-100"
@@ -98,12 +106,10 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
       >
         {/* Logo */}
         <div className="flex h-16 items-center gap-2 border-b border-stone-700 px-6">
-          <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight text-white">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-700 text-sm font-bold text-white">
-              D
-            </span>
+          <button onClick={handleHome} className="flex items-center gap-2 text-lg font-bold tracking-tight text-white">
+            <DsMonogram className="h-8 w-8 bg-stone-700" />
             DimeSitio
-          </Link>
+          </button>
         </div>
 
         {/* Nav links */}
