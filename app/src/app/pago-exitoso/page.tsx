@@ -1,11 +1,12 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
-export default function PagoExitosoPage() {
+function PagoExitosoContent() {
   const searchParams = useSearchParams()
   const email = searchParams.get('email') ?? 'tu email'
 
@@ -42,5 +43,17 @@ export default function PagoExitosoPage() {
         </p>
       </motion.div>
     </div>
+  )
+}
+
+export default function PagoExitosoPage() {
+  return (
+    <Suspense fallback={
+      <div className="mx-auto flex min-h-[60vh] max-w-md items-center justify-center px-6 text-center">
+        <p className="text-stone-500">Cargando...</p>
+      </div>
+    }>
+      <PagoExitosoContent />
+    </Suspense>
   )
 }
