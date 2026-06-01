@@ -6,6 +6,12 @@ const quickLinks = [
   { label: 'Para restaurantes', href: '/restaurantes' },
 ]
 
+const legalLinks = [
+  { label: 'Términos y Condiciones', href: '/terminos' },
+  { label: 'Política de Privacidad', href: '/privacidad' },
+  { label: 'Aviso Legal', href: '/aviso-legal' },
+]
+
 export default function Footer() {
   return (
     <footer className="border-t border-stone-100 bg-white">
@@ -27,6 +33,22 @@ export default function Footer() {
             Enlaces
           </span>
           {quickLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-sm text-stone-600 transition-colors hover:text-stone-900"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Legal */}
+        <div className="flex flex-col gap-3">
+          <span className="text-xs font-semibold uppercase tracking-widest text-stone-400">
+            Legal
+          </span>
+          {legalLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}

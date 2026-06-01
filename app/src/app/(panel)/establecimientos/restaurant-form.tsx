@@ -128,6 +128,7 @@ interface RestaurantFormProps {
 
 export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, staffMode, hideBackButton }: RestaurantFormProps) {
   const [error, setError] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const isEditing = !!defaultValues
 
   const parsedPhone = parsePhone(defaultValues?.phone)
@@ -580,6 +581,27 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
           </div>
         )}
 
+        {!isEditing && (
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-all hover:border-stone-300 sm:p-5">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-stone-300 text-stone-900 focus:ring-stone-900"
+            />
+            <span className="text-sm leading-relaxed text-stone-600">
+              He leído y acepto los{' '}
+              <Link href="/terminos" target="_blank" className="font-medium text-stone-900 underline underline-offset-2 hover:text-stone-700">
+                Términos y Condiciones
+              </Link>{' '}
+              y la{' '}
+              <Link href="/privacidad" target="_blank" className="font-medium text-stone-900 underline underline-offset-2 hover:text-stone-700">
+                Política de Privacidad
+              </Link>.
+            </span>
+          </label>
+        )}
+
         <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
           <Link
             href="/establecimientos"
@@ -591,7 +613,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
             whileTap={{ scale: 0.97 }}
             whileHover={{ scale: 1.02 }}
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || (!isEditing && !termsAccepted)}
             className={
               isSubmitting
                 ? 'flex-1 rounded-2xl bg-stone-200 py-4 text-base font-semibold text-stone-400 sm:py-4 sm:text-lg'
