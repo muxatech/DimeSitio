@@ -8,7 +8,8 @@ export default defineConfig({
     globals: true,
     include: ['src/tests/**/*.test.{ts,tsx}'],
     exclude: ['src/tests/e2e/**'],
-    pool: 'threads',
+    pool: 'forks',
+    execArgv: ['--experimental-require-module'],
   },
   resolve: {
     alias: {

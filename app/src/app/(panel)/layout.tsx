@@ -26,7 +26,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
-        if (pathname !== '/login' && pathname !== '/register' && !pathname.startsWith('/set-password')) {
+        if (pathname !== '/login' && pathname !== '/register' && pathname !== '/forgot-password' && !pathname.startsWith('/set-password')) {
           router.replace('/login')
         }
         setSession(false)
@@ -61,7 +61,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
     )
   }
 
-  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname.startsWith('/set-password')
+  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password' || pathname.startsWith('/set-password')
 
   if (isAuthPage) {
     return <>{children}</>

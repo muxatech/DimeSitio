@@ -4,11 +4,16 @@ import SuscripcionPage from '@/app/(panel)/suscripcion/page'
 
 const mockCreateCheckout = vi.fn()
 const mockCreatePortal = vi.fn()
+const mockReplace = vi.fn()
 
 vi.mock('@/lib/panel/api', () => ({
   getMyRestaurants: vi.fn(),
   createCheckoutSession: (...args: unknown[]) => mockCreateCheckout(...args),
   createPortalSession: (...args: unknown[]) => mockCreatePortal(...args),
+}))
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: mockReplace }),
 }))
 
 vi.mock('@tanstack/react-query', () => ({
@@ -96,6 +101,20 @@ describe('SuscripcionPage', () => {
     fireEvent.click(screen.getByText('Gestionar'))
     await waitFor(() => {
       expect(screen.getByText('Error al abrir portal')).toBeInTheDocument()
+    })
+  })
+
+  it('redirects to /login when session expired', async () => {
+    vi.mocked(useQuery).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error('No hay sesión activa'),
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useQuery>)
+    render(<SuscripcionPage />)
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/login')
     })
   })
 })

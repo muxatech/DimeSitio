@@ -59,7 +59,13 @@ export default function SetPasswordPage() {
     )
   }
 
-  if (!sessionOk) return null
+  if (!sessionOk) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-white">
+        <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-stone-200 border-t-stone-900" />
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-white px-5">

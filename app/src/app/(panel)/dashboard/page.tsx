@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import { getMyRestaurants, getRestaurantAnalytics, checkStaffStatus } from '@/lib/panel/api'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 import { motion } from 'framer-motion'
@@ -154,9 +155,10 @@ function AnalyticsSection({ restaurantId, restaurantName }: AnalyticsSectionProp
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [selectedId, setSelectedId] = useState<string>('')
 
-  const { data: restaurants, isLoading, isError, refetch } = useQuery({
+  const { data: restaurants, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['my-restaurants'],
     queryFn: getMyRestaurants,
   })
@@ -190,6 +192,10 @@ export default function DashboardPage() {
   }
 
   if (isError) {
+    if (error instanceof Error && error.message === 'No hay sesión activa') {
+      router.replace('/login')
+      return null
+    }
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4 px-6 text-center">

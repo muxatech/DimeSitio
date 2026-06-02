@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getMyRestaurants, deleteRestaurant, checkStaffStatus } from '@/lib/panel/api'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Plus, Frown, UserPlus } from 'lucide-react'
 import RestaurantPanelCard from '@/components/restaurant-panel-card'
 
@@ -13,9 +14,10 @@ const containerVariants = {
 }
 
 export default function EstablecimientosPage() {
+  const router = useRouter()
   const queryClient = useQueryClient()
 
-  const { data: restaurants, isLoading, isError, refetch } = useQuery({
+  const { data: restaurants, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['my-restaurants'],
     queryFn: getMyRestaurants,
   })
@@ -51,6 +53,10 @@ export default function EstablecimientosPage() {
   }
 
   if (isError) {
+    if (error instanceof Error && error.message === 'No hay sesión activa') {
+      router.replace('/login')
+      return null
+    }
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4 px-6 text-center">

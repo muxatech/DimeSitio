@@ -13,7 +13,7 @@ export default function EditarEstablecimientoPage() {
   const queryClient = useQueryClient()
   const id = params.id as string
 
-  const { data: restaurants, isLoading, isError, refetch } = useQuery({
+  const { data: restaurants, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['my-restaurants'],
     queryFn: getMyRestaurants,
   })
@@ -41,6 +41,10 @@ export default function EditarEstablecimientoPage() {
   }
 
   if (isError || !restaurant) {
+    if (error instanceof Error && error.message === 'No hay sesión activa') {
+      router.replace('/login')
+      return null
+    }
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4 px-6 text-center">

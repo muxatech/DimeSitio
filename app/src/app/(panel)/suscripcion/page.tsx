@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import { getMyRestaurants, createCheckoutSession, createPortalSession } from '@/lib/panel/api'
 import { motion } from 'framer-motion'
 import { CheckCircle, CreditCard, ExternalLink, Frown, RefreshCw, Store, Loader, Clock } from 'lucide-react'
@@ -18,7 +19,8 @@ const itemVariants = {
 }
 
 export default function SuscripcionPage() {
-  const { data: restaurants, isLoading, isError, refetch } = useQuery({
+  const router = useRouter()
+  const { data: restaurants, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['my-restaurants'],
     queryFn: getMyRestaurants,
   })
@@ -112,6 +114,10 @@ export default function SuscripcionPage() {
   }
 
   if (isError) {
+    if (error instanceof Error && error.message === 'No hay sesión activa') {
+      router.replace('/login')
+      return null
+    }
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4 px-6 text-center">
