@@ -68,6 +68,12 @@ function ViewportWrapper({ children, delay = 0 }: { children: React.ReactNode; d
 export default function RestaurantesPage() {
   return (
     <div>
+      {/* ===== FOUNDER BANNER ===== */}
+      <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 text-center text-sm text-amber-900">
+        Sé de los primeros. Los 100 primeros restaurantes reciben la insignia Fundador.{' '}
+        <a href="#fundadores" className="whitespace-nowrap font-semibold underline underline-offset-2 hover:text-amber-700">Ver</a>
+      </div>
+
       {/* ===== HERO ===== */}
       <section className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-gradient-to-b from-stone-800 to-stone-900">
         {/* Subtle pattern overlay */}
@@ -254,7 +260,7 @@ export default function RestaurantesPage() {
       </section>
 
       {/* ===== FOUNDER SECTION ===== */}
-      <section className="bg-white px-6 py-20 sm:px-8 sm:py-28 lg:px-12 lg:py-32">
+      <section id="fundadores" className="bg-white px-6 py-20 sm:px-8 sm:py-28 lg:px-12 lg:py-32">
         <div className="mx-auto max-w-5xl">
           <ViewportWrapper>
             <div className="mb-14 text-center sm:mb-20">
@@ -267,7 +273,7 @@ export default function RestaurantesPage() {
               </h2>
               <p className="mx-auto mt-3 max-w-2xl text-stone-500 sm:text-lg">
                 Los 100 primeros restaurantes en unirse a DimeSitio reciben la insignia <strong className="text-stone-900">Fundador</strong>.
-                Una corona dorada visible para todos los usuarios que los distingue como pioneros.
+                Un distintivo que los usuarios ven y que reconoce a los que llegaron primero.
               </p>
             </div>
           </ViewportWrapper>
@@ -335,7 +341,7 @@ export default function RestaurantesPage() {
             <div className="mx-auto mt-10 max-w-2xl text-center sm:mt-14">
               <p className="text-sm leading-relaxed text-stone-500 sm:text-base">
                 Además del reconocimiento, los restaurantes fundadores aparecen siempre antes en los resultados.
-                Una ventaja que solo tienen los 100 primeros.
+                Una ventaja exclusiva para los primeros 100 establecimientos.
               </p>
             </div>
           </ViewportWrapper>

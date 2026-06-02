@@ -33,4 +33,12 @@ describe('RestaurantesPage founder section', () => {
     render(<RestaurantesPage />)
     expect(screen.getByText(/aparecen siempre antes/)).toBeInTheDocument()
   })
+
+  it('shows the founder banner with link to section', () => {
+    render(<RestaurantesPage />)
+    expect(screen.getByText(/Sé de los primeros/)).toBeInTheDocument()
+    const verLink = screen.getByText('Ver')
+    expect(verLink).toBeInTheDocument()
+    expect(verLink.closest('a')).toHaveAttribute('href', '#fundadores')
+  })
 })

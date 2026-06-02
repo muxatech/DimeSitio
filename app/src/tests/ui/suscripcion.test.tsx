@@ -117,4 +117,17 @@ describe('SuscripcionPage', () => {
       expect(mockReplace).toHaveBeenCalledWith('/login')
     })
   })
+
+  it('shows error UI for generic errors without redirect', () => {
+    vi.mocked(useQuery).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error('Error de red'),
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useQuery>)
+    render(<SuscripcionPage />)
+    expect(screen.getByText('Vaya, algo salió mal')).toBeInTheDocument()
+    expect(mockReplace).not.toHaveBeenCalled()
+  })
 })

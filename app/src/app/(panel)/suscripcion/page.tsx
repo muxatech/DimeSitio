@@ -49,6 +49,12 @@ export default function SuscripcionPage() {
   }, [])
 
   useEffect(() => {
+    if (isError && error instanceof Error && error.message === 'No hay sesión activa') {
+      router.replace('/login')
+    }
+  }, [isError, error, router])
+
+  useEffect(() => {
     if (!verifyingId) return
 
     pollingRef.current = setInterval(async () => {
@@ -115,7 +121,6 @@ export default function SuscripcionPage() {
 
   if (isError) {
     if (error instanceof Error && error.message === 'No hay sesión activa') {
-      router.replace('/login')
       return null
     }
     return (
