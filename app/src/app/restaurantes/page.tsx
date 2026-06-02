@@ -8,6 +8,9 @@ import {
   Sparkles,
   ArrowRight,
   BarChart3,
+  Crown,
+  UtensilsCrossed,
+  MapPin,
 } from 'lucide-react'
 
 const problems = [
@@ -247,6 +250,95 @@ export default function RestaurantesPage() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ===== FOUNDER SECTION ===== */}
+      <section className="bg-white px-6 py-20 sm:px-8 sm:py-28 lg:px-12 lg:py-32">
+        <div className="mx-auto max-w-5xl">
+          <ViewportWrapper>
+            <div className="mb-14 text-center sm:mb-20">
+              <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-1.5 text-sm font-medium text-amber-800">
+                <Crown className="h-4 w-4" />
+                Exclusivo para los primeros
+              </span>
+              <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
+                Sé uno de los 100 restaurantes fundadores
+              </h2>
+              <p className="mx-auto mt-3 max-w-2xl text-stone-500 sm:text-lg">
+                Los 100 primeros restaurantes en unirse a DimeSitio reciben la insignia <strong className="text-stone-900">Fundador</strong>.
+                Una corona dorada visible para todos los usuarios que los distingue como pioneros.
+              </p>
+            </div>
+          </ViewportWrapper>
+
+          <div className="mx-auto grid max-w-lg gap-6 sm:grid-cols-2 sm:gap-8 lg:max-w-2xl lg:gap-12">
+            {/* Normal card mock */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm"
+            >
+              <div className="flex h-28 items-center justify-center bg-stone-100 sm:h-32">
+                <UtensilsCrossed className="h-7 w-7 text-stone-300" />
+              </div>
+              <div className="space-y-1 p-3 sm:p-4">
+                <p className="truncate text-sm font-bold text-stone-400">Tu restaurante</p>
+                <p className="flex items-center gap-1 text-xs text-stone-300">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  Valencia · €€
+                </p>
+              </div>
+              <div className="border-t border-stone-100 px-3 pb-3 pt-2 sm:px-4 sm:pb-4">
+                <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-300">
+                  Normal
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Founder card mock */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm ring-1 ring-amber-100"
+            >
+              <div className="relative flex h-28 items-center justify-center bg-stone-100 sm:h-32">
+                <UtensilsCrossed className="h-7 w-7 text-stone-300" />
+                <div className="absolute right-2 top-2">
+                  <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 shadow-sm">
+                    <Crown className="h-2.5 w-2.5" />
+                    Fundador
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-1 p-3 sm:p-4">
+                <p className="truncate text-sm font-bold text-stone-900">Tu restaurante</p>
+                <p className="flex items-center gap-1 text-xs text-stone-400">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  Valencia · €€
+                </p>
+              </div>
+              <div className="border-t border-stone-100 px-3 pb-3 pt-2 sm:px-4 sm:pb-4">
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+                  <Crown className="h-3 w-3" />
+                  Fundador
+                </span>
+              </div>
+            </motion.div>
+          </div>
+
+          <ViewportWrapper>
+            <div className="mx-auto mt-10 max-w-2xl text-center sm:mt-14">
+              <p className="text-sm leading-relaxed text-stone-500 sm:text-base">
+                Además del reconocimiento, los restaurantes fundadores aparecen siempre antes en los resultados.
+                Una ventaja que solo tienen los 100 primeros.
+              </p>
+            </div>
+          </ViewportWrapper>
         </div>
       </section>
 

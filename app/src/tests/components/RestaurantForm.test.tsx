@@ -134,3 +134,33 @@ describe('RestaurantForm staff category creation', () => {
     expect(screen.queryByText('Nueva categoría')).not.toBeInTheDocument()
   })
 })
+
+describe('RestaurantForm is_demo toggle', () => {
+  const onSubmit = vi.fn()
+
+  it('does not show demo section without staffMode', () => {
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    expect(screen.queryByText('Restaurante demo')).not.toBeInTheDocument()
+  })
+
+  it('shows demo section with staffMode', () => {
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    expect(screen.getByText('Restaurante demo')).toBeInTheDocument()
+  })
+
+  it('checkbox is unchecked by default', () => {
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    const checkboxes = screen.getAllByRole('checkbox')
+    const demoCheckbox = checkboxes.find((cb) => cb.closest('section')?.textContent?.includes('Restaurante demo'))
+    expect(demoCheckbox).toBeDefined()
+    expect(demoCheckbox).not.toBeChecked()
+  })
+
+  it('checkbox can be checked', () => {
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    const checkboxes = screen.getAllByRole('checkbox')
+    const demoCheckbox = checkboxes.find((cb) => cb.closest('section')?.textContent?.includes('Restaurante demo')) as HTMLInputElement
+    fireEvent.click(demoCheckbox)
+    expect(demoCheckbox.checked).toBe(true)
+  })
+})

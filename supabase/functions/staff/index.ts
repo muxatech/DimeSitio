@@ -67,6 +67,9 @@ function validateCreate(body: Record<string, unknown>) {
   if (body.reservations_url !== undefined && typeof body.reservations_url !== 'string') {
     errors.push('reservations_url must be a string')
   }
+  if (body.is_demo !== undefined && typeof body.is_demo !== 'boolean') {
+    errors.push('is_demo must be a boolean')
+  }
   if (body.category_ids !== undefined) {
     if (!Array.isArray(body.category_ids)) {
       errors.push('category_ids must be an array')
@@ -131,6 +134,7 @@ async function handleCreateForClient(
       reservations_url: sanitized.reservations_url ?? null,
       zone: sanitized.zone,
       active: false,
+      is_demo: sanitized.is_demo ?? false,
     })
     .select()
     .single()

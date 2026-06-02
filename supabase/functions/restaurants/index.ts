@@ -75,7 +75,7 @@ async function canAccessAsStaff(
 }
 
 const VALID_PRICE_LEVELS = new Set([1, 2, 3])
-const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'reservations_url', 'active', 'category_ids'])
+const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'reservations_url', 'active', 'is_demo', 'category_ids'])
 
 function validateCreate(body: Record<string, unknown>) {
   const errors: string[] = []
@@ -151,8 +151,8 @@ function validateUpdate(body: Record<string, unknown>): string[] {
     if (['description', 'phone', 'address', 'zone', 'image_url', 'menu_url', 'reservations_url'].includes(key) && typeof body[key] !== 'string') {
       errors.push(`${key} must be a string`)
     }
-    if (key === 'active' && typeof body[key] !== 'boolean') {
-      errors.push('active must be a boolean')
+    if ((key === 'active' || key === 'is_demo') && typeof body[key] !== 'boolean') {
+      errors.push(`${key} must be a boolean`)
     }
   }
 
@@ -304,6 +304,8 @@ async function handleListMine(supabase: ReturnType<typeof createClient>, user: {
     image_url: r.image_url,
     menu_url: r.menu_url,
     active: r.active,
+    is_demo: r.is_demo ?? false,
+    founder_rank: r.founder_rank ?? null,
     created_at: r.created_at,
     restaurant_categories: r.restaurant_categories,
     role: roleMap.get(r.id as string),

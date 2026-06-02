@@ -17,7 +17,6 @@ export default function CategoriasPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [modalName, setModalName] = useState('')
-  const [modalIcon, setModalIcon] = useState('')
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -47,21 +46,19 @@ export default function CategoriasPage() {
   function openCreate() {
     setEditingId(null)
     setModalName('')
-    setModalIcon('')
     setShowModal(true)
   }
 
   function openEdit(cat: Category) {
     setEditingId(cat.id)
     setModalName(cat.name)
-    setModalIcon(cat.icon ?? '')
     setShowModal(true)
   }
 
   async function handleSave() {
     if (!modalName.trim()) return
     setSaving(true)
-    const payload = { name: modalName.trim(), icon: modalIcon.trim() || null }
+    const payload = { name: modalName.trim() }
 
     if (editingId) {
       const { error } = await supabase.from('categories').update(payload).eq('id', editingId)
@@ -149,11 +146,6 @@ export default function CategoriasPage() {
               className="flex items-center justify-between gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5"
             >
               <div className="flex items-center gap-3 min-w-0">
-                {cat.icon && (
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-lg">
-                    {cat.icon}
-                  </span>
-                )}
                 <p className="truncate text-sm font-semibold text-stone-900 sm:text-base">
                   {cat.name}
                 </p>
@@ -216,17 +208,7 @@ export default function CategoriasPage() {
                   autoFocus
                 />
               </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-stone-700">
-                  Icono
-                </label>
-                <input
-                  value={modalIcon}
-                  onChange={(e) => setModalIcon(e.target.value)}
-                  placeholder="🥙 (emoji opcional)"
-                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200"
-                />
-              </div>
+
             </div>
 
             <div className="flex gap-3">

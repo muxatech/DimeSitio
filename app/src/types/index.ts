@@ -1,7 +1,6 @@
 export interface Category {
   id: string
   name: string
-  icon: string | null
 }
 
 export interface Restaurant {
@@ -20,6 +19,8 @@ export interface Restaurant {
   reservations_url: string | null
   zone: string | null
   active: boolean
+  is_demo?: boolean
+  founder_rank?: number | null
   restaurant_categories?: { category_id: string }[]
 }
 
@@ -63,6 +64,7 @@ export interface RestaurantFormData {
   menu_url?: string
   reservations_url?: string
   active?: boolean
+  is_demo?: boolean
   category_ids: string[]
 }
 

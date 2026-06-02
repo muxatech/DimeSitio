@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel } from '@/lib/utils'
 import type { Restaurant } from '@/types'
-import { Frown, MapPin, UtensilsCrossed, Sparkles, Swords, ArrowLeft } from 'lucide-react'
+import { Frown, MapPin, UtensilsCrossed, Sparkles, Swords, ArrowLeft, Crown } from 'lucide-react'
 
 export default function Top5Grid() {
   const { top5, initBattle, goBackToQuestions } = useFlowStore()
@@ -88,6 +88,19 @@ function CompactCard({ restaurant, rank }: { restaurant: Restaurant; rank: numbe
         )}
         <div className="absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-br-xl bg-stone-900 text-[10px] font-bold text-white">
           {rank}
+        </div>
+        <div className="absolute right-1 top-1 flex flex-col gap-0.5">
+          {restaurant.founder_rank && (
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 shadow-sm" title="Fundador">
+              <Crown className="h-2.5 w-2.5" />
+              Fundador
+            </span>
+          )}
+          {restaurant.is_demo && (
+            <span className="rounded-md bg-stone-200/80 px-1.5 py-0.5 text-[9px] font-medium text-stone-500 backdrop-blur-sm">
+              Demo
+            </span>
+          )}
         </div>
       </div>
       <div className="space-y-1 p-2.5 sm:p-3">

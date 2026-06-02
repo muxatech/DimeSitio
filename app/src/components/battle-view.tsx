@@ -7,7 +7,7 @@ import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel, getSessionId } from '@/lib/utils'
 import { trackSelection } from '@/lib/tracking'
 import type { Restaurant } from '@/types'
-import { MapPin, UtensilsCrossed, Sparkles, Swords, RotateCcw } from 'lucide-react'
+import { MapPin, UtensilsCrossed, Sparkles, Swords, RotateCcw, Crown } from 'lucide-react'
 
 export default function BattleView() {
   const { battleChampion, battleChallenger, battleRound, selectBattleWinner, reset } = useFlowStore()
@@ -162,6 +162,19 @@ function BattleCard({
             </motion.div>
           </div>
         )}
+        <div className="absolute right-2 top-2 flex flex-col gap-1">
+          {restaurant.founder_rank && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 shadow-sm" title="Fundador">
+              <Crown className="h-3 w-3" />
+              Fundador
+            </span>
+          )}
+          {restaurant.is_demo && (
+            <span className="rounded-md bg-stone-200/80 px-2 py-0.5 text-[10px] font-medium text-stone-500 backdrop-blur-sm">
+              Demo
+            </span>
+          )}
+        </div>
       </div>
       <div className="space-y-1.5 p-4 sm:p-5 lg:p-6">
         <h3 className="text-lg font-bold text-stone-900 sm:text-xl lg:text-2xl">

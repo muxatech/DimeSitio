@@ -47,8 +47,8 @@ describe('CategoriasPage', () => {
     mockCheckStaff.mockResolvedValue(true)
     mockOrderFn = vi.fn().mockResolvedValue({
       data: [
-        { id: 'cat-1', name: 'Italiana', icon: null },
-        { id: 'cat-2', name: 'Japonesa', icon: '🍣' },
+        { id: 'cat-1', name: 'Italiana' },
+        { id: 'cat-2', name: 'Japonesa' },
       ],
       error: null,
     })

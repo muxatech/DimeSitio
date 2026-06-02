@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { MapPin, UtensilsCrossed, Pencil, Trash2, Eye, CheckCircle2, Phone } from 'lucide-react'
+import { MapPin, UtensilsCrossed, Pencil, Trash2, Eye, CheckCircle2, Phone, Crown } from 'lucide-react'
 import { getPriceLabel } from '@/lib/utils'
 import type { RestaurantWithRole } from '@/types'
 
@@ -94,7 +94,17 @@ export default function RestaurantPanelCard({
           </div>
         )}
 
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          {restaurant.founder_rank && (
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800" title="Fundador">
+              <Crown className="h-3 w-3" /> Fundador
+            </span>
+          )}
+          {restaurant.is_demo && (
+            <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[11px] font-medium text-stone-500">
+              Demo
+            </span>
+          )}
           {restaurant.active ? (
             <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-medium text-white">
               Activo

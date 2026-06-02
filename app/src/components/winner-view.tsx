@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel, getSessionId } from '@/lib/utils'
 import { trackCall } from '@/lib/tracking'
-import { MapPin, Phone, Navigation, Menu, Calendar, PartyPopper, UtensilsCrossed, RotateCcw } from 'lucide-react'
+import { MapPin, Phone, Navigation, Menu, Calendar, PartyPopper, UtensilsCrossed, RotateCcw, Crown } from 'lucide-react'
 
 export default function WinnerView() {
   const { winner, reset, sessionId } = useFlowStore()
@@ -88,6 +88,16 @@ export default function WinnerView() {
         <div className="flex flex-col gap-4 sm:w-72 sm:gap-5 lg:w-96 lg:gap-6">
           <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
             <div className="flex flex-wrap gap-2">
+              {winner.founder_rank && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-800 sm:text-base" title="Fundador">
+                  <Crown className="h-3.5 w-3.5" /> Fundador
+                </span>
+              )}
+              {winner.is_demo && (
+                <span className="rounded-full bg-stone-200 px-3 py-1 text-sm font-medium text-stone-500 sm:text-base">
+                  Demo
+                </span>
+              )}
               {winner.zone && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-3 py-1 text-sm text-stone-600 sm:text-base">
                   <MapPin className="h-3.5 w-3.5" /> {winner.zone}

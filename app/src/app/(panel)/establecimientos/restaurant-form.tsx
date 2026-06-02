@@ -27,6 +27,7 @@ const restaurantSchema = z.object({
   menu_url: z.string().optional(),
   reservations_url: z.string().optional(),
   active: z.boolean().optional(),
+  is_demo: z.boolean().optional(),
   category_ids: z.array(z.string()),
   owner_email: z.string().email('El email del propietario no es válido').optional().or(z.literal('')),
 })
@@ -166,6 +167,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       menu_url: defaultValues?.menu_url ?? '',
       reservations_url: defaultValues?.reservations_url ?? '',
       active: defaultValues?.active ?? false,
+      is_demo: defaultValues?.is_demo ?? false,
       category_ids: defaultValues?.restaurant_categories?.map((c: { category_id: string }) => c.category_id) ?? [],
     },
   })
@@ -506,6 +508,25 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                 <p className="mt-1 text-xs text-red-400">{errors.owner_email.message as string}</p>
               )}
             </div>
+          </section>
+        )}
+
+        {staffMode && (
+          <section>
+            <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">Demo</h2>
+            <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-all hover:border-stone-300 sm:p-5">
+              <div>
+                <p className="text-sm font-medium text-stone-900 sm:text-base">Restaurante demo</p>
+                <p className="mt-0.5 text-sm text-stone-400">
+                  Aparece en el flujo público pero no es un restaurante real
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                {...register('is_demo')}
+                className="h-5 w-5 rounded border-stone-300 text-stone-900 focus:ring-stone-900"
+              />
+            </label>
           </section>
         )}
 

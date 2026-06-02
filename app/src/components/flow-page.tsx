@@ -152,7 +152,7 @@ export default function FlowPage() {
   const { data: categories, isLoading: catsLoading, isError: catsError } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('categories').select('*').order('name')
+      const { data, error } = await supabase.from('categories').select('id, name').order('name')
       if (error) throw new Error(error.message)
       return (data ?? []) as Category[]
     },
@@ -165,6 +165,8 @@ export default function FlowPage() {
         .from('restaurants')
         .select('*, restaurant_categories(category_id)')
         .eq('active', true)
+        .order('is_demo', { ascending: true })
+        .order('founder_rank', { ascending: true, nullsFirst: false })
       if (error) throw new Error(error.message)
       return (data ?? []) as Restaurant[]
     },
