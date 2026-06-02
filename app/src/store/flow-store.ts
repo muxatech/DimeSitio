@@ -106,8 +106,6 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       set({
         winner,
         step: 'winner',
-        battleChampion: null,
-        battleChallenger: null,
         battlePool: [],
       })
       return
