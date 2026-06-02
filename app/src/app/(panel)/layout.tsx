@@ -6,9 +6,10 @@ import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import DsMonogram from '@/components/ds-monogram'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, Store, LogOut, Menu, X, CreditCard } from 'lucide-react'
+import { LayoutDashboard, Store, LogOut, Menu, X, CreditCard, Tags } from 'lucide-react'
 import Link from 'next/link'
 import { useFlowStore } from '@/store/flow-store'
+import { checkStaffStatus } from '@/lib/panel/api'
 
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -21,6 +22,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const [session, setSession] = useState<boolean | null>(null)
   const [userEmail, setUserEmail] = useState('')
+  const [isStaff, setIsStaff] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
@@ -33,6 +35,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
       } else {
         setSession(true)
         setUserEmail(data.session.user.email ?? '')
+        checkStaffStatus().then(setIsStaff)
         if (pathname === '/login' || pathname === '/register') {
           router.replace('/dashboard')
         }
@@ -134,6 +137,21 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
               </Link>
             )
           })}
+          {isStaff && (
+            <Link
+              href="/categorias"
+              onClick={() => setSidebarOpen(false)}
+              className={cn(
+                'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all',
+                pathname.startsWith('/categorias')
+                  ? 'bg-stone-700 text-white'
+                  : 'text-stone-400 hover:bg-stone-800 hover:text-white'
+              )}
+            >
+              <Tags className="h-5 w-5" />
+              Categorías
+            </Link>
+          )}
         </nav>
 
         {/* User info + logout */}

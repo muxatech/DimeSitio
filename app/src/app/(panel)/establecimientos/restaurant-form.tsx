@@ -6,11 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { ArrowLeft, ExternalLink, MapPin, UtensilsCrossed } from 'lucide-react'
+import { ArrowLeft, ExternalLink, MapPin, UtensilsCrossed, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getCategories } from '@/lib/panel/api'
+import { supabase } from '@/lib/supabase'
 import { ZONES } from '@/lib/constants'
 import { cn, getPriceLabel } from '@/lib/utils'
 import type { RestaurantFormData, RestaurantWithRole } from '@/types'
@@ -127,8 +128,12 @@ interface RestaurantFormProps {
 }
 
 export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, staffMode, hideBackButton }: RestaurantFormProps) {
+  const queryClient = useQueryClient()
   const [error, setError] = useState('')
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [showNewCategory, setShowNewCategory] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [creatingCategory, setCreatingCategory] = useState(false)
   const isEditing = !!defaultValues
 
   const parsedPhone = parsePhone(defaultValues?.phone)
@@ -396,9 +401,93 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                   {cat.name}
                 </motion.button>
               ))}
+              {staffMode && (
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => setShowNewCategory(true)}
+                  className="inline-flex items-center gap-1.5 rounded-2xl border-2 border-dashed border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-500 shadow-sm transition-all hover:border-stone-400 hover:text-stone-700 sm:px-5 sm:py-3 sm:text-base"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nueva
+                </motion.button>
+              )}
             </div>
           )}
         </section>
+
+        {showNewCategory && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-5">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex w-full max-w-sm flex-col gap-6 rounded-2xl bg-white p-6 shadow-xl"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-stone-900">Nueva categoría</h3>
+                <button
+                  onClick={() => setShowNewCategory(false)}
+                  className="rounded-xl p-2 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  Nombre <span className="text-red-400">*</span>
+                </label>
+                <input
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Ej: Kebab"
+                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200"
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowNewCategory(false)}
+                  className="flex-1 rounded-2xl border border-stone-200 py-3 text-sm font-semibold text-stone-700 transition-all hover:bg-stone-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!newCategoryName.trim()) return
+                    setCreatingCategory(true)
+                    const { data, error } = await supabase
+                      .from('categories')
+                      .insert({ name: newCategoryName.trim() })
+                      .select('id')
+                    setCreatingCategory(false)
+                    if (error) {
+                      setError(error.message)
+                      return
+                    }
+                    setShowNewCategory(false)
+                    setNewCategoryName('')
+                    queryClient.invalidateQueries({ queryKey: ['categories'] })
+                    if (data?.[0]?.id) {
+                      setValue('category_ids', [...selectedCategoryIds, data[0].id], { shouldValidate: true })
+                    }
+                  }}
+                  disabled={creatingCategory || !newCategoryName.trim()}
+                  className="flex-1 rounded-2xl bg-stone-800 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-stone-700 disabled:bg-stone-200 disabled:text-stone-400"
+                >
+                  {creatingCategory ? (
+                    <span className="inline-flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-stone-300 border-t-white" />
+                      Creando...
+                    </span>
+                  ) : (
+                    'Crear'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
 
         {staffMode && (
           <section>

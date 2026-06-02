@@ -41,10 +41,23 @@ vi.mock('@tanstack/react-query', () => ({
     ],
     isLoading: false,
   })),
+  useQueryClient: vi.fn(() => ({
+    invalidateQueries: vi.fn(),
+  })),
 }))
 
 vi.mock('@/lib/panel/api', () => ({
   getCategories: vi.fn(() => Promise.resolve([])),
+}))
+
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      insert: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [{ id: 'new-cat-1' }], error: null })),
+      })),
+    })),
+  },
 }))
 
 describe('RestaurantForm T&C acceptance', () => {
@@ -90,5 +103,34 @@ describe('RestaurantForm T&C acceptance', () => {
     expect(termLink.closest('a')).toHaveAttribute('href', '/terminos')
     const privLink = screen.getByText('Política de Privacidad')
     expect(privLink.closest('a')).toHaveAttribute('href', '/privacidad')
+  })
+})
+
+describe('RestaurantForm staff category creation', () => {
+  const onSubmit = vi.fn()
+
+  it('does not show Nueva button without staffMode', () => {
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    expect(screen.queryByText('Nueva')).not.toBeInTheDocument()
+  })
+
+  it('shows Nueva button with staffMode', () => {
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    expect(screen.getByText('Nueva')).toBeInTheDocument()
+  })
+
+  it('opens dialog when Nueva is clicked', () => {
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    fireEvent.click(screen.getByText('Nueva'))
+    expect(screen.getByText('Nueva categoría')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Ej: Kebab')).toBeInTheDocument()
+  })
+
+  it('closes dialog on Cancel', () => {
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    fireEvent.click(screen.getByText('Nueva'))
+    expect(screen.getByText('Nueva categoría')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByText('Nueva categoría')).not.toBeInTheDocument()
   })
 })
