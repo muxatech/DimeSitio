@@ -2,10 +2,9 @@ import { supabase } from '@/lib/supabase'
 import type { RestaurantWithRole, RestaurantStats, RestaurantFormData, Category, StaffCreateData, AnalyticsData } from '@/types'
 
 async function getToken(): Promise<string> {
-  const { data } = await supabase.auth.getSession()
-  const token = data.session?.access_token
-  if (!token) throw new Error('No hay sesión activa')
-  return token
+  const { data: { session }, error } = await supabase.auth.refreshSession()
+  if (error || !session) throw new Error('No hay sesión activa')
+  return session.access_token
 }
 
 async function invoke<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown, functionName?: string): Promise<T> {

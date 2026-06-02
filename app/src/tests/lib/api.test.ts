@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { mockGetSession, mockInvoke } = vi.hoisted(() => ({
-  mockGetSession: vi.fn(),
+const { mockRefreshSession, mockInvoke } = vi.hoisted(() => ({
+  mockRefreshSession: vi.fn(),
   mockInvoke: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
-    auth: { getSession: mockGetSession },
+    auth: { refreshSession: mockRefreshSession },
     functions: { invoke: mockInvoke },
   },
 }))
@@ -20,13 +20,13 @@ describe('api - session expiry', () => {
   })
 
   it('getMyRestaurants throws No hay sesión activa when no session', async () => {
-    mockGetSession.mockResolvedValue({ data: { session: null }, error: null })
+    mockRefreshSession.mockResolvedValue({ data: { session: null }, error: null })
     await expect(getMyRestaurants()).rejects.toThrow('No hay sesión activa')
     expect(mockInvoke).not.toHaveBeenCalled()
   })
 
   it('getMyRestaurants calls invoke when session exists', async () => {
-    mockGetSession.mockResolvedValue({
+    mockRefreshSession.mockResolvedValue({
       data: { session: { access_token: 'test-token' } },
       error: null,
     })
