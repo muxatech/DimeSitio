@@ -2,22 +2,35 @@ import { supabase } from '@/lib/supabase'
 import type { RestaurantWithRole, RestaurantStats, RestaurantFormData, Category, StaffCreateData, AnalyticsData } from '@/types'
 
 async function getToken(): Promise<string> {
-  const { data: { session }, error } = await supabase.auth.refreshSession()
-  if (error || !session) throw new Error('No hay sesión activa')
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) throw new Error('No hay sesión activa')
   return session.access_token
 }
 
 async function invoke<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown, functionName?: string): Promise<T> {
-  const token = await getToken()
-  const fn = functionName ?? 'restaurants'
-  const { data, error } = await supabase.functions.invoke(`${fn}${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  })
+  const call = async (token: string) => {
+    const fn = functionName ?? 'restaurants'
+    return supabase.functions.invoke(`${fn}${path}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  }
+
+  let token = await getToken()
+  let { data, error } = await call(token)
+
+  if (error?.message === 'Unauthorized' || `${error?.message ?? ''}`.includes('401')) {
+    const { data: refreshed } = await supabase.auth.refreshSession()
+    if (refreshed?.session) {
+      token = refreshed.session.access_token
+      ;({ data, error } = await call(token))
+    }
+  }
+
   if (error) {
     let detail = error.message
     if (error.context && typeof error.context.text === 'function') {
