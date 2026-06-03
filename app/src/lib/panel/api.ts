@@ -2,8 +2,8 @@ import { supabase } from '@/lib/supabase'
 import type { RestaurantWithRole, RestaurantStats, RestaurantFormData, Category, StaffCreateData, AnalyticsData } from '@/types'
 
 async function getToken(): Promise<string> {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) throw new Error('No hay sesión activa')
+  const { data: { session }, error } = await supabase.auth.refreshSession()
+  if (error || !session) throw new Error('No hay sesión activa')
   return session.access_token
 }
 
@@ -23,7 +23,11 @@ async function invoke<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: stri
   let token = await getToken()
   let { data, error } = await call(token)
 
-  if (error?.message === 'Unauthorized' || `${error?.message ?? ''}`.includes('401')) {
+  const is401 = error?.context?.status === 401
+    || error?.message?.toLowerCase().includes('unauthorized')
+    || `${error?.message ?? ''}`.includes('401')
+
+  if (is401) {
     const { data: refreshed } = await supabase.auth.refreshSession()
     if (refreshed?.session) {
       token = refreshed.session.access_token
