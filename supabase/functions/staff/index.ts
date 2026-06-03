@@ -90,6 +90,20 @@ function sanitizeStrings(body: Record<string, unknown>) {
   return sanitized
 }
 
+async function assignFounderRank(supabase: ReturnType<typeof createClient>, restaurantId: string) {
+  const { count } = await supabase
+    .from('restaurants')
+    .select('*', { count: 'exact', head: true })
+    .not('founder_rank', 'is', null)
+
+  if (count !== null && count < 100) {
+    await supabase
+      .from('restaurants')
+      .update({ founder_rank: count + 1 })
+      .eq('id', restaurantId)
+  }
+}
+
 async function handleCreateForClient(
   supabase: ReturnType<typeof createClient>,
   user: { id: string },
@@ -143,6 +157,8 @@ async function handleCreateForClient(
     console.error('staff: insert restaurant failed', JSON.stringify(insertError))
     return fail('Failed to create restaurant', 500)
   }
+
+  await assignFounderRank(supabase, restaurant.id)
 
   // Create categories
   if (categoryIds.length > 0) {

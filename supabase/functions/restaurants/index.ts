@@ -75,7 +75,7 @@ async function canAccessAsStaff(
 }
 
 const VALID_PRICE_LEVELS = new Set([1, 2, 3])
-const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'reservations_url', 'active', 'is_demo', 'category_ids'])
+const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'reservations_url', 'active', 'is_demo', 'founder_rank', 'category_ids'])
 
 function validateCreate(body: Record<string, unknown>) {
   const errors: string[] = []
@@ -211,6 +211,14 @@ async function handleCreate(supabase: ReturnType<typeof createClient>, user: { i
     return fail('Failed to set admin role', 500)
   }
 
+  await assignFounderRank(supabase, restaurant.id)
+
+  const { data: updatedRestaurant } = await supabase
+    .from('restaurants')
+    .select('*')
+    .eq('id', restaurant.id)
+    .single()
+
   if (categoryIds.length > 0) {
     const catRows = categoryIds.map((catId: string) => ({
       restaurant_id: restaurant.id,
@@ -225,8 +233,9 @@ async function handleCreate(supabase: ReturnType<typeof createClient>, user: { i
     }
   }
 
-  console.log('restaurants: created', restaurant.id)
-  return ok(restaurant)
+  const responseRestaurant = updatedRestaurant ?? restaurant
+  console.log('restaurants: created', responseRestaurant.id)
+  return ok(responseRestaurant)
 }
 
 async function handleListMine(supabase: ReturnType<typeof createClient>, user: { id: string }) {
@@ -505,6 +514,20 @@ async function handleStats(
     calls_30d: c30,
     conversion_rate: conversionRate,
   })
+}
+
+async function assignFounderRank(supabase: ReturnType<typeof createClient>, restaurantId: string) {
+  const { count } = await supabase
+    .from('restaurants')
+    .select('*', { count: 'exact', head: true })
+    .not('founder_rank', 'is', null)
+
+  if (count !== null && count < 100) {
+    await supabase
+      .from('restaurants')
+      .update({ founder_rank: count + 1 })
+      .eq('id', restaurantId)
+  }
 }
 
 // ─── Router ─────────────────────────────────────────────────
