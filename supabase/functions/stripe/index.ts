@@ -574,8 +574,7 @@ async function handler(req: Request): Promise<Response> {
 
     // Webhook doesn't need auth (uses signature verification)
     if (handler === 'webhook') {
-      const rawBytes = await req.arrayBuffer()
-      const rawBody = new TextDecoder().decode(rawBytes)
+      const rawBody = await req.text()
       const signature = req.headers.get('stripe-signature')
       console.log('stripe: webhook request', JSON.stringify({ bodyLength: rawBody.length, hasSignature: !!signature }))
       return await handleWebhook(supabase, rawBody, signature)
