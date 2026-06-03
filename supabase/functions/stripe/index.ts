@@ -180,6 +180,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 
   const stripe = getStripe()
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
+  const cryptoProvider = Stripe.createSubtleCryptoProvider()
 
   if (!webhookSecret) {
     console.error('stripe: webhook secret not configured')
@@ -188,7 +189,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 
   let event: Stripe.Event
   try {
-    event = await stripe.webhooks.constructEventAsync(rawBody, signature ?? '', webhookSecret)
+    event = await stripe.webhooks.constructEventAsync(rawBody, signature ?? '', webhookSecret, undefined, cryptoProvider)
   } catch (err) {
     console.error('stripe: webhook signature verification failed', JSON.stringify({
       error: err instanceof Error ? err.message : String(err),
