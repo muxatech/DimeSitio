@@ -214,7 +214,13 @@ export default function FlowPage() {
 
     setFilteredRestaurants(filtered)
 
-    const top = shuffle(filtered).slice(0, 5)
+    const founders = filtered
+      .filter(r => r.founder_rank != null)
+      .sort((a, b) => (a.founder_rank ?? 0) - (b.founder_rank ?? 0))
+    const regulars = shuffle(filtered.filter(r => !r.founder_rank && !r.is_demo))
+    const demos = shuffle(filtered.filter(r => r.is_demo))
+
+    const top = [...founders, ...regulars, ...demos].slice(0, 5)
     setTop5(top)
     if (top.length === 1) {
       setWinner(top[0])
