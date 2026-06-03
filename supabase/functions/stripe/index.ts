@@ -543,11 +543,39 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
   return ok({ received: true })
 }
 
+// ─── Health ─────────────────────────────────────────────────
+
+async function handleHealth(): Promise<Response> {
+  const stripe = getStripe()
+  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
+  const cryptoProvider = Stripe.createSubtleCryptoProvider()
+
+  if (!webhookSecret) return fail('Webhook secret not configured', 500)
+
+  const payload = JSON.stringify({ test: true })
+  const timestamp = Math.floor(Date.now() / 1000)
+  const signedPayload = `${timestamp}.${payload}`
+  const encoder = new TextEncoder()
+  const key = await crypto.subtle.importKey('raw', encoder.encode(webhookSecret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+  const sigBuf = await crypto.subtle.sign('HMAC', key, encoder.encode(signedPayload))
+  const hexSig = Array.from(new Uint8Array(sigBuf)).map((b) => b.toString(16).padStart(2, '0')).join('')
+  const header = `t=${timestamp},v1=${hexSig}`
+
+  try {
+    await stripe.webhooks.constructEventAsync(payload, header, webhookSecret, undefined, cryptoProvider)
+    return ok({ healthy: true })
+  } catch (err) {
+    console.error('stripe: health check failed', err instanceof Error ? err.message : String(err))
+    return fail('Health check failed', 500)
+  }
+}
+
 // ─── Router ─────────────────────────────────────────────────
 
 function route(method: string, pathname: string): { handler: string; params: Record<string, string> } {
   const path = pathname.replace(/^\/functions\/v1\/stripe/, '').replace(/^\/stripe/, '') || '/'
 
+  if (method === 'GET' && path === '/health') return { handler: 'health', params: {} }
   if (method === 'POST' && (path === '/webhook' || path === '/')) return { handler: 'webhook', params: {} }
   if (method === 'POST' && path === '/create-checkout') return { handler: 'createCheckout', params: {} }
   if (method === 'POST' && path === '/create-portal') return { handler: 'createPortal', params: {} }
@@ -572,6 +600,9 @@ async function handler(req: Request): Promise<Response> {
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
+
+    // Health check doesn't need auth
+    if (handler === 'health') return await handleHealth()
 
     // Webhook doesn't need auth (uses signature verification)
     if (handler === 'webhook') {
