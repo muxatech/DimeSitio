@@ -12,7 +12,7 @@ const sections = [
       'Titular: Studio Muxa Tech, S.L.',
       'CIF: B16378309',
       'Domicilio: Duque de Calabria 3, 10, 46005 Valencia, Valencia',
-      'Email: info@muxatech.com',
+      'Email: info@dimesitio.es',
     ],
   },
   {

@@ -6,6 +6,10 @@ const quickLinks = [
   { label: 'Para restaurantes', href: '/restaurantes' },
 ]
 
+const contactLinks = [
+  { label: 'info@dimesitio.es', href: 'mailto:info@dimesitio.es' },
+]
+
 const legalLinks = [
   { label: 'Términos y Condiciones', href: '/terminos' },
   { label: 'Política de Privacidad', href: '/privacidad' },
@@ -40,6 +44,22 @@ export default function Footer() {
             >
               {link.label}
             </Link>
+          ))}
+        </div>
+
+        {/* Contacto */}
+        <div className="flex flex-col gap-3">
+          <span className="text-xs font-semibold uppercase tracking-widest text-stone-400">
+            Contacto
+          </span>
+          {contactLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              className="text-sm text-stone-600 transition-colors hover:text-stone-900"
+            >
+              {link.label}
+            </a>
           ))}
         </div>
 
