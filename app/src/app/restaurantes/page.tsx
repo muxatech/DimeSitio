@@ -70,7 +70,7 @@ export default function RestaurantesPage() {
     <div>
       {/* ===== FOUNDER BANNER ===== */}
       <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 text-center text-sm text-amber-900">
-        Sé de los primeros. Los 100 primeros restaurantes reciben la insignia Fundador.{' '}
+        Sé de los primeros.             Los 100 primeros establecimientos reciben la insignia Fundador.{' '}
         <a href="#fundadores" className="whitespace-nowrap font-semibold underline underline-offset-2 hover:text-amber-700">Ver</a>
       </div>
 
@@ -93,7 +93,7 @@ export default function RestaurantesPage() {
             className="inline-flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm"
           >
             <Sparkles className="h-4 w-4 text-white/80" />
-            Para restaurantes de Valencia
+            Para restaurantes y cafeterías de Valencia
           </motion.div>
 
           {/* Heading */}
@@ -132,7 +132,7 @@ export default function RestaurantesPage() {
                 whileTap={{ scale: 0.97 }}
                 className="group inline-flex items-center gap-3 rounded-2xl border border-white/40 bg-white/20 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:bg-white/30 sm:px-10 sm:py-5 sm:text-xl"
               >
-                Publica tu restaurante
+                Publica tu establecimiento
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/25 text-white transition-transform group-hover:translate-x-0.5">
                   <ArrowRight className="h-5 w-5" />
                 </span>
@@ -269,10 +269,10 @@ export default function RestaurantesPage() {
                 Exclusivo para los primeros
               </span>
               <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
-                Sé uno de los 100 restaurantes fundadores
+                Sé uno de los 100 establecimientos fundadores
               </h2>
               <p className="mx-auto mt-3 max-w-2xl text-stone-500 sm:text-lg">
-                Los 100 primeros restaurantes en unirse a DimeSitio reciben la insignia <strong className="text-stone-900">Fundador</strong>.
+                Los 100 primeros establecimientos en unirse a DimeSitio reciben la insignia <strong className="text-stone-900">Fundador</strong>.
                 Un distintivo que los usuarios ven y que reconoce a los que llegaron primero.
               </p>
             </div>
@@ -379,7 +379,7 @@ export default function RestaurantesPage() {
               Que no te cuenten lo que buscan.<br />Sé tú la respuesta.
             </h2>
             <p className="mt-3 text-stone-500 sm:text-lg">
-              Registra tu restaurante y empieza a aparecer ante los indecisos de Valencia.
+              Registra tu establecimiento y empieza a aparecer ante los indecisos de Valencia.
             </p>
           </ViewportWrapper>
 
@@ -395,7 +395,7 @@ export default function RestaurantesPage() {
                 whileTap={{ scale: 0.97 }}
                 className="inline-flex items-center gap-3 rounded-2xl bg-stone-800 px-8 py-4 text-lg font-semibold text-white shadow-xl shadow-stone-200/50 transition-all hover:bg-stone-700 sm:px-10 sm:py-4 sm:text-xl"
               >
-                Publica tu restaurante
+                Publica tu establecimiento
                 <ArrowRight className="h-5 w-5" />
               </motion.button>
             </Link>

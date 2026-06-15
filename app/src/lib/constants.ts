@@ -20,21 +20,21 @@ export const QUESTIONS = [
 
 export const FOOD_PHOTOS = [
   '1565299624946-b28f40a0ae38',
-  '1504674900247-0877df9cc836',
+  '1442512595331-e89e73853f31',
   '1540189549336-e6e99c3679fe',
   '1567620905732-2d1ec7ab7445',
   '1555939594-58d7cb561ad1',
   '1432139555190-58524dae6a55',
-  '1414235077428-338989a2e8c0',
+  '1550304943-4f24f54ddde9',
   '1517248135467-4c7edcad34c4',
   '1507048331197-7d4ac70811cf',
-  '1476124369491-e7addf5db371',
+  '1754842382582-b643e9af5a27',
   '1481070555726-e2fe8357725c',
-  '1552566626-52f8b828add9',
+  '1461023058943-07fcbe16d735',
 ]
 
 export const FOOD_TYPES = [
-  'Italiano', 'Japonés', 'Mexicano', 'Mediterráneo', 'Asiático',
+  'Italiano', 'Brunch', 'Café de especialidad', 'Mediterráneo', 'Asiático',
   'Español', 'Argentino', 'Indio', 'Turco', 'Marroquí',
   'Peruano', 'Tailandés', 'Griego', 'Francés', 'Americano',
 ]
@@ -55,7 +55,7 @@ export const PROBLEMS = [
 ]
 
 export const HERO_STATS = [
-  { value: '18+', label: 'Restaurantes' },
+  { value: '18+', label: 'Establecimientos' },
   { value: '15', label: 'Tipos de cocina' },
   { value: '22', label: 'Zonas' },
   { value: '0€', label: 'Siempre gratis' },

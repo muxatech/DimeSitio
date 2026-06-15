@@ -21,7 +21,7 @@ vi.mock('next/link', () => ({
 describe('RestaurantesPage founder section', () => {
   it('shows the founder section title', () => {
     render(<RestaurantesPage />)
-    expect(screen.getByText(/100 restaurantes fundadores/)).toBeInTheDocument()
+    expect(screen.getByText(/100 establecimientos fundadores/)).toBeInTheDocument()
   })
 
   it('shows the founder badge text in the section', () => {

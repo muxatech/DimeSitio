@@ -125,7 +125,7 @@ export default function LandingHero() {
               className="inline-flex items-center justify-center gap-2 text-center rounded-full bg-white/25 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm"
             >
               <Sparkles className="h-4 w-4 text-white/80" />
-              Encuentra restaurante en Valencia en menos de un minuto
+              Encuentra el sitio perfecto en Valencia en menos de un minuto
             </motion.div>
 
             {/* Heading */}
@@ -220,7 +220,7 @@ export default function LandingHero() {
               </div>
               <div className="flex items-center gap-1.5">
                 <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs font-semibold text-white/80">{HERO_STATS[0].value} restaurantes</span>
+                <span className="text-xs font-semibold text-white/80">{HERO_STATS[0].value} establecimientos</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
@@ -275,6 +275,85 @@ export default function LandingHero() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== CAFÉ & BRUNCH SECTION ===== */}
+      <section className="bg-stone-50 px-6 py-20 sm:px-8 sm:py-28 lg:px-12 lg:py-32">
+        <div className="mx-auto max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5 }}
+            className="mb-14 text-center sm:mb-20"
+          >
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-1.5 text-sm font-medium text-amber-800">
+              <Sparkles className="h-4 w-4" />
+              Café de especialidad y brunch
+            </span>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
+              También para los que prefieren la mañana
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-stone-500 sm:text-lg">
+              DimeSitio no es solo para cenas. Encuentra cafeterías de especialidad donde el barista sabe tu nombre,
+              brunch spots con huevos benedictinos de escándalo, y sitios independientes con ese ambiente que no se encuentra en cualquier cadena.
+            </p>
+          </motion.div>
+
+          {/* Cafe & brunch photos */}
+          <div className="mb-14 grid grid-cols-3 gap-3 sm:gap-4">
+            {[
+              '1566746287471-d88bf58961fd',
+              '1490645935967-10de6ba17061',
+              '1453614512568-c4024d13c247',
+            ].map((id, i) => (
+              <motion.div
+                key={id}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.4, delay: i * 0.08 }}
+              >
+                <div className="group relative h-44 overflow-hidden rounded-2xl bg-stone-100 shadow-sm sm:h-52 lg:h-60">
+                  <div className="absolute inset-0 flex items-center justify-center text-stone-200">
+                    <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                  </div>
+                  <Image
+                    src={`https://images.unsplash.com/photo-${id}?w=600&h=500&fit=crop&auto=format&q=75`}
+                    alt=""
+                    width={600}
+                    height={500}
+                    className="relative h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0' }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-3 sm:gap-8">
+            {[
+              { title: 'Café de especialidad', desc: 'Tostadores locales, métodos alternativos y latte art que es casi una pena beberlo. Filtro, espresso o cold brew — cada café con su momento.' },
+              { title: 'Brunch sin prisa', desc: 'De los clásicos pancakes a la tosta de aguacate más instagrameable de Valencia. Menús de mediodía que convierten cualquier sábado en planazo.' },
+              { title: 'Cafeterías con alma', desc: 'Luz natural, plantas, música en vinilo y mesas de madera. Sitios donde quedarte a trabajar, leer o simplemente estar. El plan que no sabías que necesitabas.' },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.5, delay: i * 0.12 }}
+                className="rounded-2xl bg-white p-6 shadow-sm sm:p-8"
+              >
+                <h3 className="text-xl font-bold text-stone-900">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-stone-500">{item.desc}</p>
               </motion.div>
             ))}
           </div>
