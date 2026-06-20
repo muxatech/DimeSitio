@@ -1,10 +1,11 @@
 'use client'
 
+import React from 'react'
 import { motion } from 'framer-motion'
 import { useFlowStore } from '@/store/flow-store'
 import { cn } from '@/lib/utils'
-import { ZONES } from '@/lib/constants'
-import { Banknote, Coins, Crown, MapPin, ArrowLeft } from 'lucide-react'
+import { ZONES, groupCategories } from '@/lib/constants'
+import { Banknote, Coins, Crown, MapPin, ArrowLeft, Coffee, UtensilsCrossed, Wine, ChevronDown } from 'lucide-react'
 
 interface QuestionStepProps {
   onNext: () => void
@@ -95,6 +96,146 @@ export function QuestionCategories({
           </motion.button>
         ))}
       </motion.div>
+
+      <motion.button
+        whileTap={{ scale: 0.97 }}
+        whileHover={{ scale: 1.02 }}
+        onClick={onNext}
+        disabled={selectedCategoryIds.length === 0}
+        className={cn(
+          'w-full rounded-2xl py-4 text-base font-semibold text-white shadow-lg transition-all sm:py-4 sm:text-lg lg:py-5 lg:text-xl',
+          selectedCategoryIds.length > 0
+            ? 'bg-stone-800 shadow-lg shadow-stone-200/50 hover:bg-stone-700'
+            : 'bg-stone-200 text-stone-400'
+        )}
+      >
+        {selectedCategoryIds.length > 0
+          ? `Continuar (${selectedCategoryIds.length})`
+          : 'Selecciona al menos una opción'}
+      </motion.button>
+    </div>
+  )
+}
+
+const groupIcons: Record<string, React.ElementType> = {
+  'cafe-brunch': Coffee,
+  'comer-cenar': UtensilsCrossed,
+  'tomar-algo': Wine,
+}
+
+export function QuestionCategoryGroups({
+  categories,
+  onNext,
+  onBack,
+  title = '¿Qué te apetece hoy?',
+  subtitle = 'Elige una o varias opciones',
+}: QuestionStepProps & { categories: { id: string; name: string; group_keys?: string[] }[] }) {
+  const { selectedCategoryIds, setSelectedCategoryIds } = useFlowStore()
+  const [expandedGroups, setExpandedGroups] = React.useState<string[]>([])
+
+  const groups = React.useMemo(() => groupCategories(categories), [categories])
+
+  function toggleGroup(key: string) {
+    setExpandedGroups((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    )
+  }
+
+  function toggleCategory(id: string) {
+    const next = selectedCategoryIds.includes(id)
+      ? selectedCategoryIds.filter((x) => x !== id)
+      : [...selectedCategoryIds, id]
+    setSelectedCategoryIds(next)
+  }
+
+  return (
+    <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+      {onBack && (
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Atrás
+        </motion.button>
+      )}
+      <Header title={title} subtitle={subtitle} />
+
+      <div className="flex flex-col gap-3 sm:gap-4">
+        {groups.map((group) => {
+          const Icon = groupIcons[group.key]
+          const isExpanded = expandedGroups.includes(group.key)
+          const selectedInGroup = group.availableCats.filter(
+            (c) => selectedCategoryIds.includes(c.id)
+          )
+
+          return (
+            <div
+              key={group.key}
+              className="overflow-hidden rounded-2xl border-2 border-stone-200 bg-white shadow-sm transition-all"
+            >
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                onClick={() => toggleGroup(group.key)}
+                className="flex w-full items-center gap-4 px-5 py-4 text-left sm:px-6 sm:py-5 lg:px-7 lg:py-5"
+              >
+                {Icon && (
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-500 sm:h-12 sm:w-12">
+                    <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-base font-semibold text-stone-900 sm:text-lg lg:text-xl">
+                    {group.label}
+                  </p>
+                  <p className="text-xs text-stone-400 sm:text-sm">
+                    {selectedInGroup.length > 0
+                      ? selectedInGroup.map((c) => c.name).join(', ')
+                      : group.description}
+                  </p>
+                </div>
+                <ChevronDown
+                  className={cn(
+                    'h-5 w-5 shrink-0 text-stone-400 transition-transform sm:h-6 sm:w-6',
+                    isExpanded && 'rotate-180'
+                  )}
+                />
+              </motion.button>
+
+              <motion.div
+                initial={false}
+                animate={{ height: isExpanded ? 'auto' : 0 }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-wrap gap-2 border-t border-stone-100 px-5 py-4 sm:px-6 sm:py-5 lg:px-7">
+                  {group.availableCats.map((cat) => (
+                    <motion.button
+                      key={cat.id}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => toggleCategory(cat.id)}
+                      className={cn(
+                        'rounded-2xl border-2 px-4 py-2.5 text-sm font-medium shadow-sm transition-all sm:px-5 sm:py-3 sm:text-base',
+                        selectedCategoryIds.includes(cat.id)
+                          ? 'border-stone-900 bg-stone-100 text-stone-900'
+                          : 'border-stone-200 bg-white text-stone-500 hover:border-stone-300 hover:shadow-md'
+                      )}
+                    >
+                      {cat.name}
+                    </motion.button>
+                  ))}
+                  {group.availableCats.length === 0 && (
+                    <p className="text-sm text-stone-400">
+                      No hay restaurantes de esta categoría por ahora
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )
+        })}
+      </div>
 
       <motion.button
         whileTap={{ scale: 0.97 }}

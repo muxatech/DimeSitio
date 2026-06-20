@@ -1,6 +1,7 @@
 export interface Category {
   id: string
   name: string
+  group_keys?: string[]
 }
 
 export interface Restaurant {
@@ -22,6 +23,14 @@ export interface Restaurant {
   is_demo?: boolean
   founder_rank?: number | null
   restaurant_categories?: { category_id: string }[]
+}
+
+export interface CategoryGroup {
+  key: string
+  label: string
+  icon: string
+  description: string
+  categoryNames: string[]
 }
 
 export type FlowStep = 'landing' | 'questions' | 'top5' | 'battle' | 'winner'

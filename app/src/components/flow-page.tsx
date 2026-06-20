@@ -8,7 +8,7 @@ import { shuffle } from '@/lib/utils'
 import { QUESTIONS, ZONES } from '@/lib/constants'
 import type { Category, Restaurant, FlowStep } from '@/types'
 import LandingHero from '@/components/landing-hero'
-import { QuestionCategories, QuestionPrice, QuestionZone } from '@/components/question-step'
+import { QuestionCategoryGroups, QuestionPrice, QuestionZone } from '@/components/question-step'
 import ProgressBar from '@/components/progress-bar'
 import Top5Grid from '@/components/top5-grid'
 import BattleView from '@/components/battle-view'
@@ -310,7 +310,7 @@ export default function FlowPage() {
                 />
 
                 {currentQuestion.key === 'categories' && (
-                  <QuestionCategories
+                  <QuestionCategoryGroups
                     categories={categories ?? []}
                     onNext={handleNextQuestion}
                     onBack={handlePrevQuestion}

@@ -6,13 +6,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { ArrowLeft, ExternalLink, MapPin, UtensilsCrossed, Plus, X } from 'lucide-react'
+import { ArrowLeft, ExternalLink, MapPin, UtensilsCrossed, Plus, X, ChevronDown, Coffee, Wine } from 'lucide-react'
 import Link from 'next/link'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getCategories } from '@/lib/panel/api'
 import { supabase } from '@/lib/supabase'
-import { ZONES } from '@/lib/constants'
+import { ZONES, groupCategories, CATEGORY_GROUPS } from '@/lib/constants'
 import { cn, getPriceLabel } from '@/lib/utils'
 import type { RestaurantFormData, RestaurantWithRole } from '@/types'
 
@@ -134,7 +134,9 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [showNewCategory, setShowNewCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [newCategoryGroupKeys, setNewCategoryGroupKeys] = useState<string[]>([])
   const [creatingCategory, setCreatingCategory] = useState(false)
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(['comer-cenar'])
   const isEditing = !!defaultValues
 
   const parsedPhone = parsePhone(defaultValues?.phone)
@@ -378,43 +380,112 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
 
         {/* Categories */}
         <section>
-          <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">Categorías</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-stone-900 sm:text-xl">Categorías</h2>
+            {staffMode && (
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.02 }}
+                onClick={() => {
+                  setNewCategoryGroupKeys([])
+                  setShowNewCategory(true)
+                }}
+                className="inline-flex items-center gap-1.5 rounded-2xl border-2 border-dashed border-stone-300 px-4 py-2 text-sm font-medium text-stone-500 shadow-sm transition-all hover:border-stone-400 hover:text-stone-700"
+              >
+                <Plus className="h-4 w-4" />
+                Nueva
+              </motion.button>
+            )}
+          </div>
+
           {catsLoading ? (
             <div className="flex items-center gap-3">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-stone-200 border-t-stone-900" />
               <span className="text-sm text-stone-400">Cargando categorías...</span>
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2.5 sm:gap-3">
-              {categories?.map((cat) => (
-                <motion.button
-                  key={cat.id}
-                  type="button"
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => toggleCategory(cat.id)}
-                  className={cn(
-                    'rounded-2xl border-2 px-4 py-2.5 text-sm font-medium shadow-sm transition-all sm:px-5 sm:py-3 sm:text-base',
-                    selectedCategoryIds.includes(cat.id)
-                      ? 'border-stone-900 bg-stone-100 text-stone-900'
-                      : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:shadow-md'
-                  )}
-                >
-                  {cat.name}
-                </motion.button>
-              ))}
-              {staffMode && (
-                <motion.button
-                  type="button"
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => setShowNewCategory(true)}
-                  className="inline-flex items-center gap-1.5 rounded-2xl border-2 border-dashed border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-500 shadow-sm transition-all hover:border-stone-400 hover:text-stone-700 sm:px-5 sm:py-3 sm:text-base"
-                >
-                  <Plus className="h-4 w-4" />
-                  Nueva
-                </motion.button>
-              )}
+            <div className="flex flex-col gap-3">
+              {groupCategories(categories ?? []).map((group) => {
+                const Icon = group.key === 'cafe-brunch' ? Coffee
+                  : group.key === 'tomar-algo' ? Wine
+                  : UtensilsCrossed
+                const isExpanded = expandedGroups.includes(group.key)
+                const selectedInGroup = group.availableCats.filter(
+                  (c) => selectedCategoryIds.includes(c.id)
+                )
+
+                return (
+                  <div
+                    key={group.key}
+                    className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition-all"
+                  >
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() =>
+                        setExpandedGroups((prev) =>
+                          prev.includes(group.key)
+                            ? prev.filter((k) => k !== group.key)
+                            : [...prev, group.key]
+                        )
+                      }
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left sm:px-5 sm:py-4"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-500 sm:h-10 sm:w-10">
+                        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-stone-900 sm:text-base">
+                          {group.label}
+                        </p>
+                        <p className="text-xs text-stone-400 truncate">
+                          {selectedInGroup.length > 0
+                            ? selectedInGroup.map((c) => c.name).join(', ')
+                            : `${group.availableCats.length} categorías`}
+                        </p>
+                      </div>
+                      <ChevronDown
+                        className={cn(
+                          'h-4 w-4 shrink-0 text-stone-400 transition-transform sm:h-5 sm:w-5',
+                          isExpanded && 'rotate-180'
+                        )}
+                      />
+                    </motion.button>
+
+                    <motion.div
+                      initial={false}
+                      animate={{ height: isExpanded ? 'auto' : 0 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex flex-wrap gap-2 border-t border-stone-100 px-4 py-3 sm:px-5 sm:py-4">
+                        {group.availableCats.map((cat) => (
+                          <motion.button
+                            key={cat.id}
+                            type="button"
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => toggleCategory(cat.id)}
+                            className={cn(
+                              'rounded-2xl border-2 px-3 py-1.5 text-xs font-medium shadow-sm transition-all sm:px-4 sm:py-2 sm:text-sm',
+                              selectedCategoryIds.includes(cat.id)
+                                ? 'border-stone-900 bg-stone-100 text-stone-900'
+                                : 'border-stone-200 bg-white text-stone-500 hover:border-stone-300 hover:shadow-md'
+                            )}
+                          >
+                            {cat.name}
+                          </motion.button>
+                        ))}
+                        {group.availableCats.length === 0 && (
+                          <p className="text-xs text-stone-400">
+                            Sin categorías disponibles
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </section>
@@ -447,6 +518,41 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                   autoFocus
                 />
               </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  Grupos <span className="text-red-400">*</span>
+                </label>
+                <div className="flex flex-col gap-2">
+                  {CATEGORY_GROUPS.map((g) => {
+                    const selected = newCategoryGroupKeys.includes(g.key)
+                    return (
+                      <label
+                        key={g.key}
+                        className={cn(
+                          'flex cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-sm font-medium transition-all',
+                          selected
+                            ? 'border-stone-900 bg-stone-100 text-stone-900'
+                            : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() =>
+                            setNewCategoryGroupKeys((prev) =>
+                              selected
+                                ? prev.filter((k) => k !== g.key)
+                                : [...prev, g.key]
+                            )
+                          }
+                          className="h-4 w-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900"
+                        />
+                        {g.label}
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowNewCategory(false)}
@@ -457,10 +563,11 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                 <button
                   onClick={async () => {
                     if (!newCategoryName.trim()) return
+                    if (newCategoryGroupKeys.length === 0) return
                     setCreatingCategory(true)
                     const { data, error } = await supabase
                       .from('categories')
-                      .insert({ name: newCategoryName.trim() })
+                      .insert({ name: newCategoryName.trim(), group_keys: newCategoryGroupKeys })
                       .select('id')
                     setCreatingCategory(false)
                     if (error) {
@@ -469,12 +576,13 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                     }
                     setShowNewCategory(false)
                     setNewCategoryName('')
+                    setNewCategoryGroupKeys([])
                     queryClient.invalidateQueries({ queryKey: ['categories'] })
                     if (data?.[0]?.id) {
                       setValue('category_ids', [...selectedCategoryIds, data[0].id], { shouldValidate: true })
                     }
                   }}
-                  disabled={creatingCategory || !newCategoryName.trim()}
+                  disabled={creatingCategory || !newCategoryName.trim() || newCategoryGroupKeys.length === 0}
                   className="flex-1 rounded-2xl bg-stone-800 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-stone-700 disabled:bg-stone-200 disabled:text-stone-400"
                 >
                   {creatingCategory ? (

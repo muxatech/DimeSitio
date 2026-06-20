@@ -1,3 +1,55 @@
+import type { Category } from '@/types'
+
+export interface CategoryGroupDisplay {
+  key: string
+  label: string
+  icon: string
+  description: string
+  availableCats: Category[]
+}
+
+export function groupCategories(categories: Category[]): CategoryGroupDisplay[] {
+  const catsByName = new Map(categories.map((c) => [c.name, c]))
+
+  return CATEGORY_GROUPS.map((group) => {
+    const byName = group.categoryNames
+      .map((name) => catsByName.get(name))
+      .filter((c): c is Category => !!c)
+    const byGroupKey = categories.filter((c) => c.group_keys?.includes(group.key))
+    const seen = new Set<string>()
+    const availableCats = [...byName, ...byGroupKey].filter((c) => {
+      if (seen.has(c.id)) return false
+      seen.add(c.id)
+      return true
+    })
+    return { ...group, availableCats }
+  })
+}
+
+export const CATEGORY_GROUPS = [
+  {
+    key: 'cafe-brunch',
+    label: 'Café & Brunch',
+    icon: 'Coffee',
+    description: 'Para empezar el día o una pausa',
+    categoryNames: ['Brunch', 'Cafetería moderna', 'Cafetería tradicional', 'Specialty coffee', 'Tetería', 'Zumería', 'Pastelería'],
+  },
+  {
+    key: 'comer-cenar',
+    label: 'Comer / Cenar',
+    icon: 'UtensilsCrossed',
+    description: 'Restaurantes para sentarse a comer',
+    categoryNames: ['Italiano', 'Japonés', 'Arroces', 'Mediterráneo', 'Mexicano', 'Argentino', 'Pizza', 'Sushi', 'Marisco', 'Fusión', 'Vegetariano', 'Internacional', 'Hamburguesas', 'Tapas'],
+  },
+  {
+    key: 'tomar-algo',
+    label: 'Tomar algo',
+    icon: 'Wine',
+    description: 'Para salir de tapas, copas o cervezas',
+    categoryNames: ['Tapas', 'Cervecería', 'Cocktails', 'Vino'],
+  },
+]
+
 export const PRICE_LABELS: Record<number, string> = {
   1: '€',
   2: '€€',
