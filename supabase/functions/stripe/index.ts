@@ -141,6 +141,57 @@ async function handleCreatePortal(
   return ok({ url: session.url })
 }
 
+// ─── Payment Link ───────────────────────────────────────────
+
+async function handleCreatePaymentLink(
+  supabase: ReturnType<typeof createClient>,
+  user: { id: string },
+  body: { restaurant_id: string; plan_type: string }
+) {
+  console.log('stripe: create-payment-link', JSON.stringify(body))
+
+  const { data: admin } = await supabase
+    .from('restaurant_admins')
+    .select('role')
+    .eq('restaurant_id', body.restaurant_id)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (!admin || admin.role !== 'owner') {
+    return fail('Not found or no permission', 404)
+  }
+
+  const stripe = getStripe()
+
+  const isFounder = body.plan_type === 'founder'
+  const priceId = isFounder
+    ? (Deno.env.get('STRIPE_FOUNDER_MODE') === 'test'
+        ? Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP_TEST') ?? ''
+        : Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP') ?? '')
+    : PRICE_ID
+
+  if (!priceId) {
+    return fail('Price not configured', 500)
+  }
+
+  const paymentLink = await stripe.paymentLinks.create({
+    line_items: [{ price: priceId, quantity: 1 }],
+    metadata: {
+      restaurant_id: body.restaurant_id,
+      source: 'self-service',
+      plan: body.plan_type,
+    },
+    ...(isFounder ? {
+      payment_intent_data: {
+        setup_future_usage: 'off_session',
+      },
+    } : {}),
+  })
+
+  console.log('stripe: payment link created', paymentLink.id)
+  return ok({ url: paymentLink.url })
+}
+
 // ─── Verify Subscription ───────────────────────────────────
 
 async function handleVerify(
@@ -179,23 +230,35 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
   console.log('stripe: webhook received')
 
   const stripe = getStripe()
-  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
   const cryptoProvider = Stripe.createSubtleCryptoProvider()
 
-  if (!webhookSecret) {
+  const webhookSecrets = [
+    Deno.env.get('STRIPE_WEBHOOK_SECRET'),
+    Deno.env.get('STRIPE_WEBHOOK_SECRET_TEST'),
+  ].filter(Boolean) as string[]
+
+  if (!webhookSecrets.length) {
     console.error('stripe: webhook secret not configured')
     return fail('Webhook secret not configured', 500)
   }
 
-  let event: Stripe.Event
-  try {
-    event = await stripe.webhooks.constructEventAsync(rawBody, signature ?? '', webhookSecret, undefined, cryptoProvider)
-  } catch (err) {
+  let event: Stripe.Event | undefined
+  let lastErr: unknown
+  for (const secret of webhookSecrets) {
+    try {
+      event = await stripe.webhooks.constructEventAsync(rawBody, signature ?? '', secret, undefined, cryptoProvider)
+      console.log('stripe: webhook verified with secret', secret.slice(0, 10) + '...')
+      break
+    } catch (err) {
+      lastErr = err
+    }
+  }
+
+  if (!event) {
     console.error('stripe: webhook signature verification failed', JSON.stringify({
-      error: err instanceof Error ? err.message : String(err),
+      error: lastErr instanceof Error ? lastErr.message : String(lastErr),
       bodyLength: rawBody?.length,
       signaturePrefix: signature?.slice(0, 20),
-      secretPrefix: webhookSecret?.slice(0, 10),
     }))
     return fail('Invalid signature', 401)
   }
@@ -211,6 +274,109 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
       if (!restaurantId) {
         console.error('stripe: checkout completed without restaurant_id metadata')
         return ok({ received: true })
+      }
+
+      const isFounder = session.metadata?.plan === 'founder'
+
+      // Founder plan = one-time payment (mode: 'payment')
+      if (isFounder) {
+        const customerId = session.customer as string
+
+        const { error: upsertError } = await supabase.from('subscriptions').upsert({
+          restaurant_id: restaurantId,
+          stripe_customer_id: customerId,
+          stripe_subscription_id: null,
+          status: 'founder_pending',
+          current_period_end: new Date('2026-12-31T23:59:59Z').toISOString(),
+        }, { onConflict: 'restaurant_id' })
+
+        if (upsertError) {
+          console.error('stripe: failed to upsert founder subscription', JSON.stringify(upsertError))
+          return fail('Failed to save subscription', 500)
+        }
+
+        const ownerEmail = session.metadata?.owner_email
+        if (!ownerEmail) {
+          console.error('stripe: founder checkout without owner_email metadata')
+          return ok({ received: true })
+        }
+
+        console.log('stripe: founder payment completed (staff)', restaurantId)
+
+        const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(ownerEmail, {
+          data: { onboarded: true },
+        })
+
+        if (inviteError) {
+          console.error('stripe: failed to invite user', JSON.stringify(inviteError))
+        }
+
+        let ownerUserId = inviteData?.user?.id
+
+        if (!ownerUserId) {
+          const { data: usersData } = await supabase.auth.admin.listUsers()
+          const existingUser = usersData?.users?.find((u) => u.email === ownerEmail)
+          if (existingUser) {
+            ownerUserId = existingUser.id
+            console.log('stripe: found existing user for founder flow', ownerUserId)
+          }
+        }
+
+        if (ownerUserId) {
+          const { error: adminError } = await supabase.from('restaurant_admins').insert({
+            restaurant_id: restaurantId,
+            user_id: ownerUserId,
+            role: 'owner',
+          })
+
+          if (adminError) {
+            console.error('stripe: failed to insert admin', JSON.stringify(adminError))
+          } else {
+            await supabase.from('restaurants').update({ owner_id: ownerUserId, active: true }).eq('id', restaurantId)
+            console.log('stripe: founder flow completed', { restaurantId, ownerEmail, ownerUserId })
+          }
+        }
+
+        const { data: rData } = await supabase.from('restaurants').select('name').eq('id', restaurantId).single()
+        const rName = escapeHtml(rData?.name ?? 'tu restaurante')
+
+        try {
+          await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({
+              to: ownerEmail,
+              type: 'payment_receipt',
+              restaurant_id: restaurantId,
+              subject: '¡Tu restaurante ya está activo en DimeSitio!',
+              html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Restaurante activo</title></head>
+<body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
+<tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
+<tr><td style="padding:24px 24px 8px;text-align:center;">
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${rName}</strong> ya está activo en DimeSitio.</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Pago único de 39€ — sin cuotas hasta enero de 2027. Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil.</p>
+</td></tr>
+<tr><td align="center" style="padding:24px;">
+<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/set-password" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
+</td></tr>
+<tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
+</table>
+</td></tr></table></body>
+</html>`,
+            }),
+          })
+        } catch (emailErr) {
+          console.error('stripe: founder receipt email failed', emailErr.message)
+        }
+        break
       }
 
       const customerId = session.customer as string
@@ -233,11 +399,13 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 
       const { data: restaurantData } = await supabase
         .from('restaurants')
-        .select('name')
+        .select('name, plan_type')
         .eq('id', restaurantId)
         .single()
 
       const restaurantName = escapeHtml(restaurantData?.name ?? 'tu restaurante')
+      const planType = restaurantData?.plan_type ?? 'standard'
+      const planLabel = planType === 'founder' ? 'Plan Founder — 39€ (pago único)' : '29€/mes'
       const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
       const headers = {
         'Content-Type': 'application/json',
@@ -271,7 +439,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 <tr><td style="padding:24px 24px 8px;text-align:center;">
 <p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">¡Pago confirmado!</p>
 <p style="margin:12px 0 0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${restaurantName}</strong> ya está activo en DimeSitio.</p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Tu suscripción de 29€/mes está al día. Puedes gestionar tu perfil y ver estadísticas desde el panel.</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Tu suscripción de ${planLabel} está al día. Puedes gestionar tu perfil y ver estadísticas desde el panel.</p>
 </td></tr>
 <tr><td align="center" style="padding:24px;">
 <a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/dashboard" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
@@ -348,7 +516,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 <tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
 <tr><td style="padding:24px 24px 8px;text-align:center;">
 <p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${restaurantName}</strong> ya está activo en DimeSitio.</p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil. Revisa tu bandeja de entrada.</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Tu ${planLabel}. Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil. Revisa tu bandeja de entrada.</p>
 </td></tr>
 <tr><td align="center" style="padding:24px;">
 <a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/set-password" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
@@ -579,6 +747,7 @@ function route(method: string, pathname: string): { handler: string; params: Rec
   if (method === 'POST' && (path === '/webhook' || path === '/')) return { handler: 'webhook', params: {} }
   if (method === 'POST' && path === '/create-checkout') return { handler: 'createCheckout', params: {} }
   if (method === 'POST' && path === '/create-portal') return { handler: 'createPortal', params: {} }
+  if (method === 'POST' && path === '/create-payment-link') return { handler: 'createPaymentLink', params: {} }
   if (method === 'POST' && path === '/verify') return { handler: 'verify', params: {} }
 
   return { handler: 'notFound', params: {} }
@@ -626,6 +795,10 @@ async function handler(req: Request): Promise<Response> {
       case 'createPortal': {
         const body = await req.json()
         return await handleCreatePortal(supabase, user, body)
+      }
+      case 'createPaymentLink': {
+        const body = await req.json()
+        return await handleCreatePaymentLink(supabase, user, body)
       }
       case 'verify': {
         const body = await req.json()

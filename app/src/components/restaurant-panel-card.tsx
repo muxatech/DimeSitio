@@ -95,7 +95,7 @@ export default function RestaurantPanelCard({
         )}
 
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          {restaurant.founder_rank && (
+          {(restaurant.founder_rank || restaurant.plan_type === 'founder') && (
             <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800" title="Fundador">
               <Crown className="h-3 w-3" /> Fundador
             </span>

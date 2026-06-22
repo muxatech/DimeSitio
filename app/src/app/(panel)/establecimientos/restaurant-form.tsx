@@ -30,6 +30,8 @@ const restaurantSchema = z.object({
   is_demo: z.boolean().optional(),
   category_ids: z.array(z.string()),
   owner_email: z.string().email('El email del propietario no es válido').optional().or(z.literal('')),
+  plan_type: z.enum(['standard', 'founder']),
+  payment_method: z.enum(['redirect', 'email']),
 })
 
 type FormValues = z.infer<typeof restaurantSchema>
@@ -170,6 +172,8 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       reservations_url: defaultValues?.reservations_url ?? '',
       active: defaultValues?.active ?? false,
       is_demo: defaultValues?.is_demo ?? false,
+      plan_type: defaultValues?.plan_type ?? 'standard',
+      payment_method: 'redirect',
       category_ids: defaultValues?.restaurant_categories?.map((c: { category_id: string }) => c.category_id) ?? [],
     },
   })
@@ -638,6 +642,58 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
           </section>
         )}
 
+        {staffMode && (
+          <section>
+            <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">Plan</h2>
+            <div className="flex flex-col gap-3">
+              <label className={`flex cursor-pointer items-center rounded-2xl border p-4 shadow-sm transition-all sm:p-5 ${watch('plan_type') === 'standard' ? 'border-stone-900 bg-stone-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                <div className="flex flex-1 items-center gap-3">
+                  <input type="radio" value="standard" {...register('plan_type')} className="h-4 w-4 border-stone-300 text-stone-900 focus:ring-stone-900" />
+                  <div>
+                    <p className="text-sm font-medium text-stone-900 sm:text-base">Normal — 29€/mes</p>
+                    <p className="mt-0.5 text-sm text-stone-400">Suscripción mensual, sin compromiso de permanencia</p>
+                  </div>
+                </div>
+              </label>
+              <label className={`flex cursor-pointer items-center rounded-2xl border p-4 shadow-sm transition-all sm:p-5 ${watch('plan_type') === 'founder' ? 'border-amber-400 bg-amber-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                <div className="flex flex-1 items-center gap-3">
+                  <input type="radio" value="founder" {...register('plan_type')} className="h-4 w-4 border-stone-300 text-amber-600 focus:ring-amber-500" />
+                  <div>
+                    <p className="text-sm font-medium text-stone-900 sm:text-base">Founder — 39€ (pago único)</p>
+                    <p className="mt-0.5 text-sm text-stone-400">Pago único hasta el 31 de diciembre de 2026. Luego suscripción mensual (precio por confirmar).</p>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </section>
+        )}
+
+        {staffMode && (
+          <section>
+            <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">Método de pago</h2>
+            <div className="flex flex-col gap-3">
+              <label className={`flex cursor-pointer items-center rounded-2xl border p-4 shadow-sm transition-all sm:p-5 ${watch('payment_method') === 'redirect' ? 'border-stone-900 bg-stone-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                <div className="flex flex-1 items-center gap-3">
+                  <input type="radio" value="redirect" {...register('payment_method')} className="h-4 w-4 border-stone-300 text-stone-900 focus:ring-stone-900" />
+                  <div>
+                    <p className="text-sm font-medium text-stone-900 sm:text-base">Pagar ahora</p>
+                    <p className="mt-0.5 text-sm text-stone-400">Mostrar enlace de pago para que el cliente pague en el momento</p>
+                  </div>
+                </div>
+              </label>
+              <label className={`flex cursor-pointer items-center rounded-2xl border p-4 shadow-sm transition-all sm:p-5 ${watch('payment_method') === 'email' ? 'border-stone-900 bg-stone-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                <div className="flex flex-1 items-center gap-3">
+                  <input type="radio" value="email" {...register('payment_method')} className="h-4 w-4 border-stone-300 text-stone-900 focus:ring-stone-900" />
+                  <div>
+                    <p className="text-sm font-medium text-stone-900 sm:text-base">Enviar enlace por email</p>
+                    <p className="mt-0.5 text-sm text-stone-400">El propietario recibe un email con un enlace seguro para pagar</p>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </section>
+        )}
+
         {/* Links & media */}
         <section>
           <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">Enlaces y multimedia</h2>
@@ -844,7 +900,15 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                 Guardando...
               </span>
             ) : (
-              isEditing ? 'Guardar cambios' : staffMode ? 'Crear y enviar a pago' : 'Crear establecimiento'
+              isEditing
+                ? 'Guardar cambios'
+                : staffMode
+                  ? watch('payment_method') === 'email'
+                    ? 'Crear y enviar email'
+                    : watch('plan_type') === 'founder'
+                      ? 'Crear y cobrar 39€'
+                      : 'Crear y enviar a pago'
+                  : 'Crear establecimiento'
             )}
           </motion.button>
         </div>

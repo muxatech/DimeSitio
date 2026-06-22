@@ -34,6 +34,8 @@ async function getUser(authHeader: string | null, supabase: ReturnType<typeof cr
 const PRICE_ID = Deno.env.get('STRIPE_PRICE_ID') ?? ''
 
 const VALID_PRICE_LEVELS = new Set([1, 2, 3])
+const VALID_PLAN_TYPES = new Set(['standard', 'founder'])
+const VALID_PAYMENT_METHODS = new Set(['redirect', 'email'])
 
 function validateCreate(body: Record<string, unknown>) {
   const errors: string[] = []
@@ -70,6 +72,12 @@ function validateCreate(body: Record<string, unknown>) {
   if (body.is_demo !== undefined && typeof body.is_demo !== 'boolean') {
     errors.push('is_demo must be a boolean')
   }
+  if (body.plan_type && !VALID_PLAN_TYPES.has(body.plan_type as string)) {
+    errors.push('plan_type must be "standard" or "founder"')
+  }
+  if (body.payment_method && !VALID_PAYMENT_METHODS.has(body.payment_method as string)) {
+    errors.push('payment_method must be "redirect" or "email"')
+  }
   if (body.category_ids !== undefined) {
     if (!Array.isArray(body.category_ids)) {
       errors.push('category_ids must be an array')
@@ -104,12 +112,75 @@ async function assignFounderRank(supabase: ReturnType<typeof createClient>, rest
   }
 }
 
+function getStripeKeys(planType: string) {
+  const isFounderTest = planType === 'founder' && Deno.env.get('STRIPE_FOUNDER_MODE') === 'test'
+  return {
+    secretKey: isFounderTest
+      ? Deno.env.get('STRIPE_SECRET_KEY_TEST') ?? ''
+      : Deno.env.get('STRIPE_SECRET_KEY') ?? '',
+    priceId: planType === 'founder'
+      ? (isFounderTest
+          ? Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP_TEST') ?? ''
+          : Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP') ?? '')
+      : PRICE_ID,
+  }
+}
+
+async function sendPaymentLinkEmail(
+  supabase: ReturnType<typeof createClient>,
+  ownerEmail: string,
+  restaurantName: string,
+  paymentLink: string,
+  planType: string,
+) {
+  const planLabel = planType === 'founder' ? 'Plan Founder — 39€ (pago único)' : 'Plan Normal — 29€/mes'
+  const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+  }
+
+  try {
+    await fetch(fnUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        to: ownerEmail,
+        type: 'payment_link',
+        subject: 'Activa tu restaurante en DimeSitio',
+        html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Activa tu restaurante</title></head>
+<body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
+<tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
+<tr><td style="padding:24px 24px 8px;text-align:center;">
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">Te han creado un perfil para <strong>${restaurantName}</strong> en DimeSitio.</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Plan seleccionado: <strong>${planLabel}</strong></p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Haz clic en el siguiente enlace para completar el pago y activar tu restaurante.</p>
+</td></tr>
+<tr><td align="center" style="padding:24px;">
+<a href="${paymentLink}" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Activar ahora</a>
+</td></tr>
+<tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
+</table>
+</td></tr></table></body>
+</html>`,
+      }),
+    })
+  } catch (emailErr) {
+    console.error('staff: payment link email failed', emailErr.message)
+  }
+}
+
 async function handleCreateForClient(
   supabase: ReturnType<typeof createClient>,
   user: { id: string },
   body: Record<string, unknown>
 ) {
-  console.log('staff: create-for-client', JSON.stringify({ name: body.name, owner_email: body.owner_email }))
+  console.log('staff: create-for-client', JSON.stringify({ name: body.name, owner_email: body.owner_email, plan_type: body.plan_type, payment_method: body.payment_method }))
 
   // Verify staff role
   const { data: staff } = await supabase
@@ -131,6 +202,8 @@ async function handleCreateForClient(
   const sanitized = sanitizeStrings(body)
   const ownerEmail = sanitized.owner_email as string
   const categoryIds: string[] = (sanitized.category_ids as string[]) ?? []
+  const planType = (sanitized.plan_type as string) || 'standard'
+  const paymentMethod = (sanitized.payment_method as string) || 'redirect'
 
   // Create restaurant (no owner_id yet)
   const { data: restaurant, error: insertError } = await supabase
@@ -149,6 +222,7 @@ async function handleCreateForClient(
       zone: sanitized.zone,
       active: false,
       is_demo: sanitized.is_demo ?? false,
+      plan_type: planType,
     })
     .select()
     .single()
@@ -175,36 +249,86 @@ async function handleCreateForClient(
     }
   }
 
-  // Create Stripe Checkout Session
-  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
-  if (!stripeKey) {
-    console.error('staff: STRIPE_SECRET_KEY not configured')
-    return fail('Stripe is not configured', 500)
+  // Stripe keys
+  const { secretKey, priceId } = getStripeKeys(planType)
+  if (!secretKey) {
+    console.error('staff: Stripe secret key not configured')
+    return fail('Payment is not configured', 500)
   }
 
-  const stripe = new Stripe(stripeKey, {
+  const stripe = new Stripe(secretKey, {
     apiVersion: '2026-04-22.dahlia',
     httpClient: Stripe.createFetchHttpClient(),
   })
 
+  const metadata: Record<string, string> = {
+    restaurant_id: restaurant.id,
+    owner_email: ownerEmail,
+    source: 'staff',
+    plan: planType,
+  }
+
+  const successUrl = `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/pago-exitoso?email=${encodeURIComponent(ownerEmail)}`
+  const cancelUrl = `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/establecimientos`
+
+  if (paymentMethod === 'email') {
+    // Use Payment Link for email (never expires)
+    const paymentLink = await stripe.paymentLinks.create({
+      line_items: [{ price: priceId, quantity: 1 }],
+      metadata,
+      ...(planType === 'founder' ? {
+        payment_intent_data: {
+          setup_future_usage: 'off_session',
+        },
+      } : {}),
+    })
+
+    console.log('staff: payment link created', { restaurantId: restaurant.id, paymentLinkId: paymentLink.id })
+
+    await sendPaymentLinkEmail(supabase, ownerEmail, sanitized.name as string, paymentLink.url, planType)
+    return ok({
+      restaurant_id: restaurant.id,
+      checkout_url: null,
+      sent: true,
+    })
+  }
+
+  // Pay now: use Checkout Session
+  if (planType === 'founder') {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [{ price: priceId, quantity: 1 }],
+      customer_email: ownerEmail,
+      metadata,
+      payment_intent_data: {
+        setup_future_usage: 'off_session',
+      },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    })
+
+    console.log('staff: founder checkout session created', { restaurantId: restaurant.id, sessionId: session.id })
+    return ok({
+      restaurant_id: restaurant.id,
+      checkout_url: session.url,
+      sent: false,
+    })
+  }
+
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
-    line_items: [{ price: PRICE_ID, quantity: 1 }],
+    line_items: [{ price: priceId, quantity: 1 }],
     customer_email: ownerEmail,
-    metadata: {
-      restaurant_id: restaurant.id,
-      owner_email: ownerEmail,
-      source: 'staff',
-    },
-    success_url: `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/pago-exitoso?email=${encodeURIComponent(ownerEmail)}`,
-    cancel_url: `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/establecimientos`,
+    metadata,
+    success_url: successUrl,
+    cancel_url: cancelUrl,
   })
 
-  console.log('staff: checkout session created', { restaurantId: restaurant.id, sessionId: session.id })
-
+  console.log('staff: standard checkout session created', { restaurantId: restaurant.id, sessionId: session.id })
   return ok({
     restaurant_id: restaurant.id,
     checkout_url: session.url,
+    sent: false,
   })
 }
 

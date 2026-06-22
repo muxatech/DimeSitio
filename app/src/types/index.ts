@@ -21,6 +21,7 @@ export interface Restaurant {
   zone: string | null
   active: boolean
   is_demo?: boolean
+  plan_type?: PlanType
   founder_rank?: number | null
   restaurant_categories?: { category_id: string }[]
 }
@@ -32,6 +33,9 @@ export interface CategoryGroup {
   description: string
   categoryNames: string[]
 }
+
+export type PlanType = 'standard' | 'founder'
+export type PaymentMethod = 'redirect' | 'email'
 
 export type FlowStep = 'landing' | 'questions' | 'top5' | 'battle' | 'winner'
 
@@ -74,11 +78,15 @@ export interface RestaurantFormData {
   reservations_url?: string
   active?: boolean
   is_demo?: boolean
+  plan_type: PlanType
+  payment_method: PaymentMethod
   category_ids: string[]
 }
 
 export interface StaffCreateData extends RestaurantFormData {
   owner_email: string
+  plan_type: PlanType
+  payment_method: PaymentMethod
 }
 
 export interface AnalyticsTotals {

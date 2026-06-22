@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { RestaurantWithRole, RestaurantStats, RestaurantFormData, Category, StaffCreateData, AnalyticsData } from '@/types'
+import type { RestaurantWithRole, RestaurantStats, RestaurantFormData, Category, StaffCreateData, AnalyticsData, PlanType } from '@/types'
 
 async function getToken(): Promise<string> {
   const { data: { session }, error } = await supabase.auth.refreshSession()
@@ -94,10 +94,15 @@ export async function createPortalSession(restaurantId: string): Promise<string>
   return res.data.url
 }
 
+export async function createPaymentLink(restaurantId: string, planType: PlanType): Promise<string> {
+  const res = await invoke<{ success: boolean; data: { url: string } }>('POST', '/create-payment-link', { restaurant_id: restaurantId, plan_type: planType }, 'stripe')
+  return res.data.url
+}
+
 // ─── Staff ──────────────────────────────────────────────────
 
-export async function createForClient(data: StaffCreateData): Promise<{ restaurant_id: string; checkout_url: string }> {
-  const res = await invoke<{ success: boolean; data: { restaurant_id: string; checkout_url: string } }>('POST', '/', data, 'staff')
+export async function createForClient(data: StaffCreateData): Promise<{ restaurant_id: string; checkout_url: string | null; sent: boolean }> {
+  const res = await invoke<{ success: boolean; data: { restaurant_id: string; checkout_url: string | null; sent: boolean } }>('POST', '/', data, 'staff')
   return res.data
 }
 

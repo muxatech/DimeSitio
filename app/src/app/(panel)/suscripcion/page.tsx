@@ -159,7 +159,7 @@ export default function SuscripcionPage() {
             Suscripción
           </h1>
           <p className="mt-1 text-sm text-stone-400 sm:text-base">
-            Gestiona la suscripción de cada establecimiento — 29€/mes
+            Gestiona la suscripción de cada establecimiento
           </p>
         </div>
         <button
@@ -232,7 +232,9 @@ export default function SuscripcionPage() {
                       </p>
                     )}
                     {!isPending && !isTimeout && (
-                      <p className="mt-0.5 text-sm text-stone-400">29€/mes</p>
+                      <p className="mt-0.5 text-sm text-stone-400">
+                        {r.plan_type === 'founder' ? 'Plan founder — 39€ (pago único)' : '29€/mes'}
+                      </p>
                     )}
                   </div>
                 </div>
