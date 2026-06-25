@@ -9,7 +9,7 @@ import { trackCall } from '@/lib/tracking'
 import { MapPin, Phone, Navigation, Menu, Calendar, PartyPopper, UtensilsCrossed, RotateCcw, Crown } from 'lucide-react'
 
 export default function WinnerView() {
-  const { winner, reset, sessionId, resetQuestionState, setStep } = useFlowStore()
+  const { winner, reset, sessionId, startNewFlow } = useFlowStore()
 
   if (!winner) {
     return (
@@ -22,10 +22,7 @@ export default function WinnerView() {
         <p className="text-base font-semibold text-stone-700 sm:text-lg">No se ha seleccionado ningún restaurante</p>
         <p className="max-w-xs text-sm text-stone-400">Vuelve a empezar y busca tu restaurante ideal.</p>
         <button
-        onClick={() => {
-          resetQuestionState()
-          setStep('questions')
-        }}
+        onClick={startNewFlow}
           className="inline-flex items-center gap-2 rounded-2xl bg-stone-800 px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-all hover:bg-stone-700"
         >
           <RotateCcw className="h-5 w-5" />
@@ -162,10 +159,7 @@ export default function WinnerView() {
       <motion.button
         whileTap={{ scale: 0.97 }}
         whileHover={{ scale: 1.02 }}
-        onClick={() => {
-          resetQuestionState()
-          setStep('questions')
-        }}
+        onClick={startNewFlow}
         className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
       >
         <RotateCcw className="h-5 w-5" />

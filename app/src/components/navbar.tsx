@@ -17,8 +17,7 @@ export default function Navbar() {
   const router = useRouter()
   const step = useFlowStore((s) => s.step)
   const reset = useFlowStore((s) => s.reset)
-  const resetQuestionState = useFlowStore((s) => s.resetQuestionState)
-  const setStep = useFlowStore((s) => s.setStep)
+  const startNewFlow = useFlowStore((s) => s.startNewFlow)
   const setSessionId = useFlowStore((s) => s.setSessionId)
   const isHome = pathname === '/'
   const isLanding = step === 'landing' && isHome
@@ -26,9 +25,9 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   function startFlow() {
-    resetQuestionState()
-    setSessionId(getSessionId())
-    setStep('questions')
+    const sid = getSessionId()
+    startNewFlow()
+    setSessionId(sid)
     if (!isHome) router.push('/')
   }
 

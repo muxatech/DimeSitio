@@ -45,6 +45,7 @@ interface FlowStore {
   setWinner: (restaurant: Restaurant) => void
   resetQuestionState: () => void
   goBackToQuestions: () => void
+  startNewFlow: () => void
   reset: () => void
   hydrate: (state: Partial<FlowDataState>) => void
 }
@@ -138,6 +139,23 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
     }),
 
   goBackToQuestions: () => set({ step: 'questions', qIndex: 0 }),
+
+  startNewFlow: () =>
+    set({
+      step: 'questions',
+      sessionId: '',
+      qIndex: 0,
+      selectedCategoryIds: [],
+      selectedPriceLevel: null,
+      selectedZoneIds: [],
+      filteredRestaurants: [],
+      top5: [],
+      battleChampion: null,
+      battleChallenger: null,
+      battlePool: [],
+      battleRound: 0,
+      winner: null,
+    }),
 
   reset: () =>
     set({

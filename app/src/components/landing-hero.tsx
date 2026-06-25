@@ -88,7 +88,7 @@ function Carousel({ images }: { images: string[] }) {
 }
 
 export default function LandingHero() {
-  const { setStep, setSessionId, resetQuestionState } = useFlowStore()
+  const { setStep, setSessionId, startNewFlow } = useFlowStore()
 
   const [wordIdx, setWordIdx] = useState(0)
   const words = ['comer', 'cenar', 'tapear', 'picar']
@@ -102,9 +102,8 @@ export default function LandingHero() {
 
   async function handleStart() {
     const sid = getSessionId()
+    startNewFlow()
     setSessionId(sid)
-    resetQuestionState()
-    setStep('questions')
     const { trackStart } = await import('@/lib/tracking')
     trackStart(sid)
   }
