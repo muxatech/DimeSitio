@@ -76,7 +76,7 @@ const normalRestaurant: Restaurant = {
   active: true,
 }
 
-describe('WinnerView badges', () => {
+describe('WinnerView', () => {
   beforeEach(() => {
     useFlowStore.setState({
       winner: null,
@@ -101,5 +101,18 @@ describe('WinnerView badges', () => {
     render(<WinnerView />)
     expect(screen.queryByText('Fundador')).not.toBeInTheDocument()
     expect(screen.queryByText('Demo')).not.toBeInTheDocument()
+  })
+
+  it('Volver a empezar resets question state and goes to questions', () => {
+    useFlowStore.setState({ winner: normalRestaurant, step: 'winner' })
+    render(<WinnerView />)
+
+    const btn = screen.getByRole('button', { name: /volver a empezar/i })
+    btn.click()
+
+    const state = useFlowStore.getState()
+    expect(state.step).toBe('questions')
+    expect(state.winner).toBeNull()
+    expect(state.qIndex).toBe(0)
   })
 })

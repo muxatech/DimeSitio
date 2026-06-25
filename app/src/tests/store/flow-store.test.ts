@@ -116,6 +116,7 @@ describe('flow-store', () => {
     useFlowStore.getState().setSelectedZoneIds(['centro'])
     useFlowStore.getState().setFilteredRestaurants([makeRestaurant('a')])
     useFlowStore.getState().setTop5([makeRestaurant('a')])
+    useFlowStore.getState().setWinner(makeRestaurant('w'))
 
     useFlowStore.getState().resetQuestionState()
 
@@ -126,6 +127,15 @@ describe('flow-store', () => {
     expect(state.selectedZoneIds).toEqual([])
     expect(state.filteredRestaurants).toEqual([])
     expect(state.top5).toEqual([])
+    expect(state.winner).toBeNull()
+  })
+
+  it('resetQuestionState clears winner', () => {
+    useFlowStore.getState().setWinner(makeRestaurant('w'))
+    expect(useFlowStore.getState().winner).not.toBeNull()
+
+    useFlowStore.getState().resetQuestionState()
+    expect(useFlowStore.getState().winner).toBeNull()
   })
 
   it('goBackToQuestions sets step to questions and qIndex to 0', () => {

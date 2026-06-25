@@ -134,6 +134,7 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       battleChallenger: null,
       battlePool: [],
       battleRound: 0,
+      winner: null,
     }),
 
   goBackToQuestions: () => set({ step: 'questions', qIndex: 0 }),

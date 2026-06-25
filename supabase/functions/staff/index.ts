@@ -175,6 +175,70 @@ async function sendPaymentLinkEmail(
   }
 }
 
+async function handleRegeneratePaymentLink(
+  supabase: ReturnType<typeof createClient>,
+  user: { id: string },
+  body: Record<string, unknown>,
+  isAdmin: boolean,
+) {
+  const restaurantId = body.restaurant_id as string
+  const ownerEmail = body.owner_email as string
+
+  if (!restaurantId || !ownerEmail) {
+    return fail('restaurant_id and owner_email are required')
+  }
+
+  if (!isAdmin) {
+    const { data: staff } = await supabase
+      .from('staff_users').select('user_id').eq('user_id', user.id).maybeSingle()
+    if (!staff) return fail('Not authorized as staff', 403)
+  }
+
+  const { data: restaurant, error: rErr } = await supabase
+    .from('restaurants').select('id, name, plan_type, active')
+    .eq('id', restaurantId).single()
+  if (rErr || !restaurant) return fail('Restaurant not found', 404)
+  if (restaurant.plan_type !== 'founder') return fail('Not a founder plan')
+  if (restaurant.active) return fail('Restaurant is already active')
+
+  const { secretKey, priceId } = getStripeKeys('founder')
+  if (!secretKey || !priceId) return fail('Stripe not configured', 500)
+
+  const stripe = new Stripe(secretKey, {
+    apiVersion: '2026-04-22.dahlia',
+    httpClient: Stripe.createFetchHttpClient(),
+  })
+
+  // Deactivate old payment links for this restaurant
+  const oldLinks = await stripe.paymentLinks.list({ active: true, limit: 100 })
+  for (const pl of oldLinks.data) {
+    if (pl.metadata?.restaurant_id === restaurantId) {
+      await stripe.paymentLinks.update(pl.id, { active: false })
+      console.log('staff: deactivated payment link', pl.id, 'for restaurant', restaurantId)
+    }
+  }
+
+  // Create new payment link
+  const metadata: Record<string, string> = {
+    restaurant_id: restaurantId,
+    owner_email: ownerEmail,
+    source: 'staff',
+    plan: 'founder',
+  }
+
+  const paymentLink = await stripe.paymentLinks.create({
+    line_items: [{ price: priceId, quantity: 1 }],
+    metadata,
+    payment_intent_data: { setup_future_usage: 'off_session' },
+  })
+
+  console.log('staff: new payment link created', { restaurantId, paymentLinkId: paymentLink.id })
+
+  await sendPaymentLinkEmail(supabase, ownerEmail, restaurant.name, paymentLink.url, 'founder')
+
+  return ok({ payment_link_url: paymentLink.url, sent: true })
+}
+
 async function handleCreateForClient(
   supabase: ReturnType<typeof createClient>,
   user: { id: string },
@@ -348,13 +412,22 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    const user = await getUser(req.headers.get('Authorization'), supabase)
+    const authHeader = req.headers.get('Authorization')
+    const adminKey = Deno.env.get('STAFF_ADMIN_KEY')
+    const isAdmin = adminKey ? authHeader === `Bearer ${adminKey}` : false
+
+    const user = isAdmin ? { id: 'admin' } : await getUser(req.headers.get('Authorization'), supabase)
     if (!user) {
       return fail('Unauthorized', 401)
     }
 
     if (req.method === 'POST') {
       const body = await req.json()
+      if (body.action === 'regenerate-payment-link') {
+        if (!isAdmin) return fail('Unauthorized', 401)
+        return await handleRegeneratePaymentLink(supabase, user, body, isAdmin)
+      }
+
       return await handleCreateForClient(supabase, user, body)
     }
 
