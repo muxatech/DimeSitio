@@ -165,4 +165,25 @@ describe('flow-store', () => {
     expect(state.sessionId).toBe('')
     expect(state.selectedCategoryIds).toEqual([])
   })
+
+  it('startNewFlow sets step to questions and resets all fields', () => {
+    useFlowStore.getState().setStep('winner')
+    useFlowStore.getState().setWinner(makeRestaurant('w'))
+    useFlowStore.getState().setSessionId('old-session')
+    useFlowStore.getState().setSelectedCategoryIds(['cat-1'])
+    useFlowStore.getState().setTop5([makeRestaurant('a')])
+
+    useFlowStore.getState().startNewFlow()
+
+    const state = useFlowStore.getState()
+    expect(state.step).toBe('questions')
+    expect(state.winner).toBeNull()
+    expect(state.sessionId).toBe('')
+    expect(state.qIndex).toBe(0)
+    expect(state.selectedCategoryIds).toEqual([])
+    expect(state.top5).toEqual([])
+    expect(state.battleChampion).toBeNull()
+    expect(state.battlePool).toEqual([])
+    expect(state.battleRound).toBe(0)
+  })
 })
