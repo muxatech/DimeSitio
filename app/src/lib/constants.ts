@@ -67,7 +67,7 @@ export const ZONES = [
 export const QUESTIONS = [
   { key: 'categories', label: '¿Qué te apetece?', subtitle: 'Tipo de cocina' },
   { key: 'price', label: '¿Cuánto quieres gastar?', subtitle: 'Presupuesto' },
-  { key: 'zone', label: '¿Por qué zona?', subtitle: 'Zona de Valencia' },
+  { key: 'location', label: '¿Dónde quieres comer?', subtitle: 'Ubicación' },
 ] as const
 
 export const FOOD_PHOTOS = [

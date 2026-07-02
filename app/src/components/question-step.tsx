@@ -4,8 +4,8 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { useFlowStore } from '@/store/flow-store'
 import { cn } from '@/lib/utils'
-import { ZONES, groupCategories } from '@/lib/constants'
-import { Banknote, Coins, Crown, MapPin, ArrowLeft, Coffee, UtensilsCrossed, Wine, ChevronDown } from 'lucide-react'
+import { groupCategories } from '@/lib/constants'
+import { Banknote, Coins, Crown, ArrowLeft, Coffee, UtensilsCrossed, Wine, ChevronDown } from 'lucide-react'
 
 interface QuestionStepProps {
   onNext: () => void
@@ -337,82 +337,4 @@ export function QuestionPrice({ onNext, onBack, title = '¿Cuánto quieres gasta
   )
 }
 
-export function QuestionZone({
-  zones = ZONES,
-  onNext,
-  onBack,
-  title = '¿Por qué zona te viene mejor?',
-  subtitle = 'Selecciona una o varias zonas',
-}: QuestionStepProps & { zones?: string[] }) {
-  const { selectedZoneIds, setSelectedZoneIds } = useFlowStore()
 
-  function toggle(zone: string) {
-    const next = selectedZoneIds.includes(zone)
-      ? selectedZoneIds.filter((z) => z !== zone)
-      : [...selectedZoneIds, zone]
-    setSelectedZoneIds(next)
-  }
-
-  return (
-    <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
-      {onBack && (
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={onBack}
-          className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Atrás
-        </motion.button>
-      )}
-      <Header title={title} subtitle={subtitle} />
-
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="flex flex-wrap gap-2.5 sm:gap-3 lg:gap-4"
-      >
-        {zones.map((zone) => (
-          <motion.button
-            key={zone}
-            variants={itemVariants}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => toggle(zone)}
-            className={cn(
-              'inline-flex items-center gap-2 rounded-2xl border-2 px-5 py-3 text-sm font-medium shadow-sm transition-all sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-lg',
-              selectedZoneIds.includes(zone)
-                ? 'border-stone-900 bg-stone-100 text-stone-900'
-                : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:shadow-md'
-            )}
-          >
-            <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
-            {zone}
-          </motion.button>
-        ))}
-        <motion.button
-          variants={itemVariants}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setSelectedZoneIds([])}
-          className={cn(
-            'inline-flex items-center gap-2 rounded-2xl border-2 border-dashed px-5 py-3 text-sm font-medium transition-all sm:px-6 sm:py-3.5 sm:text-base lg:px-8 lg:py-4 lg:text-lg',
-            selectedZoneIds.length === 0
-              ? 'border-stone-900 bg-stone-100 text-stone-800'
-              : 'border-stone-300 text-stone-400 hover:border-stone-300'
-          )}
-        >
-          Me da igual la zona
-        </motion.button>
-      </motion.div>
-
-      <motion.button
-        whileTap={{ scale: 0.97 }}
-        whileHover={{ scale: 1.02 }}
-        onClick={onNext}
-        className="w-full rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
-      >
-        Ver resultados
-      </motion.button>
-    </div>
-  )
-}

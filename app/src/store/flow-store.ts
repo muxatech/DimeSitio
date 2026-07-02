@@ -1,6 +1,11 @@
 import { create } from 'zustand'
 import type { FlowStep, Restaurant } from '@/types'
 
+export interface LocationCenter {
+  lat: number
+  lng: number
+}
+
 export interface FlowDataState {
   step: FlowStep
   sessionId: string
@@ -8,6 +13,8 @@ export interface FlowDataState {
   selectedCategoryIds: string[]
   selectedPriceLevel: number | null
   selectedZoneIds: string[]
+  locationCenter: LocationCenter | null
+  locationRadius: number | null
   filteredRestaurants: Restaurant[]
   top5: Restaurant[]
   battleChampion: Restaurant | null
@@ -24,6 +31,8 @@ interface FlowStore {
   selectedCategoryIds: string[]
   selectedPriceLevel: number | null
   selectedZoneIds: string[]
+  locationCenter: LocationCenter | null
+  locationRadius: number | null
   filteredRestaurants: Restaurant[]
   top5: Restaurant[]
   battleChampion: Restaurant | null
@@ -38,6 +47,8 @@ interface FlowStore {
   setSelectedCategoryIds: (ids: string[]) => void
   setSelectedPriceLevel: (level: number | null) => void
   setSelectedZoneIds: (ids: string[]) => void
+  setLocationCenter: (center: LocationCenter | null) => void
+  setLocationRadius: (radius: number | null) => void
   setFilteredRestaurants: (restaurants: Restaurant[]) => void
   setTop5: (restaurants: Restaurant[]) => void
   initBattle: () => void
@@ -57,6 +68,8 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
   selectedCategoryIds: [],
   selectedPriceLevel: null,
   selectedZoneIds: [],
+  locationCenter: null,
+  locationRadius: null,
   filteredRestaurants: [],
   top5: [],
   battleChampion: null,
@@ -76,6 +89,10 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
   setSelectedPriceLevel: (level) => set({ selectedPriceLevel: level }),
 
   setSelectedZoneIds: (ids) => set({ selectedZoneIds: ids }),
+
+  setLocationCenter: (center) => set({ locationCenter: center }),
+
+  setLocationRadius: (radius) => set({ locationRadius: radius }),
 
   setFilteredRestaurants: (restaurants) => set({ filteredRestaurants: restaurants }),
 
@@ -129,6 +146,8 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       selectedCategoryIds: [],
       selectedPriceLevel: null,
       selectedZoneIds: [],
+      locationCenter: null,
+      locationRadius: null,
       filteredRestaurants: [],
       top5: [],
       battleChampion: null,
@@ -148,6 +167,8 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       selectedCategoryIds: [],
       selectedPriceLevel: null,
       selectedZoneIds: [],
+      locationCenter: null,
+      locationRadius: null,
       filteredRestaurants: [],
       top5: [],
       battleChampion: null,
@@ -165,6 +186,8 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       selectedCategoryIds: [],
       selectedPriceLevel: null,
       selectedZoneIds: [],
+      locationCenter: null,
+      locationRadius: null,
       filteredRestaurants: [],
       top5: [],
       battleChampion: null,

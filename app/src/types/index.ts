@@ -73,6 +73,8 @@ export interface RestaurantFormData {
   address?: string
   price_level: 1 | 2 | 3
   zone: string
+  lat?: number | null
+  lng?: number | null
   image_url?: string
   menu_url?: string
   reservations_url?: string

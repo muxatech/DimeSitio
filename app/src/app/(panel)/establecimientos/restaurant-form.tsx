@@ -23,6 +23,8 @@ const restaurantSchema = z.object({
   address: z.string().optional(),
   price_level: z.number().min(1).max(3),
   zone: z.string().min(1, 'La zona es obligatoria'),
+  lat: z.number().nullable().optional(),
+  lng: z.number().nullable().optional(),
   image_url: z.string().optional(),
   menu_url: z.string().optional(),
   reservations_url: z.string().optional(),
@@ -167,6 +169,8 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       address: defaultValues?.address ?? '',
       price_level: defaultValues?.price_level ?? 1,
       zone: defaultValues?.zone ?? '',
+      lat: defaultValues?.lat ?? null,
+      lng: defaultValues?.lng ?? null,
       image_url: defaultValues?.image_url ?? '',
       menu_url: defaultValues?.menu_url ?? '',
       reservations_url: defaultValues?.reservations_url ?? '',
@@ -377,6 +381,33 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                     </motion.button>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
+                  Latitud
+                </label>
+                <input
+                  {...register('lat', { valueAsNumber: true })}
+                  type="number"
+                  step="any"
+                  placeholder="39.4699"
+                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
+                  Longitud
+                </label>
+                <input
+                  {...register('lng', { valueAsNumber: true })}
+                  type="number"
+                  step="any"
+                  placeholder="-0.3763"
+                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
+                />
               </div>
             </div>
           </div>

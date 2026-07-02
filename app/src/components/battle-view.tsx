@@ -4,8 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
-import { getPriceLabel, getSessionId } from '@/lib/utils'
-import { trackSelection } from '@/lib/tracking'
+import { getPriceLabel } from '@/lib/utils'
 import type { Restaurant } from '@/types'
 import { MapPin, UtensilsCrossed, Sparkles, Swords, RotateCcw, Crown } from 'lucide-react'
 
@@ -40,7 +39,6 @@ export default function BattleView() {
     if (picking) return
     setPicking(true)
     setSelectedId(winner.id)
-    trackSelection(winner.id, getSessionId(), battleRound)
     setTimeout(() => {
       selectBattleWinner(winner)
       setSelectedId(null)

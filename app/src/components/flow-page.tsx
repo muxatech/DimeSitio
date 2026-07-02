@@ -4,19 +4,28 @@ import { useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useFlowStore, type FlowDataState } from '@/store/flow-store'
-import { shuffle } from '@/lib/utils'
-import { QUESTIONS, ZONES } from '@/lib/constants'
+import { shuffle, haversineDistance } from '@/lib/utils'
+import { QUESTIONS } from '@/lib/constants'
 import type { Category, Restaurant, FlowStep } from '@/types'
 import LandingHero from '@/components/landing-hero'
-import { QuestionCategoryGroups, QuestionPrice, QuestionZone } from '@/components/question-step'
+import { QuestionCategoryGroups, QuestionPrice } from '@/components/question-step'
 import ProgressBar from '@/components/progress-bar'
 import Top5Grid from '@/components/top5-grid'
 import BattleView from '@/components/battle-view'
 import WinnerView from '@/components/winner-view'
+import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import { UtensilsCrossed } from 'lucide-react'
-import { trackImpression } from '@/lib/tracking'
 import { getSessionId } from '@/lib/utils'
+
+const QuestionLocation = dynamic(() => import('@/components/question-location'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center py-20">
+      <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-stone-200 border-t-stone-900" />
+    </div>
+  ),
+})
 
 const pageVariants = {
   initial: { opacity: 0, y: 16 },
@@ -40,6 +49,8 @@ function persistFlowState() {
     selectedCategoryIds: store.selectedCategoryIds,
     selectedPriceLevel: store.selectedPriceLevel,
     selectedZoneIds: store.selectedZoneIds,
+    locationCenter: store.locationCenter,
+    locationRadius: store.locationRadius,
     filteredRestaurants: store.filteredRestaurants,
     top5: store.top5,
     battleChampion: store.battleChampion,
@@ -68,7 +79,7 @@ function stepBack(store: ReturnType<typeof useFlowStore.getState>) {
 
 export default function FlowPage() {
   const step = useFlowStore((s) => s.step)
-  const { setStep, setQIndex, setFilteredRestaurants, setTop5, setWinner, selectedCategoryIds, selectedPriceLevel, selectedZoneIds } =
+  const { setStep, setQIndex, setFilteredRestaurants, setTop5, setWinner, selectedCategoryIds, selectedPriceLevel, selectedZoneIds, locationCenter, locationRadius, setLocationCenter, setLocationRadius } =
     useFlowStore()
   const qIndex = useFlowStore((s) => s.qIndex)
 
@@ -96,7 +107,7 @@ export default function FlowPage() {
   // Persist to sessionStorage on every state change
   useEffect(() => {
     persistFlowState()
-  }, [step, qIndex, selectedCategoryIds, selectedPriceLevel, selectedZoneIds])
+  }, [step, qIndex, selectedCategoryIds, selectedPriceLevel, selectedZoneIds, locationCenter, locationRadius])
 
   // Push a history entry on forward navigation (not popState)
   // Replace on landing to prevent old flow entries from lingering
@@ -172,8 +183,6 @@ export default function FlowPage() {
     },
   })
 
-  const zones = ZONES
-
   function handleNextQuestion() {
     const next = qIndex + 1
     if (next >= QUESTIONS.length) {
@@ -191,7 +200,7 @@ export default function FlowPage() {
   function generateTop5() {
     if (!allRestaurants) return
 
-    let filtered = [...allRestaurants]
+    let filtered = [...new Map(allRestaurants.map((r) => [r.id, r])).values()]
 
     if (selectedCategoryIds.length > 0) {
       filtered = filtered.filter((r) => {
@@ -212,13 +221,21 @@ export default function FlowPage() {
       filtered = filtered.filter((r) => r.zone && selectedZoneIds.includes(r.zone))
     }
 
+    if (locationCenter && locationRadius) {
+      filtered = filtered.filter((r) => {
+        if (r.lat == null || r.lng == null) return false
+        const dist = haversineDistance(locationCenter.lat, locationCenter.lng, r.lat, r.lng)
+        return dist <= locationRadius
+      })
+    }
+
     setFilteredRestaurants(filtered)
 
     const founders = filtered
       .filter(r => r.founder_rank != null)
       .sort((a, b) => (a.founder_rank ?? 0) - (b.founder_rank ?? 0))
     const regulars = shuffle(filtered.filter(r => !r.founder_rank && !r.is_demo))
-    const demos = shuffle(filtered.filter(r => r.is_demo))
+    const demos = shuffle(filtered.filter(r => r.is_demo && r.founder_rank == null))
 
     const top = [...founders, ...regulars, ...demos].slice(0, 5)
     setTop5(top)
@@ -227,10 +244,6 @@ export default function FlowPage() {
       setStep('winner')
     } else {
       setStep('top5')
-    }
-    const sid = getSessionId()
-    for (const r of top) {
-      trackImpression(r.id, sid).catch(() => {})
     }
   }
 
@@ -321,8 +334,19 @@ export default function FlowPage() {
                 {currentQuestion.key === 'price' && (
                   <QuestionPrice onNext={handleNextQuestion} onBack={handlePrevQuestion} title={currentQuestion.label} subtitle={currentQuestion.subtitle} />
                 )}
-                {currentQuestion.key === 'zone' && (
-                  <QuestionZone zones={zones} onNext={handleNextQuestion} onBack={handlePrevQuestion} title={currentQuestion.label} subtitle={currentQuestion.subtitle} />
+                {currentQuestion.key === 'location' && (
+                  <QuestionLocation
+                    onNext={handleNextQuestion}
+                    onBack={handlePrevQuestion}
+                    title={currentQuestion.label}
+                    subtitle={currentQuestion.subtitle}
+                    locationCenter={locationCenter}
+                    locationRadius={locationRadius}
+                    onLocationChange={(center, radius) => {
+                      setLocationCenter(center)
+                      setLocationRadius(radius)
+                    }}
+                  />
                 )}
               </div>
             )}

@@ -100,12 +100,9 @@ export default function LandingHero() {
     return () => clearInterval(interval)
   }, [words.length])
 
-  async function handleStart() {
-    const sid = getSessionId()
+  function handleStart() {
     startNewFlow()
-    setSessionId(sid)
-    const { trackStart } = await import('@/lib/tracking')
-    trackStart(sid)
+    setSessionId(getSessionId())
   }
 
   return (

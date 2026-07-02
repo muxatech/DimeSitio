@@ -4,12 +4,11 @@ import { type ComponentType } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
-import { getPriceLabel, getSessionId } from '@/lib/utils'
-import { trackCall } from '@/lib/tracking'
+import { getPriceLabel } from '@/lib/utils'
 import { MapPin, Phone, Navigation, Menu, Calendar, PartyPopper, UtensilsCrossed, RotateCcw, Crown } from 'lucide-react'
 
 export default function WinnerView() {
-  const { winner, reset, sessionId, startNewFlow } = useFlowStore()
+  const { winner, startNewFlow } = useFlowStore()
 
   if (!winner) {
     return (
@@ -125,7 +124,6 @@ export default function WinnerView() {
                 href={`tel:${winner.phone}`}
                 label="Llamar"
                 icon={Phone}
-                onTrack={() => trackCall(winner.id, sessionId || getSessionId())}
               />
             )}
 

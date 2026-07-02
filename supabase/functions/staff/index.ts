@@ -175,6 +175,118 @@ async function sendPaymentLinkEmail(
   }
 }
 
+async function sendPaymentReminderEmail(
+  supabase: ReturnType<typeof createClient>,
+  ownerEmail: string,
+  restaurantName: string,
+  paymentLink: string,
+  planType: string,
+) {
+  const planLabel = planType === 'founder' ? 'Plan Founder — 39€ (pago único)' : 'Plan Normal — 29€/mes'
+  const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+  }
+
+  try {
+    await fetch(fnUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        to: ownerEmail,
+        type: 'payment_reminder',
+        subject: `Recordatorio — activación de ${restaurantName} en DimeSitio`,
+        html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Recordatorio de activación</title></head>
+<body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
+<tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
+<tr><td style="padding:24px 24px 8px;text-align:center;">
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">El perfil de <strong>${restaurantName}</strong> en DimeSitio está pendiente de activación.</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Plan seleccionado: <strong>${planLabel}</strong></p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Para finalizar el proceso, solo tienes que completar el pago a través del siguiente enlace. Una vez activado, tu restaurante aparecerá en las búsquedas de DimeSitio.</p>
+</td></tr>
+<tr><td align="center" style="padding:24px;">
+<a href="${paymentLink}" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Activar restaurante</a>
+</td></tr>
+<tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
+</table>
+</td></tr></table></body>
+</html>`,
+      }),
+    })
+  } catch (emailErr) {
+    console.error('staff: reminder email failed', emailErr.message)
+  }
+}
+
+async function handleSendReminder(
+  supabase: ReturnType<typeof createClient>,
+  user: { id: string },
+  body: Record<string, unknown>,
+  isAdmin: boolean,
+) {
+  const restaurantId = body.restaurant_id as string
+  const ownerEmail = body.owner_email as string
+
+  if (!restaurantId || !ownerEmail) {
+    return fail('restaurant_id and owner_email are required')
+  }
+
+  if (!isAdmin) {
+    const { data: staff } = await supabase
+      .from('staff_users').select('user_id').eq('user_id', user.id).maybeSingle()
+    if (!staff) return fail('Not authorized as staff', 403)
+  }
+
+  const { data: restaurant, error: rErr } = await supabase
+    .from('restaurants').select('id, name, plan_type, active')
+    .eq('id', restaurantId).single()
+  if (rErr || !restaurant) return fail('Restaurant not found', 404)
+  if (restaurant.plan_type !== 'founder') return fail('Not a founder plan')
+
+  const { secretKey, priceId } = getStripeKeys('founder')
+  if (!secretKey || !priceId) return fail('Stripe not configured', 500)
+
+  const stripe = new Stripe(secretKey, {
+    apiVersion: '2026-04-22.dahlia',
+    httpClient: Stripe.createFetchHttpClient(),
+  })
+
+  // Find existing active payment link for this restaurant
+  const existingLinks = await stripe.paymentLinks.list({ active: true, limit: 100 })
+  const link = existingLinks.data.find(pl => pl.metadata?.restaurant_id === restaurantId)
+
+  let paymentLinkUrl: string
+  if (link) {
+    paymentLinkUrl = link.url
+    console.log('staff: found existing payment link', link.id, 'for restaurant', restaurantId)
+  } else {
+    // Create a new payment link if none found
+    const metadata: Record<string, string> = {
+      restaurant_id: restaurantId,
+      owner_email: ownerEmail,
+      source: 'staff',
+      plan: 'founder',
+    }
+    const newLink = await stripe.paymentLinks.create({
+      line_items: [{ price: priceId, quantity: 1 }],
+      metadata,
+      payment_intent_data: { setup_future_usage: 'off_session' },
+    })
+    paymentLinkUrl = newLink.url
+    console.log('staff: created new payment link for reminder', { restaurantId, paymentLinkId: newLink.id })
+  }
+
+  await sendPaymentReminderEmail(supabase, ownerEmail, restaurant.name, paymentLinkUrl, 'founder')
+
+  return ok({ sent: true, payment_link_url: paymentLinkUrl })
+}
+
 async function handleRegeneratePaymentLink(
   supabase: ReturnType<typeof createClient>,
   user: { id: string },
@@ -280,6 +392,8 @@ async function handleCreateForClient(
       address: sanitized.address ?? null,
       city: 'Valencia',
       price_level: sanitized.price_level,
+      lat: sanitized.lat != null ? Number(sanitized.lat) : null,
+      lng: sanitized.lng != null ? Number(sanitized.lng) : null,
       image_url: sanitized.image_url ?? null,
       menu_url: sanitized.menu_url ?? null,
       reservations_url: sanitized.reservations_url ?? null,
@@ -426,6 +540,11 @@ serve(async (req) => {
       if (body.action === 'regenerate-payment-link') {
         if (!isAdmin) return fail('Unauthorized', 401)
         return await handleRegeneratePaymentLink(supabase, user, body, isAdmin)
+      }
+
+      if (body.action === 'send-reminder') {
+        if (!isAdmin) return fail('Unauthorized', 401)
+        return await handleSendReminder(supabase, user, body, isAdmin)
       }
 
       return await handleCreateForClient(supabase, user, body)

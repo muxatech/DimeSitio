@@ -183,6 +183,8 @@ async function handleCreate(supabase: ReturnType<typeof createClient>, user: { i
       address: sanitized.address ?? null,
       city: 'Valencia',
       price_level: sanitized.price_level,
+      lat: body.lat != null ? Number(body.lat) : null,
+      lng: body.lng != null ? Number(body.lng) : null,
       image_url: sanitized.image_url ?? null,
       menu_url: sanitized.menu_url ?? null,
       reservations_url: sanitized.reservations_url ?? null,

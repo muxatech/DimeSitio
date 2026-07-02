@@ -45,6 +45,17 @@ describe('flow-store', () => {
     expect(useFlowStore.getState().selectedZoneIds).toEqual(['centro'])
   })
 
+  it('sets location center', () => {
+    const center = { lat: 39.4699, lng: -0.3763 }
+    useFlowStore.getState().setLocationCenter(center)
+    expect(useFlowStore.getState().locationCenter).toEqual(center)
+  })
+
+  it('sets location radius', () => {
+    useFlowStore.getState().setLocationRadius(1000)
+    expect(useFlowStore.getState().locationRadius).toBe(1000)
+  })
+
   it('sets filtered restaurants', () => {
     const r = [makeRestaurant('a')]
     useFlowStore.getState().setFilteredRestaurants(r)
@@ -114,6 +125,8 @@ describe('flow-store', () => {
     useFlowStore.getState().setSelectedCategoryIds(['cat-1'])
     useFlowStore.getState().setSelectedPriceLevel(2)
     useFlowStore.getState().setSelectedZoneIds(['centro'])
+    useFlowStore.getState().setLocationCenter({ lat: 39.4699, lng: -0.3763 })
+    useFlowStore.getState().setLocationRadius(1000)
     useFlowStore.getState().setFilteredRestaurants([makeRestaurant('a')])
     useFlowStore.getState().setTop5([makeRestaurant('a')])
     useFlowStore.getState().setWinner(makeRestaurant('w'))
@@ -125,6 +138,8 @@ describe('flow-store', () => {
     expect(state.selectedCategoryIds).toEqual([])
     expect(state.selectedPriceLevel).toBeNull()
     expect(state.selectedZoneIds).toEqual([])
+    expect(state.locationCenter).toBeNull()
+    expect(state.locationRadius).toBeNull()
     expect(state.filteredRestaurants).toEqual([])
     expect(state.top5).toEqual([])
     expect(state.winner).toBeNull()
@@ -147,16 +162,25 @@ describe('flow-store', () => {
   })
 
   it('hydrate restores partial state', () => {
-    useFlowStore.getState().hydrate({ step: 'battle', qIndex: 2 })
+    useFlowStore.getState().hydrate({
+      step: 'battle',
+      qIndex: 2,
+      locationCenter: { lat: 39.4699, lng: -0.3763 },
+      locationRadius: 2000,
+    })
     const state = useFlowStore.getState()
     expect(state.step).toBe('battle')
     expect(state.qIndex).toBe(2)
+    expect(state.locationCenter).toEqual({ lat: 39.4699, lng: -0.3763 })
+    expect(state.locationRadius).toBe(2000)
   })
 
   it('reset returns to initial state', () => {
     useFlowStore.getState().setStep('winner')
     useFlowStore.getState().setSessionId('test-session')
     useFlowStore.getState().setSelectedCategoryIds(['cat-1'])
+    useFlowStore.getState().setLocationCenter({ lat: 39.4699, lng: -0.3763 })
+    useFlowStore.getState().setLocationRadius(1000)
 
     useFlowStore.getState().reset()
 
@@ -164,6 +188,8 @@ describe('flow-store', () => {
     expect(state.step).toBe('landing')
     expect(state.sessionId).toBe('')
     expect(state.selectedCategoryIds).toEqual([])
+    expect(state.locationCenter).toBeNull()
+    expect(state.locationRadius).toBeNull()
   })
 
   it('startNewFlow sets step to questions and resets all fields', () => {
@@ -172,6 +198,8 @@ describe('flow-store', () => {
     useFlowStore.getState().setSessionId('old-session')
     useFlowStore.getState().setSelectedCategoryIds(['cat-1'])
     useFlowStore.getState().setTop5([makeRestaurant('a')])
+    useFlowStore.getState().setLocationCenter({ lat: 39.4699, lng: -0.3763 })
+    useFlowStore.getState().setLocationRadius(1000)
 
     useFlowStore.getState().startNewFlow()
 
@@ -182,6 +210,8 @@ describe('flow-store', () => {
     expect(state.qIndex).toBe(0)
     expect(state.selectedCategoryIds).toEqual([])
     expect(state.top5).toEqual([])
+    expect(state.locationCenter).toBeNull()
+    expect(state.locationRadius).toBeNull()
     expect(state.battleChampion).toBeNull()
     expect(state.battlePool).toEqual([])
     expect(state.battleRound).toBe(0)
