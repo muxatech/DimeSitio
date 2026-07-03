@@ -280,13 +280,28 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 
       // Founder plan = one-time payment (mode: 'payment')
       if (isFounder) {
-        const customerId = session.customer as string
+        const ownerEmail = session.metadata?.owner_email
+
+        // Resolve customer ID from session, payment intent, or create one
+        let customerId = session.customer as string | null
+
+        if (!customerId && session.payment_intent) {
+          const pi = typeof session.payment_intent === 'string'
+            ? await stripe.paymentIntents.retrieve(session.payment_intent)
+            : session.payment_intent
+          customerId = pi.customer as string | null
+        }
+
+        if (!customerId && ownerEmail) {
+          const existing = await stripe.customers.list({ email: ownerEmail, limit: 1 })
+          customerId = existing.data[0]?.id ?? (await stripe.customers.create({ email: ownerEmail })).id
+        }
 
         const { error: upsertError } = await supabase.from('subscriptions').upsert({
           restaurant_id: restaurantId,
           stripe_customer_id: customerId,
           stripe_subscription_id: null,
-          status: 'founder_pending',
+          status: 'active',
           current_period_end: new Date('2026-12-31T23:59:59Z').toISOString(),
         }, { onConflict: 'restaurant_id' })
 
@@ -295,13 +310,16 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
           return fail('Failed to save subscription', 500)
         }
 
-        const ownerEmail = session.metadata?.owner_email
+        // Activate restaurant regardless (self-service or staff)
+        await supabase.from('restaurants').update({ active: true }).eq('id', restaurantId)
+        console.log('stripe: founder payment completed', { restaurantId, customerId })
+
         if (!ownerEmail) {
-          console.error('stripe: founder checkout without owner_email metadata')
-          return ok({ received: true })
+          console.log('stripe: founder checkout without owner_email (self-service)')
+          break
         }
 
-        console.log('stripe: founder payment completed (staff)', restaurantId)
+        console.log('stripe: founder flow — setting up owner for', ownerEmail)
 
         const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(ownerEmail, {
           data: { onboarded: true },
@@ -332,8 +350,8 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
           if (adminError) {
             console.error('stripe: failed to insert admin', JSON.stringify(adminError))
           } else {
-            await supabase.from('restaurants').update({ owner_id: ownerUserId, active: true }).eq('id', restaurantId)
-            console.log('stripe: founder flow completed', { restaurantId, ownerEmail, ownerUserId })
+            await supabase.from('restaurants').update({ owner_id: ownerUserId }).eq('id', restaurantId)
+            console.log('stripe: founder owner setup completed', { restaurantId, ownerEmail, ownerUserId })
           }
         }
 
