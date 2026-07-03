@@ -165,7 +165,7 @@ describe('QuestionLocation', () => {
     expect(onNext).toHaveBeenCalledTimes(1)
   })
 
-  it('shows error message when geolocation fails', () => {
+  it('shows permission denied message when error code is 1', () => {
     mockGetCurrentPosition.mockImplementation((_success: PositionCallback, failure: PositionErrorCallback) => {
       failure({ code: 1, message: 'Permission denied', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 } as PositionError)
     })
@@ -178,7 +178,39 @@ describe('QuestionLocation', () => {
       />
     )
     fireEvent.click(screen.getByText('Usar mi ubicación'))
-    expect(screen.getByText('No pudimos obtener tu ubicación')).toBeInTheDocument()
+    expect(screen.getByText('Permiso de ubicación denegado. Actívalo en Ajustes > Privacidad > Localización > Safari')).toBeInTheDocument()
+  })
+
+  it('shows unavailable message when error code is 2', () => {
+    mockGetCurrentPosition.mockImplementation((_success: PositionCallback, failure: PositionErrorCallback) => {
+      failure({ code: 2, message: 'Position unavailable', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 } as PositionError)
+    })
+    render(
+      <QuestionLocation
+        onNext={() => {}}
+        onLocationChange={() => {}}
+        locationCenter={null}
+        locationRadius={null}
+      />
+    )
+    fireEvent.click(screen.getByText('Usar mi ubicación'))
+    expect(screen.getByText('No pudimos obtener tu ubicación. Prueba en un sitio más abierto o busca en el mapa')).toBeInTheDocument()
+  })
+
+  it('shows timeout message when error code is 3', () => {
+    mockGetCurrentPosition.mockImplementation((_success: PositionCallback, failure: PositionErrorCallback) => {
+      failure({ code: 3, message: 'Timeout', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 } as PositionError)
+    })
+    render(
+      <QuestionLocation
+        onNext={() => {}}
+        onLocationChange={() => {}}
+        locationCenter={null}
+        locationRadius={null}
+      />
+    )
+    fireEvent.click(screen.getByText('Usar mi ubicación'))
+    expect(screen.getByText('No pudimos obtener tu ubicación. Inténtalo de nuevo')).toBeInTheDocument()
   })
 
   it('calls geolocation getCurrentPosition when button is clicked', () => {

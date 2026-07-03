@@ -103,20 +103,9 @@ function QuestionLocationInner({
     setCenter(c)
   }, [])
 
-  const handleUseMyLocation = useCallback(async () => {
+  const handleUseMyLocation = useCallback(() => {
     setGeoLoading(true)
     setGeoError(null)
-
-    if ('permissions' in navigator) {
-      const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName })
-      if (status.state === 'denied') {
-        setGeoError(
-          'Permiso de ubicación denegado. Actívalo en Ajustes > Safari > Ubicación > "Al entrar en la página"',
-        )
-        setGeoLoading(false)
-        return
-      }
-    }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -126,7 +115,13 @@ function QuestionLocationInner({
         setGeoLoading(false)
       },
       (err) => {
-        setGeoError('No pudimos obtener tu ubicación')
+        const msg =
+          err.code === 1
+            ? 'Permiso de ubicación denegado. Actívalo en Ajustes > Privacidad > Localización > Safari'
+            : err.code === 2
+              ? 'No pudimos obtener tu ubicación. Prueba en un sitio más abierto o busca en el mapa'
+              : 'No pudimos obtener tu ubicación. Inténtalo de nuevo'
+        setGeoError(msg)
         setGeoLoading(false)
       },
       { enableHighAccuracy: true, timeout: 10000 },
