@@ -103,9 +103,21 @@ function QuestionLocationInner({
     setCenter(c)
   }, [])
 
-  const handleUseMyLocation = useCallback(() => {
+  const handleUseMyLocation = useCallback(async () => {
     setGeoLoading(true)
     setGeoError(null)
+
+    if ('permissions' in navigator) {
+      const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName })
+      if (status.state === 'denied') {
+        setGeoError(
+          'Permiso de ubicación denegado. Actívalo en Ajustes > Safari > Ubicación > "Al entrar en la página"',
+        )
+        setGeoLoading(false)
+        return
+      }
+    }
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const c = { lat: pos.coords.latitude, lng: pos.coords.longitude }
