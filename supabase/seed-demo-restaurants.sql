@@ -135,7 +135,7 @@ begin
             when 3 then ' III'
           end;
 
-        insert into restaurants (id, name, description, phone, address, city, price_level, image_url, zone, active, is_demo)
+        insert into restaurants (id, name, description, phone, address, city, price_level, image_url, zone, active, is_demo, instagram_url)
         values (
           rid,
           rname,
@@ -151,7 +151,8 @@ begin
           'https://images.unsplash.com/photo-' || photo_ids[gidx % n_photos + 1],
           zones[zi + 1],
           true,
-          true
+          true,
+          'https://instagram.com/dime.sitio'
         );
 
         -- ── Categorías cafe-brunch (4) ──────────────────────
