@@ -18,6 +18,7 @@ export interface Restaurant {
   image_url: string | null
   menu_url: string | null
   reservations_url: string | null
+  instagram_url: string | null
   zone: string | null
   active: boolean
   is_demo?: boolean
@@ -78,6 +79,7 @@ export interface RestaurantFormData {
   image_url?: string
   menu_url?: string
   reservations_url?: string
+  instagram_url?: string
   active?: boolean
   is_demo?: boolean
   plan_type: PlanType

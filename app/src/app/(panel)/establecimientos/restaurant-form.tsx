@@ -28,6 +28,7 @@ const restaurantSchema = z.object({
   image_url: z.string().optional(),
   menu_url: z.string().optional(),
   reservations_url: z.string().optional(),
+  instagram_url: z.string().optional(),
   active: z.boolean().optional(),
   is_demo: z.boolean().optional(),
   category_ids: z.array(z.string()),
@@ -174,6 +175,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       image_url: defaultValues?.image_url ?? '',
       menu_url: defaultValues?.menu_url ?? '',
       reservations_url: defaultValues?.reservations_url ?? '',
+      instagram_url: defaultValues?.instagram_url ?? '',
       active: defaultValues?.active ?? false,
       is_demo: defaultValues?.is_demo ?? false,
       plan_type: defaultValues?.plan_type ?? 'standard',
@@ -187,6 +189,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
   const imageUrlValue = watch('image_url')
   const menuUrlValue = watch('menu_url')
   const reservationsUrlValue = watch('reservations_url')
+  const instagramUrlValue = watch('instagram_url')
   const zoneValue = watch('zone')
   const previewName = watch('name')
   const previewDescription = watch('description')
@@ -213,6 +216,10 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       data.phone = phonePrefix + ' ' + phoneNumber
       if (!hasReservations || !data.reservations_url) {
         data.reservations_url = ''
+      }
+      if (data.instagram_url) {
+        const handle = data.instagram_url.replace(/^@/, '').trim()
+        data.instagram_url = `https://instagram.com/${handle}`
       }
       const { plan_type, payment_method, ...cleanData } = data
       await onSubmit(cleanData as RestaurantFormData)
@@ -777,6 +784,29 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                   </div>
                 </div>
               )}
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
+                Instagram
+              </label>
+              <div className="relative">
+                <input
+                  {...register('instagram_url')}
+                  placeholder="@usuario"
+                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 pr-12 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
+                />
+                {instagramUrlValue && (
+                  <a
+                    href={instagramUrlValue.startsWith('http') ? instagramUrlValue : `https://instagram.com/${instagramUrlValue.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
             </div>
 
             <div>
