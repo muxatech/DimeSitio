@@ -43,6 +43,20 @@ function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
+async function assignFounderRank(supabase: ReturnType<typeof createClient>, restaurantId: string) {
+  const { count } = await supabase
+    .from('restaurants')
+    .select('*', { count: 'exact', head: true })
+    .not('founder_rank', 'is', null)
+
+  if (count !== null && count < 100) {
+    await supabase
+      .from('restaurants')
+      .update({ founder_rank: count + 1 })
+      .eq('id', restaurantId)
+  }
+}
+
 // ─── Checkout Session (self-service) ────────────────────────
 
 async function handleCreateCheckout(
@@ -312,6 +326,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 
         // Activate restaurant regardless (self-service or staff)
         await supabase.from('restaurants').update({ active: true }).eq('id', restaurantId)
+        await assignFounderRank(supabase, restaurantId)
         console.log('stripe: founder payment completed', { restaurantId, customerId })
 
         if (!ownerEmail) {

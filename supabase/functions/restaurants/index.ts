@@ -213,7 +213,9 @@ async function handleCreate(supabase: ReturnType<typeof createClient>, user: { i
     return fail('Failed to set admin role', 500)
   }
 
-  await assignFounderRank(supabase, restaurant.id)
+  if (sanitized.plan_type === 'founder') {
+    await assignFounderRank(supabase, restaurant.id)
+  }
 
   const { data: updatedRestaurant } = await supabase
     .from('restaurants')

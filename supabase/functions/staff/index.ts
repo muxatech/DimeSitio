@@ -410,7 +410,9 @@ async function handleCreateForClient(
     return fail('Failed to create restaurant', 500)
   }
 
-  await assignFounderRank(supabase, restaurant.id)
+  if (planType === 'founder') {
+    await assignFounderRank(supabase, restaurant.id)
+  }
 
   // Create categories
   if (categoryIds.length > 0) {
