@@ -214,7 +214,8 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       if (!hasReservations || !data.reservations_url) {
         data.reservations_url = ''
       }
-      await onSubmit(data as RestaurantFormData)
+      const { plan_type, payment_method, ...cleanData } = data
+      await onSubmit(cleanData as RestaurantFormData)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al guardar')
     }

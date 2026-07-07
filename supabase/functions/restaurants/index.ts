@@ -71,11 +71,11 @@ async function canAccessAsStaff(
     .eq('id', restaurantId)
     .maybeSingle()
 
-  return !!restaurant && restaurant.owner_id === null
+  return !!restaurant
 }
 
 const VALID_PRICE_LEVELS = new Set([1, 2, 3])
-const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'reservations_url', 'active', 'is_demo', 'founder_rank', 'category_ids'])
+const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'reservations_url', 'active', 'is_demo', 'founder_rank', 'category_ids', 'lat', 'lng'])
 
 function validateCreate(body: Record<string, unknown>) {
   const errors: string[] = []
