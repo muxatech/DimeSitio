@@ -53,7 +53,7 @@ export default function Top5Grid() {
           className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-5 text-lg font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-6 sm:text-xl lg:py-7 lg:text-2xl"
         >
           <Swords className="h-6 w-6" />
-          Empezar comparación
+          Elegir favorito
         </motion.button>
       )}
     </div>

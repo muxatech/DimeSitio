@@ -28,13 +28,13 @@ describe('Top5Grid', () => {
     useFlowStore.setState({ top5: [{ id: 'a' }, { id: 'b' }] as any })
     render(<Top5Grid />)
     expect(screen.getByText(/2 opciones/)).toBeInTheDocument()
-    expect(screen.getByText(/Empezar comparación/)).toBeInTheDocument()
+    expect(screen.getByText(/Elegir favorito/)).toBeInTheDocument()
   })
 
   it('does not show start button with only 1 option', () => {
     useFlowStore.setState({ top5: [{ id: 'a' }] as any })
     render(<Top5Grid />)
-    expect(screen.queryByText(/Empezar comparación/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Elegir favorito/)).not.toBeInTheDocument()
   })
 })
 
