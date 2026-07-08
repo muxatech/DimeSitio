@@ -128,12 +128,19 @@ export default function FlowPage() {
     prevStep.current = step
   }, [step, qIndex])
 
-  // Scroll to top on step change or question change
+  // Scroll to top when entering the questions flow
   useEffect(() => {
     if (step !== 'landing') {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
-  }, [step, qIndex])
+  }, [step])
+
+  // Scroll to top when changing questions
+  useEffect(() => {
+    if (step === 'questions') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [qIndex])
 
   // Back button — restore state from history
   useEffect(() => {
