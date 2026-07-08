@@ -70,8 +70,14 @@ export default function Top5Grid() {
 }
 
 function CompactCard({ restaurant, rank }: { restaurant: Restaurant; rank: number }) {
+  const setWinner = useFlowStore((s) => s.setWinner)
+
   return (
-    <div className="w-36 shrink-0 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm sm:w-44">
+    <motion.button
+      whileTap={{ scale: 0.97 }}
+      whileHover={{ scale: 1.02 }}
+      onClick={() => setWinner(restaurant)}
+      className="w-36 shrink-0 overflow-hidden rounded-2xl border border-stone-200 bg-white text-left shadow-sm transition-all hover:shadow-md sm:w-44">
       <div className="relative h-24 bg-stone-100 sm:h-28">
         {restaurant.image_url ? (
           <Image
@@ -134,6 +140,6 @@ function CompactCard({ restaurant, rank }: { restaurant: Restaurant; rank: numbe
           </a>
         )}
       </div>
-    </div>
+    </motion.button>
   )
 }
