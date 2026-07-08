@@ -43,7 +43,9 @@ export default function Top5Grid() {
           Tus mejores opciones
         </div>
         <p className="text-base text-stone-600 sm:text-lg">
-          Hemos seleccionado <strong className="text-xl sm:text-2xl">{top5.length} opciones</strong> para ti.
+          Hemos seleccionado<br />
+          <strong className="text-xl sm:text-2xl">{top5.length} opciones</strong><br />
+          para ti.
         </p>
       </div>
 
