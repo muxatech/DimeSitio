@@ -154,7 +154,7 @@ export default function WinnerView() {
             {winner.instagram_url && (
               <ActionButton
                 href={winner.instagram_url}
-                label={`@${winner.instagram_url.replace(/https?:\/\/instagram\.com\//, '').replace(/\/$/, '')}`}
+                label="Ver Instagram"
                 icon={InstagramIcon}
               />
             )}
