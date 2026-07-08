@@ -5,10 +5,12 @@ import { useFlowStore } from '@/store/flow-store'
 
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: Record<string, unknown>) => <div {...props}>{children}</div>,
     button: ({ children, ...props }: Record<string, unknown>) => <button {...props}>{children}</button>,
   },
-  AnimatePresence: ({ children }: Record<string, unknown>) => <>{children}</>,
+}))
+
+vi.mock('next/image', () => ({
+  default: ({ alt, ...props }: Record<string, unknown>) => <img alt={alt as string} {...props} />,
 }))
 
 describe('Top5Grid', () => {
@@ -21,21 +23,43 @@ describe('Top5Grid', () => {
 
   it('shows empty state when no top5', () => {
     render(<Top5Grid />)
-    expect(screen.getByText(/no encontramos rest/)).toBeInTheDocument()
+    expect(screen.getByText(/No encontramos/)).toBeInTheDocument()
   })
 
-  it('shows option count and start button when top5 exists', () => {
-    useFlowStore.setState({ top5: [{ id: 'a' }, { id: 'b' }] as any })
+  it('shows VS preview for the first two and count of remaining', () => {
+    useFlowStore.setState({
+      top5: [
+        { id: 'a', name: 'Rest A', image_url: null },
+        { id: 'b', name: 'Rest B', image_url: null },
+        { id: 'c', name: 'Rest C', image_url: null },
+      ] as any,
+    })
     render(<Top5Grid />)
-    expect(screen.getByText(/2 opciones/)).toBeInTheDocument()
+    expect(screen.getByText('VS')).toBeInTheDocument()
+    expect(screen.getByText('Rest A')).toBeInTheDocument()
+    expect(screen.getByText('Rest B')).toBeInTheDocument()
+    expect(screen.getByText('+1 más')).toBeInTheDocument()
     expect(screen.getByText(/Elegir favorito/)).toBeInTheDocument()
   })
 
-  it('does not show start button with only 1 option', () => {
-    useFlowStore.setState({ top5: [{ id: 'a' }] as any })
+  it('shows only one card when only 1 option', () => {
+    useFlowStore.setState({
+      top5: [{ id: 'a', name: 'Solo Rest', image_url: null }] as any,
+    })
     render(<Top5Grid />)
+    expect(screen.getByText('Solo Rest')).toBeInTheDocument()
+    expect(screen.queryByText('VS')).not.toBeInTheDocument()
     expect(screen.queryByText(/Elegir favorito/)).not.toBeInTheDocument()
   })
+
+  it('does not show +N more when only 2 options', () => {
+    useFlowStore.setState({
+      top5: [
+        { id: 'a', name: 'Rest A', image_url: null },
+        { id: 'b', name: 'Rest B', image_url: null },
+      ] as any,
+    })
+    render(<Top5Grid />)
+    expect(screen.queryByText(/más/)).not.toBeInTheDocument()
+  })
 })
-
-
