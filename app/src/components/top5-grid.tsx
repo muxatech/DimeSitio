@@ -3,9 +3,7 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
-import { getPriceLabel } from '@/lib/utils'
-import type { Restaurant } from '@/types'
-import { Frown, MapPin, UtensilsCrossed, Sparkles, Swords, ArrowLeft, Crown } from 'lucide-react'
+import { Frown, Swords, ArrowLeft, UtensilsCrossed } from 'lucide-react'
 
 export default function Top5Grid() {
   const { top5, initBattle, goBackToQuestions } = useFlowStore()
@@ -35,23 +33,40 @@ export default function Top5Grid() {
     )
   }
 
+  const first = top5[0]
+
   return (
-    <div className="flex flex-col gap-6 sm:gap-8">
-      <div className="space-y-2 text-center sm:text-left">
-        <div className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-700">
-          <Sparkles className="h-3.5 w-3.5" />
-          Tus mejores opciones
-        </div>
+    <div className="flex flex-col gap-8 sm:gap-10">
+      <div className="space-y-1 text-center">
         <p className="text-base text-stone-600 sm:text-lg">
-          Hemos seleccionado <strong>{top5.length} opciones</strong> para ti,
-          ahora tienes que elegir tu favorito.
+          Hemos seleccionado<br />
+          <strong className="text-xl sm:text-2xl">{top5.length} opciones</strong><br />
+          para ti.
         </p>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2 sm:flex-wrap sm:justify-center sm:overflow-visible">
-        {top5.map((r, i) => (
-          <CompactCard key={r.id} restaurant={r} rank={i + 1} />
-        ))}
+      <div className="space-y-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 sm:p-6">
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-stone-400">
+          Vista previa del primer duelo
+        </p>
+        <div className="flex items-stretch gap-3 sm:gap-6">
+          <PreviewCard restaurant={first} />
+          {top5.length >= 2 && (
+            <>
+              <div className="flex shrink-0 items-center">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-300 text-sm font-bold text-stone-600 shadow-sm sm:h-14 sm:w-14 sm:text-lg">
+                  VS
+                </span>
+              </div>
+              <PreviewCard restaurant={top5[1]} />
+            </>
+          )}
+        </div>
+        {top5.length > 2 && (
+          <p className="text-center text-sm text-stone-400">
+            +{top5.length - 2} más
+          </p>
+        )}
       </div>
 
       {top5.length >= 2 && (
@@ -59,7 +74,7 @@ export default function Top5Grid() {
           whileTap={{ scale: 0.97 }}
           whileHover={{ scale: 1.02 }}
           onClick={initBattle}
-          className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
+          className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-5 sm:text-lg"
         >
           <Swords className="h-5 w-5" />
           Elegir favorito
@@ -69,53 +84,27 @@ export default function Top5Grid() {
   )
 }
 
-function CompactCard({ restaurant, rank }: { restaurant: Restaurant; rank: number }) {
+function PreviewCard({ restaurant }: { restaurant: { id: string; name: string; image_url?: string | null } }) {
   return (
-    <div className="w-36 shrink-0 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm sm:w-44">
-      <div className="relative h-24 bg-stone-100 sm:h-28">
+    <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+      <div className="relative h-32 sm:h-40">
         {restaurant.image_url ? (
           <Image
             src={restaurant.image_url}
             alt={restaurant.name}
-            width={200}
-            height={150}
+            width={300}
+            height={200}
             className="h-full w-full object-cover"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <UtensilsCrossed className="h-5 w-5 text-stone-300" />
+            <UtensilsCrossed className="h-8 w-8 text-stone-300" />
           </div>
         )}
-        <div className="absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-br-xl bg-stone-900 text-[10px] font-bold text-white">
-          {rank}
-        </div>
-        <div className="absolute right-1 top-1 flex flex-col gap-0.5">
-          {restaurant.founder_rank && (
-            <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 shadow-sm" title="Fundador">
-              <Crown className="h-2.5 w-2.5" />
-              Fundador
-            </span>
-          )}
-          {restaurant.is_demo && (
-            <span className="rounded-md bg-stone-200/80 px-1.5 py-0.5 text-[9px] font-medium text-stone-500 backdrop-blur-sm">
-              Demo
-            </span>
-          )}
-        </div>
       </div>
-      <div className="space-y-1 p-2.5 sm:p-3">
-        <p className="truncate text-sm font-bold text-stone-900">
+      <div className="p-3 sm:p-4">
+        <p className="truncate text-sm font-bold text-stone-900 sm:text-base">
           {restaurant.name}
-        </p>
-        <p className="flex items-center gap-1 truncate text-xs text-stone-400">
-          {restaurant.zone && (
-            <>
-              <MapPin className="h-3 w-3 shrink-0" />
-              {restaurant.zone}
-              <span className="mx-0.5">·</span>
-            </>
-          )}
-          {getPriceLabel(restaurant.price_level)}
         </p>
       </div>
     </div>

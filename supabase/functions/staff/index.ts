@@ -69,6 +69,9 @@ function validateCreate(body: Record<string, unknown>) {
   if (body.reservations_url !== undefined && typeof body.reservations_url !== 'string') {
     errors.push('reservations_url must be a string')
   }
+  if (body.instagram_url !== undefined && typeof body.instagram_url !== 'string') {
+    errors.push('instagram_url must be a string')
+  }
   if (body.is_demo !== undefined && typeof body.is_demo !== 'boolean') {
     errors.push('is_demo must be a boolean')
   }
@@ -90,7 +93,7 @@ function validateCreate(body: Record<string, unknown>) {
 
 function sanitizeStrings(body: Record<string, unknown>) {
   const sanitized = { ...body }
-  for (const key of ['name', 'description', 'phone', 'address', 'zone', 'image_url', 'menu_url', 'reservations_url', 'owner_email']) {
+  for (const key of ['name', 'description', 'phone', 'address', 'zone', 'image_url', 'menu_url', 'reservations_url', 'instagram_url', 'owner_email']) {
     if (typeof sanitized[key] === 'string') {
       sanitized[key] = sanitized[key].trim()
     }
@@ -397,6 +400,7 @@ async function handleCreateForClient(
       image_url: sanitized.image_url ?? null,
       menu_url: sanitized.menu_url ?? null,
       reservations_url: sanitized.reservations_url ?? null,
+      instagram_url: sanitized.instagram_url ?? null,
       zone: sanitized.zone,
       active: false,
       is_demo: sanitized.is_demo ?? false,

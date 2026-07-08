@@ -135,6 +135,13 @@ export default function FlowPage() {
     }
   }, [step])
 
+  // Scroll to top when changing questions
+  useEffect(() => {
+    if (step === 'questions') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [qIndex])
+
   // Back button — restore state from history
   useEffect(() => {
     function onPopState(e: PopStateEvent) {

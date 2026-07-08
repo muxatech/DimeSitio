@@ -2,77 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import Top5Grid from '@/components/top5-grid'
 import { useFlowStore } from '@/store/flow-store'
-import type { Restaurant } from '@/types'
 
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: Record<string, unknown>) => <div {...props}>{children}</div>,
     button: ({ children, ...props }: Record<string, unknown>) => <button {...props}>{children}</button>,
   },
-  AnimatePresence: ({ children }: Record<string, unknown>) => <>{children}</>,
 }))
 
 vi.mock('next/image', () => ({
   default: ({ alt, ...props }: Record<string, unknown>) => <img alt={alt as string} {...props} />,
 }))
 
-const demoRestaurant: Restaurant = {
-  id: 'r-demo',
-  owner_id: null,
-  name: 'Demo Restaurant',
-  description: null,
-  phone: null,
-  address: null,
-  city: 'Valencia',
-  lat: null,
-  lng: null,
-  price_level: 1,
-  image_url: null,
-  menu_url: null,
-  reservations_url: null,
-  zone: 'centro',
-  active: true,
-  is_demo: true,
-}
-
-const founderRestaurant: Restaurant = {
-  id: 'r-founder',
-  owner_id: null,
-  name: 'Founder Restaurant',
-  description: null,
-  phone: null,
-  address: null,
-  city: 'Valencia',
-  lat: null,
-  lng: null,
-  price_level: 2,
-  image_url: null,
-  menu_url: null,
-  reservations_url: null,
-  zone: 'russafa',
-  active: true,
-  founder_rank: 42,
-}
-
-const normalRestaurant: Restaurant = {
-  id: 'r-normal',
-  owner_id: null,
-  name: 'Normal Restaurant',
-  description: null,
-  phone: null,
-  address: null,
-  city: 'Valencia',
-  lat: null,
-  lng: null,
-  price_level: 3,
-  image_url: null,
-  menu_url: null,
-  reservations_url: null,
-  zone: 'cabanyal',
-  active: true,
-}
-
-describe('Top5Grid badges', () => {
+describe('Top5Grid', () => {
   beforeEach(() => {
     useFlowStore.setState({
       top5: [],
@@ -80,31 +21,45 @@ describe('Top5Grid badges', () => {
     })
   })
 
-  it('shows Demo badge for demo restaurants', () => {
-    useFlowStore.setState({ top5: [demoRestaurant] })
+  it('shows empty state when no top5', () => {
     render(<Top5Grid />)
-    expect(screen.getByText('Demo')).toBeInTheDocument()
+    expect(screen.getByText(/No encontramos/)).toBeInTheDocument()
   })
 
-  it('shows Fundador badge on card for founder restaurants', () => {
-    useFlowStore.setState({ top5: [founderRestaurant] })
+  it('shows VS preview for the first two and count of remaining', () => {
+    useFlowStore.setState({
+      top5: [
+        { id: 'a', name: 'Rest A', image_url: null },
+        { id: 'b', name: 'Rest B', image_url: null },
+        { id: 'c', name: 'Rest C', image_url: null },
+      ] as any,
+    })
     render(<Top5Grid />)
-    expect(screen.getByText('Fundador')).toBeInTheDocument()
+    expect(screen.getByText('VS')).toBeInTheDocument()
+    expect(screen.getByText('Rest A')).toBeInTheDocument()
+    expect(screen.getByText('Rest B')).toBeInTheDocument()
+    expect(screen.getByText('+1 más')).toBeInTheDocument()
+    expect(screen.getByText(/Elegir favorito/)).toBeInTheDocument()
   })
 
-  it('does not show Demo badge for normal restaurants', () => {
-    useFlowStore.setState({ top5: [normalRestaurant] })
+  it('shows only one card when only 1 option', () => {
+    useFlowStore.setState({
+      top5: [{ id: 'a', name: 'Solo Rest', image_url: null }] as any,
+    })
     render(<Top5Grid />)
-    expect(screen.queryByText('Demo')).not.toBeInTheDocument()
+    expect(screen.getByText('Solo Rest')).toBeInTheDocument()
+    expect(screen.queryByText('VS')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Elegir favorito/)).not.toBeInTheDocument()
   })
 
-  it('shows both badges on card when applicable', () => {
-    const both: Restaurant = { ...founderRestaurant, is_demo: true }
-    useFlowStore.setState({ top5: [both] })
+  it('does not show +N more when only 2 options', () => {
+    useFlowStore.setState({
+      top5: [
+        { id: 'a', name: 'Rest A', image_url: null },
+        { id: 'b', name: 'Rest B', image_url: null },
+      ] as any,
+    })
     render(<Top5Grid />)
-    expect(screen.getByText('Demo')).toBeInTheDocument()
-    expect(screen.getByText('Fundador')).toBeInTheDocument()
+    expect(screen.queryByText(/más/)).not.toBeInTheDocument()
   })
 })
-
-
