@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
-import { Frown, Sparkles, Swords, ArrowLeft, UtensilsCrossed } from 'lucide-react'
+import { Frown, Swords, ArrowLeft, UtensilsCrossed } from 'lucide-react'
 
 export default function Top5Grid() {
   const { top5, initBattle, goBackToQuestions } = useFlowStore()
@@ -37,11 +37,7 @@ export default function Top5Grid() {
 
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
-      <div className="space-y-2 text-center">
-        <div className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-700">
-          <Sparkles className="h-3.5 w-3.5" />
-          Tus mejores opciones
-        </div>
+      <div className="space-y-1 text-center">
         <p className="text-base text-stone-600 sm:text-lg">
           Hemos seleccionado<br />
           <strong className="text-xl sm:text-2xl">{top5.length} opciones</strong><br />
