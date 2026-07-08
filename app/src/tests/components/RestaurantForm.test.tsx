@@ -164,3 +164,13 @@ describe('RestaurantForm is_demo toggle', () => {
     expect(demoCheckbox.checked).toBe(true)
   })
 })
+
+describe('RestaurantForm Instagram field', () => {
+  const onSubmit = vi.fn()
+
+  it('renders Instagram input with placeholder', () => {
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    expect(screen.getByText('Instagram')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('@usuario')).toBeInTheDocument()
+  })
+})

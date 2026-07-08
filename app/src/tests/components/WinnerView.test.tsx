@@ -72,7 +72,27 @@ const normalRestaurant: Restaurant = {
   image_url: null,
   menu_url: null,
   reservations_url: null,
+  instagram_url: null,
   zone: 'cabanyal',
+  active: true,
+}
+
+const restaurantWithInstagram: Restaurant = {
+  id: 'r-instagram',
+  owner_id: null,
+  name: 'IG Restaurant',
+  description: null,
+  phone: null,
+  address: null,
+  city: 'Valencia',
+  lat: null,
+  lng: null,
+  price_level: 2,
+  image_url: null,
+  menu_url: null,
+  reservations_url: null,
+  instagram_url: 'https://instagram.com/myhandle',
+  zone: 'centro',
   active: true,
 }
 
@@ -114,5 +134,27 @@ describe('WinnerView', () => {
     expect(state.step).toBe('questions')
     expect(state.winner).toBeNull()
     expect(state.qIndex).toBe(0)
+  })
+
+  it('shows Instagram link when winner has instagram_url', () => {
+    useFlowStore.setState({ winner: restaurantWithInstagram })
+    render(<WinnerView />)
+    const link = screen.getByText('Ver Instagram')
+    expect(link).toBeInTheDocument()
+    expect(link.closest('a')).toHaveAttribute('href', 'https://instagram.com/myhandle')
+    expect(link.closest('a')).toHaveAttribute('target', '_blank')
+  })
+
+  it('does not show Instagram link when winner has no instagram_url', () => {
+    useFlowStore.setState({ winner: normalRestaurant })
+    render(<WinnerView />)
+    expect(screen.queryByText('Ver Instagram')).not.toBeInTheDocument()
+  })
+
+  it('shows error state when no winner', () => {
+    useFlowStore.setState({ winner: null })
+    render(<WinnerView />)
+    expect(screen.getByText('No se ha seleccionado ningún restaurante')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /volver a empezar/i })).toBeInTheDocument()
   })
 })
