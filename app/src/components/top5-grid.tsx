@@ -90,7 +90,7 @@ export default function Top5Grid() {
 
 function PreviewCard({ restaurant }: { restaurant: { id: string; name: string; image_url?: string | null } }) {
   return (
-    <div className="flex flex-1 flex-col overflow-hidden rounded-2xl bg-stone-100">
+    <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
       <div className="relative h-32 sm:h-40">
         {restaurant.image_url ? (
           <Image
@@ -98,16 +98,16 @@ function PreviewCard({ restaurant }: { restaurant: { id: string; name: string; i
             alt={restaurant.name}
             width={300}
             height={200}
-            className="h-full w-full object-cover opacity-70"
+            className="h-full w-full object-cover"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <UtensilsCrossed className="h-8 w-8 text-stone-400" />
+            <UtensilsCrossed className="h-8 w-8 text-stone-300" />
           </div>
         )}
       </div>
-      <div className="px-3 pb-3 pt-2 sm:px-4 sm:pb-4">
-        <p className="truncate text-center text-xs font-semibold text-stone-500 sm:text-sm">
+      <div className="p-3 sm:p-4">
+        <p className="truncate text-sm font-bold text-stone-900 sm:text-base">
           {restaurant.name}
         </p>
       </div>
