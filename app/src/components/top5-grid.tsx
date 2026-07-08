@@ -47,25 +47,29 @@ export default function Top5Grid() {
         </p>
       </div>
 
-      <div className="flex items-stretch gap-3 sm:gap-6">
-        <PreviewCard restaurant={first} />
-        {top5.length >= 2 && (
-          <>
-            <div className="flex shrink-0 items-center">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-900 text-sm font-bold text-white shadow-md sm:h-14 sm:w-14 sm:text-lg">
-                VS
-              </span>
-            </div>
-            <PreviewCard restaurant={top5[1]} />
-          </>
+      <div className="space-y-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 sm:p-6">
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-stone-400">
+          Vista previa del primer duelo
+        </p>
+        <div className="flex items-stretch gap-3 sm:gap-6">
+          <PreviewCard restaurant={first} />
+          {top5.length >= 2 && (
+            <>
+              <div className="flex shrink-0 items-center">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-300 text-sm font-bold text-stone-600 shadow-sm sm:h-14 sm:w-14 sm:text-lg">
+                  VS
+                </span>
+              </div>
+              <PreviewCard restaurant={top5[1]} />
+            </>
+          )}
+        </div>
+        {top5.length > 2 && (
+          <p className="text-center text-sm text-stone-400">
+            +{top5.length - 2} más
+          </p>
         )}
       </div>
-
-      {top5.length > 2 && (
-        <p className="-mt-4 text-center text-sm text-stone-400">
-          +{top5.length - 2} más
-        </p>
-      )}
 
       {top5.length >= 2 && (
         <motion.button
