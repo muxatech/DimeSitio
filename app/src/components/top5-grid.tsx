@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useFlowStore } from '@/store/flow-store'
-import { Frown, Sparkles, Swords, ArrowLeft, UtensilsCrossed, Crown } from 'lucide-react'
+import { Frown, Sparkles, Swords, ArrowLeft, UtensilsCrossed } from 'lucide-react'
 
 export default function Top5Grid() {
   const { top5, initBattle, goBackToQuestions } = useFlowStore()
@@ -82,29 +82,26 @@ export default function Top5Grid() {
   )
 }
 
-function PreviewCard({ restaurant }: { restaurant: { id: string; name: string; image_url?: string | null; founder_rank?: number | null } }) {
+function PreviewCard({ restaurant }: { restaurant: { id: string; name: string; image_url?: string | null } }) {
   return (
-    <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-      <div className="relative h-32 bg-stone-100 sm:h-40">
+    <div className="flex flex-1 flex-col overflow-hidden rounded-2xl bg-stone-100">
+      <div className="relative h-32 sm:h-40">
         {restaurant.image_url ? (
           <Image
             src={restaurant.image_url}
             alt={restaurant.name}
             width={300}
             height={200}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover opacity-70"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <UtensilsCrossed className="h-8 w-8 text-stone-300" />
+            <UtensilsCrossed className="h-8 w-8 text-stone-400" />
           </div>
         )}
       </div>
-      <div className="flex items-center gap-1.5 p-3 sm:p-4">
-        {restaurant.founder_rank && (
-          <Crown className="h-3.5 w-3.5 shrink-0 text-amber-600" />
-        )}
-        <p className="truncate text-sm font-bold text-stone-900 sm:text-base">
+      <div className="px-3 pb-3 pt-2 sm:px-4 sm:pb-4">
+        <p className="truncate text-center text-xs font-semibold text-stone-500 sm:text-sm">
           {restaurant.name}
         </p>
       </div>
