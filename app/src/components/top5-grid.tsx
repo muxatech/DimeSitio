@@ -42,8 +42,8 @@ export default function Top5Grid() {
           <Sparkles className="h-3.5 w-3.5" />
           Tus mejores opciones
         </div>
-        <p className="text-xl font-bold text-stone-900 sm:text-2xl">
-          {top5.length} opciones
+        <p className="text-base text-stone-600 sm:text-lg">
+          Hemos seleccionado <strong className="text-xl sm:text-2xl">{top5.length} opciones</strong> para ti.
         </p>
       </div>
 
