@@ -13,7 +13,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getCategories } from '@/lib/panel/api'
 import { supabase } from '@/lib/supabase'
 import { ZONES, groupCategories, CATEGORY_GROUPS } from '@/lib/constants'
-import { cn, getPriceLabel } from '@/lib/utils'
+import { cn, getPriceLabel, normalizeInstagramUrl } from '@/lib/utils'
 import type { RestaurantFormData, RestaurantWithRole } from '@/types'
 
 const restaurantSchema = z.object({
@@ -218,8 +218,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
         data.reservations_url = ''
       }
       if (data.instagram_url) {
-        const handle = data.instagram_url.replace(/^@/, '').trim()
-        data.instagram_url = `https://instagram.com/${handle}`
+        data.instagram_url = normalizeInstagramUrl(data.instagram_url)
       }
       const { plan_type, payment_method, ...cleanData } = data
       await onSubmit(cleanData as RestaurantFormData)

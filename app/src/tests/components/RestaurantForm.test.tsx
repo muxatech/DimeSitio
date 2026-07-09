@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import RestaurantForm from '@/app/(panel)/establecimientos/restaurant-form'
 import type { RestaurantWithRole } from '@/types'
@@ -14,10 +14,33 @@ vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: Record<string, unknown>) => <a href={href as string} {...props}>{children}</a>,
 }))
 
+const { mockFormValues } = vi.hoisted(() => ({
+  mockFormValues: {
+    name: 'Test',
+    price_level: 2,
+    zone: 'centro',
+    category_ids: ['cat-1'],
+    description: '',
+    phone: '',
+    address: '',
+    lat: null,
+    lng: null,
+    image_url: '',
+    menu_url: '',
+    reservations_url: '',
+    instagram_url: '',
+    active: false,
+    is_demo: false,
+    owner_email: '',
+    plan_type: 'standard',
+    payment_method: 'redirect',
+  } as Record<string, unknown>,
+}))
+
 vi.mock('react-hook-form', () => ({
   useForm: vi.fn(() => ({
     register: vi.fn(),
-    handleSubmit: vi.fn((cb: (d: unknown) => void) => () => cb({ name: 'Test', price_level: 2, zone: 'centro', category_ids: ['cat-1'] })),
+    handleSubmit: vi.fn((cb: (d: unknown) => void) => () => cb(mockFormValues)),
     setValue: vi.fn(),
     getValues: vi.fn(() => []),
     watch: vi.fn((key: string) => {
@@ -172,5 +195,85 @@ describe('RestaurantForm Instagram field', () => {
     render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
     expect(screen.getByText('Instagram')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('@usuario')).toBeInTheDocument()
+  })
+})
+
+describe('RestaurantForm Instagram normalization on submit', () => {
+  let onSubmit: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    onSubmit = vi.fn()
+    Object.assign(mockFormValues, {
+      name: 'Test',
+      price_level: 2,
+      zone: 'centro',
+      category_ids: ['cat-1'],
+      description: '',
+      phone: '',
+      address: '',
+      lat: null,
+      lng: null,
+      image_url: '',
+      menu_url: '',
+      reservations_url: '',
+      instagram_url: '',
+      active: false,
+      is_demo: false,
+      owner_email: '',
+      plan_type: 'standard',
+      payment_method: 'redirect',
+    })
+  })
+
+  it('normalizes @handle to full URL', () => {
+    mockFormValues.instagram_url = '@test_user'
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+
+    const checkbox = screen.getByRole('checkbox') as HTMLInputElement
+    fireEvent.click(checkbox)
+    fireEvent.click(screen.getByText('Crear establecimiento'))
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ instagram_url: 'https://instagram.com/test_user' })
+    )
+  })
+
+  it('does not duplicate already normalized URL', () => {
+    mockFormValues.instagram_url = 'https://instagram.com/test_user'
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+
+    const checkbox = screen.getByRole('checkbox') as HTMLInputElement
+    fireEvent.click(checkbox)
+    fireEvent.click(screen.getByText('Crear establecimiento'))
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ instagram_url: 'https://instagram.com/test_user' })
+    )
+  })
+
+  it('leaves instagram.com/handle unchanged', () => {
+    mockFormValues.instagram_url = 'instagram.com/test_user'
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+
+    const checkbox = screen.getByRole('checkbox') as HTMLInputElement
+    fireEvent.click(checkbox)
+    fireEvent.click(screen.getByText('Crear establecimiento'))
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ instagram_url: 'instagram.com/test_user' })
+    )
+  })
+
+  it('strips plan_type and payment_method before calling onSubmit', () => {
+    mockFormValues.instagram_url = '@test'
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+
+    const checkbox = screen.getByRole('checkbox') as HTMLInputElement
+    fireEvent.click(checkbox)
+    fireEvent.click(screen.getByText('Crear establecimiento'))
+
+    const calledData = onSubmit.mock.calls[0][0]
+    expect(calledData).not.toHaveProperty('plan_type')
+    expect(calledData).not.toHaveProperty('payment_method')
   })
 })

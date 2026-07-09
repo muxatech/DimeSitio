@@ -41,3 +41,10 @@ import { PRICE_LABELS } from './constants'
 export function getPriceLabel(level: 1 | 2 | 3): string {
   return PRICE_LABELS[level] ?? '€'.repeat(level)
 }
+
+export function normalizeInstagramUrl(url: string): string {
+  const trimmed = url.trim()
+  if (!trimmed || trimmed.includes('instagram.com')) return trimmed
+  const handle = trimmed.replace(/^@/, '')
+  return `https://instagram.com/${handle}`
+}

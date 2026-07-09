@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { shuffle, getSessionId, getPriceLabel, cn, haversineDistance } from '@/lib/utils'
+import { shuffle, getSessionId, getPriceLabel, cn, haversineDistance, normalizeInstagramUrl } from '@/lib/utils'
 
 describe('shuffle', () => {
   it('returns an array of the same length', () => {
@@ -98,5 +98,39 @@ describe('getPriceLabel', () => {
 
   it('returns correct label for level 3', () => {
     expect(getPriceLabel(3)).toBe('€€€')
+  })
+})
+
+describe('normalizeInstagramUrl', () => {
+  it('converts @handle to full URL', () => {
+    expect(normalizeInstagramUrl('@usuario')).toBe('https://instagram.com/usuario')
+  })
+
+  it('leaves https://instagram.com/handle unchanged', () => {
+    expect(normalizeInstagramUrl('https://instagram.com/usuario')).toBe('https://instagram.com/usuario')
+  })
+
+  it('leaves http://instagram.com/handle unchanged', () => {
+    expect(normalizeInstagramUrl('http://instagram.com/usuario')).toBe('http://instagram.com/usuario')
+  })
+
+  it('leaves instagram.com/handle unchanged', () => {
+    expect(normalizeInstagramUrl('instagram.com/usuario')).toBe('instagram.com/usuario')
+  })
+
+  it('trims whitespace before normalizing @handle', () => {
+    expect(normalizeInstagramUrl('  @usuario  ')).toBe('https://instagram.com/usuario')
+  })
+
+  it('returns empty string for empty input', () => {
+    expect(normalizeInstagramUrl('')).toBe('')
+  })
+
+  it('handles @handle with no prefix (just handle)', () => {
+    expect(normalizeInstagramUrl('usuario')).toBe('https://instagram.com/usuario')
+  })
+
+  it('handles whitespace-only input', () => {
+    expect(normalizeInstagramUrl('   ')).toBe('')
   })
 })
