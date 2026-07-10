@@ -477,43 +477,45 @@ async function handleCreateForClient(
     })
   }
 
-  // Pay now: use Checkout Session
-  if (planType === 'founder') {
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      line_items: [{ price: priceId, quantity: 1 }],
-      customer_email: ownerEmail,
-      metadata,
+  // Pay now: use Payment Link (shows QR on screen)
+  const paymentLink = await stripe.paymentLinks.create({
+    line_items: [{ price: priceId, quantity: 1 }],
+    metadata,
+    ...(planType === 'founder' ? {
       payment_intent_data: {
         setup_future_usage: 'off_session',
       },
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-    })
-
-    console.log('staff: founder checkout session created', { restaurantId: restaurant.id, sessionId: session.id })
-    return ok({
-      restaurant_id: restaurant.id,
-      checkout_url: session.url,
-      sent: false,
-    })
-  }
-
-  const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
-    line_items: [{ price: priceId, quantity: 1 }],
-    customer_email: ownerEmail,
-    metadata,
-    success_url: successUrl,
-    cancel_url: cancelUrl,
+    } : {}),
   })
 
-  console.log('staff: standard checkout session created', { restaurantId: restaurant.id, sessionId: session.id })
+  console.log('staff: payment link created for redirect', { restaurantId: restaurant.id, paymentLinkId: paymentLink.id })
   return ok({
     restaurant_id: restaurant.id,
-    checkout_url: session.url,
+    checkout_url: paymentLink.url,
     sent: false,
   })
+}
+
+async function handleSendPaymentEmail(
+  supabase: ReturnType<typeof createClient>,
+  body: Record<string, unknown>,
+) {
+  const restaurantId = body.restaurant_id as string
+  const ownerEmail = body.owner_email as string
+  const paymentUrl = body.payment_url as string
+  const planType = (body.plan_type as string) || 'standard'
+
+  if (!restaurantId || !ownerEmail || !paymentUrl) {
+    return fail('restaurant_id, owner_email and payment_url are required')
+  }
+
+  const { data: restaurant, error: rErr } = await supabase
+    .from('restaurants').select('id, name').eq('id', restaurantId).single()
+  if (rErr || !restaurant) return fail('Restaurant not found', 404)
+
+  await sendPaymentLinkEmail(supabase, ownerEmail, restaurant.name, paymentUrl, planType)
+
+  return ok({ sent: true })
 }
 
 // ─── Main ───────────────────────────────────────────────────
@@ -551,6 +553,10 @@ serve(async (req) => {
       if (body.action === 'send-reminder') {
         if (!isAdmin) return fail('Unauthorized', 401)
         return await handleSendReminder(supabase, user, body, isAdmin)
+      }
+
+      if (body.action === 'send-payment-email') {
+        return await handleSendPaymentEmail(supabase, body)
       }
 
       return await handleCreateForClient(supabase, user, body)

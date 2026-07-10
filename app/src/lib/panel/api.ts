@@ -106,6 +106,16 @@ export async function createForClient(data: StaffCreateData): Promise<{ restaura
   return res.data
 }
 
+export async function sendPaymentEmail(data: {
+  restaurant_id: string
+  owner_email: string
+  payment_url: string
+  plan_type: string
+}): Promise<{ sent: boolean }> {
+  const res = await invoke<{ success: boolean; data: { sent: boolean } }>('POST', '/', { ...data, action: 'send-payment-email' }, 'staff')
+  return res.data
+}
+
 export async function checkStaffStatus(): Promise<boolean> {
   const { data } = await supabase.from('staff_users').select('user_id').maybeSingle()
   return !!data

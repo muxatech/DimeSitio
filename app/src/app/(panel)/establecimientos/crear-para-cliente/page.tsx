@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import QRCode from 'qrcode'
 import RestaurantForm from '@/app/(panel)/establecimientos/restaurant-form'
-import { createForClient } from '@/lib/panel/api'
+import { createForClient, sendPaymentEmail } from '@/lib/panel/api'
 import type { RestaurantFormData, StaffCreateData } from '@/types'
-import { ArrowLeft, ExternalLink, CheckCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function CrearParaClientePage() {
@@ -12,6 +13,15 @@ export default function CrearParaClientePage() {
   const [ownerEmail, setOwnerEmail] = useState('')
   const [planType, setPlanType] = useState<string>('standard')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [qrCodeUrl, setQrCodeUrl] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
+  const [sendingEmail, setSendingEmail] = useState(false)
+
+  useEffect(() => {
+    if (result?.checkout_url && !result.sent) {
+      QRCode.toDataURL(result.checkout_url, { width: 280, margin: 2 }).then(setQrCodeUrl)
+    }
+  }, [result])
 
   async function handleSubmit(data: RestaurantFormData) {
     setIsSubmitting(true)
@@ -27,6 +37,24 @@ export default function CrearParaClientePage() {
     }
   }
 
+  async function handleResendEmail() {
+    if (!result?.checkout_url) return
+    setSendingEmail(true)
+    try {
+      await sendPaymentEmail({
+        restaurant_id: result.restaurant_id,
+        owner_email: ownerEmail,
+        payment_url: result.checkout_url,
+        plan_type: planType,
+      })
+      setEmailSent(true)
+    } catch {
+      // silent
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
   if (result) {
     const planLabel = planType === 'founder' ? 'Plan Founder — 39€ (pago único)' : 'Plan Normal — 29€/mes'
     const isEmail = result.sent
@@ -37,12 +65,12 @@ export default function CrearParaClientePage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-stone-900 sm:text-3xl">
-            {isEmail ? 'Email enviado' : 'Datos guardados'}
+            {isEmail ? 'Email enviado' : 'Listo para pagar'}
           </h1>
           <p className="mt-2 text-sm text-stone-400 sm:text-base">
             {isEmail
               ? `El propietario recibirá un enlace para completar el pago (${planLabel}).`
-              : `Ahora el propietario debe pagar para activar el establecimiento (${planLabel}).`}
+              : `Escanea el código QR con tu móvil para pagar (${planLabel}).`}
           </p>
         </div>
         {isEmail ? (
@@ -50,20 +78,26 @@ export default function CrearParaClientePage() {
             Email enviado a <strong>{ownerEmail}</strong>
           </div>
         ) : (
-          <>
-            <a
-              href={result.checkout_url!}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-2xl bg-stone-800 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700"
-            >
-              Ir a pago
-              <ExternalLink className="h-5 w-5" />
-            </a>
-            <p className="text-xs text-stone-300">
-              Se abrirá la página de pago segura de Stripe
-            </p>
-          </>
+          <div className="flex flex-col items-center gap-5">
+            {qrCodeUrl && (
+              <div className="rounded-2xl bg-white p-4 shadow-lg ring-1 ring-stone-100">
+                <img src={qrCodeUrl} alt="QR de pago" width={280} height={280} />
+              </div>
+            )}
+            {!emailSent ? (
+              <button
+                onClick={handleResendEmail}
+                disabled={sendingEmail}
+                className="text-xs text-stone-300 transition-colors hover:text-stone-400"
+              >
+                {sendingEmail ? 'Enviando...' : 'Enviar enlace por email'}
+              </button>
+            ) : (
+              <div className="rounded-2xl bg-stone-50 px-6 py-4 text-sm text-stone-600">
+                Email enviado a <strong>{ownerEmail}</strong>
+              </div>
+            )}
+          </div>
         )}
         <Link
           href="/establecimientos"
