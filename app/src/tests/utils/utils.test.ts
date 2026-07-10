@@ -114,8 +114,8 @@ describe('normalizeInstagramUrl', () => {
     expect(normalizeInstagramUrl('http://instagram.com/usuario')).toBe('http://instagram.com/usuario')
   })
 
-  it('leaves instagram.com/handle unchanged', () => {
-    expect(normalizeInstagramUrl('instagram.com/usuario')).toBe('instagram.com/usuario')
+  it('adds https:// to instagram.com/handle without protocol', () => {
+    expect(normalizeInstagramUrl('instagram.com/usuario')).toBe('https://instagram.com/usuario')
   })
 
   it('trims whitespace before normalizing @handle', () => {
@@ -132,5 +132,21 @@ describe('normalizeInstagramUrl', () => {
 
   it('handles whitespace-only input', () => {
     expect(normalizeInstagramUrl('   ')).toBe('')
+  })
+
+  it('passes through non-Instagram URL with protocol', () => {
+    expect(normalizeInstagramUrl('https://google.com')).toBe('https://google.com')
+  })
+
+  it('passes through http non-Instagram URL', () => {
+    expect(normalizeInstagramUrl('http://example.com/page')).toBe('http://example.com/page')
+  })
+
+  it('does not double-wrap a URL that happens to contain instagram', () => {
+    expect(normalizeInstagramUrl('https://evilsite.com/instagram.com')).toBe('https://evilsite.com/instagram.com')
+  })
+
+  it('adds https:// to www.instagram.com/handle', () => {
+    expect(normalizeInstagramUrl('www.instagram.com/usuario')).toBe('https://www.instagram.com/usuario')
   })
 })

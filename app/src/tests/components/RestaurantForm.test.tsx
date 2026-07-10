@@ -251,7 +251,7 @@ describe('RestaurantForm Instagram normalization on submit', () => {
     )
   })
 
-  it('leaves instagram.com/handle unchanged', () => {
+  it('adds https:// to instagram.com/handle without protocol', () => {
     mockFormValues.instagram_url = 'instagram.com/test_user'
     render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
 
@@ -260,7 +260,7 @@ describe('RestaurantForm Instagram normalization on submit', () => {
     fireEvent.click(screen.getByText('Crear establecimiento'))
 
     expect(onSubmit).toHaveBeenCalledWith(
-      expect.objectContaining({ instagram_url: 'instagram.com/test_user' })
+      expect.objectContaining({ instagram_url: 'https://instagram.com/test_user' })
     )
   })
 

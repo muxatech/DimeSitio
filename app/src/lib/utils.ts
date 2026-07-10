@@ -44,7 +44,17 @@ export function getPriceLabel(level: 1 | 2 | 3): string {
 
 export function normalizeInstagramUrl(url: string): string {
   const trimmed = url.trim()
-  if (!trimmed || trimmed.includes('instagram.com')) return trimmed
+  if (!trimmed) return trimmed
+
+  if (trimmed.includes('instagram.com')) {
+    if (!/^https?:\/\//i.test(trimmed)) {
+      return `https://${trimmed}`
+    }
+    return trimmed
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+
   const handle = trimmed.replace(/^@/, '')
   return `https://instagram.com/${handle}`
 }
