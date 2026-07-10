@@ -46,7 +46,7 @@ vi.mock('react-hook-form', () => ({
     watch: vi.fn((key: string) => {
       if (key === 'category_ids') return []
       if (key === 'price_level') return 1
-      return null
+      return mockFormValues[key] ?? null
     }),
     formState: { errors: {} },
   })),
@@ -264,7 +264,7 @@ describe('RestaurantForm Instagram normalization on submit', () => {
     )
   })
 
-  it('strips plan_type and payment_method before calling onSubmit', () => {
+  it('strips plan_type and payment_method before calling onSubmit when not in staff mode', () => {
     mockFormValues.instagram_url = '@test'
     render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
 
@@ -275,5 +275,23 @@ describe('RestaurantForm Instagram normalization on submit', () => {
     const calledData = onSubmit.mock.calls[0][0]
     expect(calledData).not.toHaveProperty('plan_type')
     expect(calledData).not.toHaveProperty('payment_method')
+  })
+
+  it('keeps plan_type and payment_method in staff mode', () => {
+    mockFormValues.instagram_url = '@test'
+    mockFormValues.plan_type = 'founder'
+    mockFormValues.payment_method = 'email'
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+
+    const checkboxes = screen.getAllByRole('checkbox')
+    const termsCheckbox = checkboxes.find((cb) =>
+      cb.closest('label')?.textContent?.includes('Términos y Condiciones')
+    ) as HTMLInputElement
+    fireEvent.click(termsCheckbox!)
+    fireEvent.click(screen.getByText('Crear y enviar email'))
+
+    const calledData = onSubmit.mock.calls[0][0]
+    expect(calledData).toHaveProperty('plan_type', 'founder')
+    expect(calledData).toHaveProperty('payment_method', 'email')
   })
 })

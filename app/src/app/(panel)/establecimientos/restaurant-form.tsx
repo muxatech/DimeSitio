@@ -220,8 +220,12 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       if (data.instagram_url) {
         data.instagram_url = normalizeInstagramUrl(data.instagram_url)
       }
-      const { plan_type, payment_method, ...cleanData } = data
-      await onSubmit(cleanData as RestaurantFormData)
+      if (staffMode) {
+        await onSubmit(data as unknown as RestaurantFormData)
+      } else {
+        const { plan_type, payment_method, ...cleanData } = data
+        await onSubmit(cleanData as RestaurantFormData)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al guardar')
     }
