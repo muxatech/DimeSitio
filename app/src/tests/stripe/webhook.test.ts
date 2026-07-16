@@ -32,7 +32,7 @@ describe('stripe API integration', () => {
       expect(url).toBe('https://checkout.stripe.com/c/pay_cs_test_123')
       expect(mockInvoke).toHaveBeenCalledWith('stripe/create-checkout', expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ restaurant_id: 'rest-123' }),
+        body: JSON.stringify({ restaurant_id: 'rest-123', locale: 'es' }),
       }))
     })
 
@@ -58,7 +58,7 @@ describe('stripe API integration', () => {
       expect(url).toBe('https://billing.stripe.com/p/session_test_456')
       expect(mockInvoke).toHaveBeenCalledWith('stripe/create-portal', expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ restaurant_id: 'rest-123' }),
+        body: JSON.stringify({ restaurant_id: 'rest-123', locale: 'es' }),
       }))
     })
   })

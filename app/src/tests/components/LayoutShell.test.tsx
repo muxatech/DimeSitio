@@ -8,6 +8,10 @@ vi.mock('next/navigation', () => ({
   usePathname: () => mockUsePathname(),
 }))
 
+vi.mock('@/i18n/navigation', () => ({
+  usePathname: () => mockUsePathname(),
+}))
+
 vi.mock('@/components/navbar', () => ({
   default: () => <div>Navbar</div>,
 }))

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { getSessionId } from '@/lib/utils'
 import {
@@ -13,25 +14,15 @@ import {
   ArrowRight,
   Star,
 } from 'lucide-react'
-import { FOOD_PHOTOS, FOOD_TYPES, PROBLEMS, HERO_STATS } from '@/lib/constants'
+import { FOOD_PHOTOS } from '@/lib/constants'
 
-const problems = [
-  {
-    icon: Clock,
-    title: PROBLEMS[0].title,
-    desc: PROBLEMS[0].desc,
-  },
-  {
-    icon: Target,
-    title: PROBLEMS[1].title,
-    desc: PROBLEMS[1].desc,
-  },
-  {
-    icon: CheckCircle2,
-    title: PROBLEMS[2].title,
-    desc: PROBLEMS[2].desc,
-  },
+const FOOD_TYPE_KEYS = [
+  'foodItaliano', 'foodBrunch', 'foodSpecialtyCoffee', 'foodMediterranean', 'foodAsian',
+  'foodSpanish', 'foodArgentinian', 'foodIndian', 'foodTurkish', 'foodMoroccan',
+  'foodPeruvian', 'foodThai', 'foodGreek', 'foodFrench', 'foodAmerican',
 ]
+
+const problemIcons = [Clock, Target, CheckCircle2]
 
 function Carousel({ images }: { images: string[] }) {
   const [idx, setIdx] = useState(0)
@@ -88,10 +79,11 @@ function Carousel({ images }: { images: string[] }) {
 }
 
 export default function LandingHero() {
+  const t = useTranslations('Landing')
   const { setStep, setSessionId, startNewFlow } = useFlowStore()
 
   const [wordIdx, setWordIdx] = useState(0)
-  const words = ['comer', 'cenar', 'tapear', 'picar']
+  const words = t.raw('words') as string[]
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -121,7 +113,7 @@ export default function LandingHero() {
               className="inline-flex items-center justify-center gap-2 text-center rounded-full bg-white/25 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm"
             >
               <Sparkles className="h-4 w-4 text-white/80" />
-              Encuentra el sitio perfecto en Valencia en menos de un minuto
+              {t('badge')}
             </motion.div>
 
             {/* Heading */}
@@ -132,7 +124,7 @@ export default function LandingHero() {
               className="text-center text-5xl font-extrabold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
               style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}
             >
-              DimeSitio
+              {t('heroTitle')}
             </motion.h1>
 
             <motion.p
@@ -142,7 +134,7 @@ export default function LandingHero() {
               className="max-w-xl text-balance text-center text-lg leading-relaxed text-white/85 sm:text-xl md:text-2xl"
               style={{ textShadow: '0 1px 12px rgba(0,0,0,0.25)' }}
             >
-              Deja de perder 40 minutos eligiendo restaurante.
+              {t('heroSubtitle')}
             </motion.p>
 
             {/* Big CTA button */}
@@ -158,7 +150,7 @@ export default function LandingHero() {
                 className="group inline-flex items-center gap-3 rounded-2xl border border-white/40 bg-white/20 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:bg-white/30 sm:px-10 sm:py-5 sm:text-xl lg:px-12 lg:py-6 lg:text-2xl"
               >
                 <span className="inline-flex items-center gap-1">
-                  Encuentra dónde{' '}
+                  {t('ctaFindWhere')}{' '}
                   <span className="relative inline-flex items-center overflow-hidden" style={{ height: '1.25em' }}>
                     <span className="invisible">{words.reduce((a, b) => a.length >= b.length ? a : b)}</span>
                     <span className="absolute inset-0 inline-flex items-center justify-center">
@@ -181,7 +173,7 @@ export default function LandingHero() {
                 </span>
               </motion.button>
               <p className="mt-4 text-center text-sm text-white/70 sm:text-base">
-                Rápido, gratis y sin registrarte.
+                {t('ctaSubtext')}
               </p>
             </motion.div>
 
@@ -192,16 +184,16 @@ export default function LandingHero() {
               transition={{ duration: 0.6, delay: 0.8 }}
               className="flex w-full flex-wrap items-center justify-center gap-2 lg:gap-2.5"
             >
-              {FOOD_TYPES.slice(0, 8).map((t) => (
+              {FOOD_TYPE_KEYS.slice(0, 8).map((key) => (
                 <span
-                  key={t}
+                  key={key}
                   className="rounded-lg bg-white/25 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm"
                 >
-                  {t}
+                  {t(key)}
                 </span>
               ))}
               <span className="rounded-lg bg-white/20 px-3 py-1.5 text-xs font-medium text-white/50 backdrop-blur-sm">
-                +{FOOD_TYPES.length - 8} más
+                {t('moreTypes', { count: FOOD_TYPE_KEYS.length - 8 })}
               </span>
             </motion.div>
             <motion.div
@@ -212,15 +204,15 @@ export default function LandingHero() {
             >
               <div className="flex items-center gap-1.5">
                 <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs font-semibold text-white/80">{FOOD_TYPES.length} tipos de cocina</span>
+                <span className="text-xs font-semibold text-white/80">{FOOD_TYPE_KEYS.length} {t('cuisineTypes')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs font-semibold text-white/80">{HERO_STATS[0].value} establecimientos</span>
+                <span className="text-xs font-semibold text-white/80">18+ {t('establishments')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs font-semibold text-white/80">{HERO_STATS[2].value} zonas de Valencia</span>
+                <span className="text-xs font-semibold text-white/80">22 {t('zones')}</span>
               </div>
             </motion.div>
           </div>
@@ -238,10 +230,10 @@ export default function LandingHero() {
           >
             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-1.5 text-sm font-medium text-stone-900">
               <Sparkles className="h-4 w-4" />
-              Opciones para todos los gustos
+              {t('galleryBadge')}
             </span>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
-              Más de {FOOD_TYPES.length} tipos de cocina para elegir
+              {t('galleryTitle', { count: FOOD_TYPE_KEYS.length })}
             </h2>
           </motion.div>
 
@@ -289,14 +281,13 @@ export default function LandingHero() {
           >
             <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-1.5 text-sm font-medium text-amber-800">
               <Sparkles className="h-4 w-4" />
-              Café de especialidad y brunch
+              {t('cafeBadge')}
             </span>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
-              También para los que prefieren la mañana
+              {t('cafeTitle')}
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-stone-500 sm:text-lg">
-              DimeSitio no es solo para cenas. Encuentra cafeterías de especialidad donde el barista sabe tu nombre,
-              brunch spots con huevos benedictinos de escándalo, y sitios independientes con ese ambiente que no se encuentra en cualquier cadena.
+              {t('cafeDesc')}
             </p>
           </motion.div>
 
@@ -336,9 +327,9 @@ export default function LandingHero() {
 
           <div className="grid gap-6 sm:grid-cols-3 sm:gap-8">
             {[
-              { title: 'Café de especialidad', desc: 'Tostadores locales, métodos alternativos y latte art que es casi una pena beberlo. Filtro, espresso o cold brew — cada café con su momento.' },
-              { title: 'Brunch sin prisa', desc: 'De los clásicos pancakes a la tosta de aguacate más instagrameable de Valencia. Menús de mediodía que convierten cualquier sábado en planazo.' },
-              { title: 'Cafeterías con alma', desc: 'Luz natural, plantas, música en vinilo y mesas de madera. Sitios donde quedarte a trabajar, leer o simplemente estar. El plan que no sabías que necesitabas.' },
+              { title: t('cafe1Title'), desc: t('cafe1Desc') },
+              { title: t('cafe2Title'), desc: t('cafe2Desc') },
+              { title: t('cafe3Title'), desc: t('cafe3Desc') },
             ].map((item, i) => (
               <motion.div
                 key={item.title}
@@ -368,41 +359,44 @@ export default function LandingHero() {
           >
             <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-1.5 text-sm font-medium text-stone-700">
               <Sparkles className="h-4 w-4" />
-              El problema que resolvemos
+              {t('problemsBadge')}
             </span>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
-              Elegir restaurante no debería llevar más tiempo que la comida
+              {t('problemsTitle')}
             </h2>
             <p className="mx-auto mt-3 max-w-lg text-stone-500 sm:text-lg">
-            &ldquo;¿Dónde comemos hoy?&rdquo; — la pregunta que acaba en 40 minutos mirando Google Maps para terminar yendo al mismo sitio de siempre.
+              {t('problemsQuote')}
             </p>
           </motion.div>
 
           <div className="grid gap-6 sm:grid-cols-3 sm:gap-8 lg:gap-12">
-            {problems.map((item, i) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.5, delay: i * 0.12 }}
-                className="group relative"
-              >
-                <div className="relative flex flex-col items-center gap-5 rounded-3xl border border-stone-100 bg-white p-8 text-center shadow-sm transition-all hover:shadow-lg sm:p-10">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900 shadow-lg sm:h-20 sm:w-20">
-                    <item.icon className="h-7 w-7 text-white sm:h-8 sm:w-8" />
+            {[0, 1, 2].map((i) => {
+              const Icon = problemIcons[i]
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.5, delay: i * 0.12 }}
+                  className="group relative"
+                >
+                  <div className="relative flex flex-col items-center gap-5 rounded-3xl border border-stone-100 bg-white p-8 text-center shadow-sm transition-all hover:shadow-lg sm:p-10">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900 shadow-lg sm:h-20 sm:w-20">
+                      <Icon className="h-7 w-7 text-white sm:h-8 sm:w-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-stone-900 sm:text-2xl">
+                        {t(`problem${i}Title`)}
+                      </h3>
+                      <p className="mt-2 text-sm leading-relaxed text-stone-500 sm:text-base">
+                        {t(`problem${i}Desc`)}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-stone-900 sm:text-2xl">
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-stone-500 sm:text-base">
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -410,7 +404,12 @@ export default function LandingHero() {
       {/* ===== STATS BANNER ===== */}
       <section className="border-y border-stone-100 bg-stone-50">
         <div className="mx-auto flex max-w-5xl flex-wrap justify-center gap-8 px-6 py-12 sm:gap-12 sm:py-16 lg:gap-16 lg:px-12">
-          {HERO_STATS.map((stat) => (
+          {[
+            { value: '18+', label: t('statEstablishments') },
+            { value: '15', label: t('statCuisines') },
+            { value: '22', label: t('statZones') },
+            { value: '0€', label: t('statFree') },
+          ].map((stat) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -440,10 +439,10 @@ export default function LandingHero() {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
-              Tu próximo restaurante está a menos de un minuto
+              {t('bottomTitle')}
             </h2>
             <p className="mt-3 text-stone-500 sm:text-lg">
-              Responde 3 preguntas y decide sin complicarte.
+              {t('bottomDesc')}
             </p>
           </motion.div>
 
@@ -457,7 +456,7 @@ export default function LandingHero() {
             onClick={handleStart}
             className="inline-flex items-center gap-3 rounded-2xl bg-stone-800 px-8 py-4 text-lg font-semibold text-white shadow-xl shadow-stone-200/50 transition-all hover:bg-stone-700 sm:px-10 sm:py-4 sm:text-xl"
           >
-            Empezar ahora
+            {t('startNow')}
             <ArrowRight className="h-5 w-5" />
           </motion.button>
         </div>

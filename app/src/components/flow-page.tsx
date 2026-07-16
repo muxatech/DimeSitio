@@ -17,6 +17,7 @@ import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import { UtensilsCrossed } from 'lucide-react'
 import { getSessionId } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 const QuestionLocation = dynamic(() => import('@/components/question-location'), {
   ssr: false,
@@ -78,6 +79,8 @@ function stepBack(store: ReturnType<typeof useFlowStore.getState>) {
 }
 
 export default function FlowPage() {
+  const t = useTranslations('FlowPage')
+  const tCommon = useTranslations('Common')
   const step = useFlowStore((s) => s.step)
   const { setStep, setQIndex, setFilteredRestaurants, setTop5, setWinner, selectedCategoryIds, selectedPriceLevel, selectedZoneIds, locationCenter, locationRadius, setLocationCenter, setLocationRadius } =
     useFlowStore()
@@ -266,16 +269,16 @@ export default function FlowPage() {
             </svg>
           </div>
           <p className="text-base font-semibold text-stone-700 sm:text-lg">
-            Vaya, algo salió mal
+            {t('errorTitle')}
           </p>
           <p className="max-w-xs text-sm text-stone-400">
-            No hemos podido cargar los datos. Comprueba tu conexión y vuelve a intentarlo.
+            {t('errorDesc')}
           </p>
           <button
             onClick={() => window.location.reload()}
             className="rounded-2xl bg-stone-800 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-stone-700"
           >
-            Reintentar
+            {tCommon('retry')}
           </button>
         </div>
       </div>
@@ -287,7 +290,7 @@ export default function FlowPage() {
       <div className="flex min-h-dvh items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-stone-200 border-t-stone-900" />
-          <p className="text-sm text-stone-400">Buscando los mejores restaurantes para ti...</p>
+          <p className="text-sm text-stone-400">{t('loading')}</p>
         </div>
       </div>
     )
@@ -300,8 +303,8 @@ export default function FlowPage() {
           <UtensilsCrossed className="h-7 w-7 text-stone-400" />
         </div>
         <div className="space-y-1">
-          <p className="text-base font-semibold text-stone-700 sm:text-lg">Todavía no hay restaurantes en Valencia</p>
-          <p className="max-w-xs text-sm text-stone-400">Vuelve pronto, estamos añadiendo nuevos sitios cada semana.</p>
+          <p className="text-base font-semibold text-stone-700 sm:text-lg">{t('emptyTitle')}</p>
+          <p className="max-w-xs text-sm text-stone-400">{t('emptyDesc')}</p>
         </div>
       </div>
     )
@@ -334,19 +337,15 @@ export default function FlowPage() {
                     categories={categories ?? []}
                     onNext={handleNextQuestion}
                     onBack={handlePrevQuestion}
-                    title={currentQuestion.label}
-                    subtitle={currentQuestion.subtitle}
                   />
                 )}
                 {currentQuestion.key === 'price' && (
-                  <QuestionPrice onNext={handleNextQuestion} onBack={handlePrevQuestion} title={currentQuestion.label} subtitle={currentQuestion.subtitle} />
+                  <QuestionPrice onNext={handleNextQuestion} onBack={handlePrevQuestion} />
                 )}
                 {currentQuestion.key === 'location' && (
                   <QuestionLocation
                     onNext={handleNextQuestion}
                     onBack={handlePrevQuestion}
-                    title={currentQuestion.label}
-                    subtitle={currentQuestion.subtitle}
                     locationCenter={locationCenter}
                     locationRadius={locationRadius}
                     onLocationChange={(center, radius) => {

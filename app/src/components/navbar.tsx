@@ -1,18 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import DsMonogram from '@/components/ds-monogram'
 import { useFlowStore } from '@/store/flow-store'
 import { getSessionId } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-
-const links = [
-  { label: 'Inicio', action: 'home' as const },
-  { label: 'Para restaurantes', action: 'restaurantes' as const },
-]
+import LocaleSwitcher from '@/components/locale-switcher'
 
 export default function Navbar() {
+  const t = useTranslations('Common')
   const pathname = usePathname()
   const router = useRouter()
   const step = useFlowStore((s) => s.step)
@@ -23,6 +21,11 @@ export default function Navbar() {
   const isLanding = step === 'landing' && isHome
   const isDark = isLanding || pathname === '/restaurantes'
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const links = [
+    { label: t('home'), action: 'home' as const },
+    { label: t('forRestaurants'), action: 'restaurantes' as const },
+  ]
 
   function startFlow() {
     const sid = getSessionId()
@@ -64,7 +67,7 @@ export default function Navbar() {
         className={cn('flex cursor-pointer items-center gap-2 text-lg font-bold tracking-tight', isDark ? 'text-white' : 'text-stone-900')}
       >
         <DsMonogram className="h-8 w-8 shadow-sm" />
-        DimeSitio
+        {t('appName')}
       </button>
 
       {/* Desktop links */}
@@ -92,8 +95,9 @@ export default function Navbar() {
               : 'bg-stone-800 text-white shadow-lg shadow-stone-200/50 hover:bg-stone-700'
           )}
         >
-          Empezar
+          {t('start')}
         </button>
+        <LocaleSwitcher isDark={isDark} className="ml-2" />
       </div>
 
       {/* Mobile hamburger */}
@@ -103,7 +107,7 @@ export default function Navbar() {
           'flex items-center justify-center rounded-xl p-2 transition-colors sm:hidden',
           isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'
         )}
-        aria-label="Menú"
+        aria-label={t('menu')}
       >
         {menuOpen ? (
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -135,8 +139,11 @@ export default function Navbar() {
             }}
             className="mt-1 w-full rounded-xl bg-stone-800 px-4 py-3 text-center text-sm font-semibold text-white"
           >
-            Empezar
+            {t('start')}
           </button>
+          <div className="mt-2 flex justify-center">
+            <LocaleSwitcher />
+          </div>
         </div>
       )}
     </nav>

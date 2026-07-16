@@ -1,9 +1,10 @@
 import { supabase } from '@/lib/supabase'
+import { NO_SESSION_ERROR } from '@/lib/constants'
 import type { RestaurantWithRole, RestaurantStats, RestaurantFormData, Category, StaffCreateData, AnalyticsData, PlanType } from '@/types'
 
 async function getToken(): Promise<string> {
   const { data: { session }, error } = await supabase.auth.refreshSession()
-  if (error || !session) throw new Error('No hay sesión activa')
+  if (error || !session) throw new Error(NO_SESSION_ERROR)
   return session.access_token
 }
 
@@ -84,25 +85,25 @@ export async function getRestaurantAnalytics(id: string): Promise<AnalyticsData>
 
 // ─── Stripe ─────────────────────────────────────────────────
 
-export async function createCheckoutSession(restaurantId: string): Promise<string> {
-  const res = await invoke<{ success: boolean; data: { url: string } }>('POST', '/create-checkout', { restaurant_id: restaurantId }, 'stripe')
+export async function createCheckoutSession(restaurantId: string, locale: string = 'es'): Promise<string> {
+  const res = await invoke<{ success: boolean; data: { url: string } }>('POST', '/create-checkout', { restaurant_id: restaurantId, locale }, 'stripe')
   return res.data.url
 }
 
-export async function createPortalSession(restaurantId: string): Promise<string> {
-  const res = await invoke<{ success: boolean; data: { url: string } }>('POST', '/create-portal', { restaurant_id: restaurantId }, 'stripe')
+export async function createPortalSession(restaurantId: string, locale: string = 'es'): Promise<string> {
+  const res = await invoke<{ success: boolean; data: { url: string } }>('POST', '/create-portal', { restaurant_id: restaurantId, locale }, 'stripe')
   return res.data.url
 }
 
-export async function createPaymentLink(restaurantId: string, planType: PlanType): Promise<string> {
-  const res = await invoke<{ success: boolean; data: { url: string } }>('POST', '/create-payment-link', { restaurant_id: restaurantId, plan_type: planType }, 'stripe')
+export async function createPaymentLink(restaurantId: string, planType: PlanType, locale: string = 'es'): Promise<string> {
+  const res = await invoke<{ success: boolean; data: { url: string } }>('POST', '/create-payment-link', { restaurant_id: restaurantId, plan_type: planType, locale }, 'stripe')
   return res.data.url
 }
 
 // ─── Staff ──────────────────────────────────────────────────
 
-export async function createForClient(data: StaffCreateData): Promise<{ restaurant_id: string; checkout_url: string | null; sent: boolean }> {
-  const res = await invoke<{ success: boolean; data: { restaurant_id: string; checkout_url: string | null; sent: boolean } }>('POST', '/', data, 'staff')
+export async function createForClient(data: StaffCreateData, locale: string = 'es'): Promise<{ restaurant_id: string; checkout_url: string | null; sent: boolean }> {
+  const res = await invoke<{ success: boolean; data: { restaurant_id: string; checkout_url: string | null; sent: boolean } }>('POST', '/', { ...data, locale }, 'staff')
   return res.data
 }
 
@@ -111,8 +112,8 @@ export async function sendPaymentEmail(data: {
   owner_email: string
   payment_url: string
   plan_type: string
-}): Promise<{ sent: boolean }> {
-  const res = await invoke<{ success: boolean; data: { sent: boolean } }>('POST', '/', { ...data, action: 'send-payment-email' }, 'staff')
+}, locale: string = 'es'): Promise<{ sent: boolean }> {
+  const res = await invoke<{ success: boolean; data: { sent: boolean } }>('POST', '/', { ...data, locale, action: 'send-payment-email' }, 'staff')
   return res.data
 }
 

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents, useMap } from 'react-leaflet'
 import { Icon, type LatLng } from 'leaflet'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { ArrowLeft, Crosshair, MapPin } from 'lucide-react'
 import type { LocationCenter } from '@/store/flow-store'
 import { cn } from '@/lib/utils'
@@ -87,17 +88,22 @@ interface QuestionLocationProps {
 function QuestionLocationInner({
   onNext,
   onBack,
-  title = '¿Dónde quieres comer?',
-  subtitle = 'Selecciona una zona en el mapa',
+  title,
+  subtitle,
   locationCenter,
   locationRadius,
   onLocationChange,
 }: QuestionLocationProps) {
+  const t = useTranslations('Questions')
+  const tCommon = useTranslations('Common')
   const [center, setCenter] = useState<LocationCenter>(locationCenter ?? VALENCIA_CENTER)
   const [radius, setRadius] = useState<number>(locationRadius ?? 1000)
   const [geoLoading, setGeoLoading] = useState(false)
   const [geoError, setGeoError] = useState<string | null>(null)
   const hasLocation = locationCenter !== null
+
+  const displayTitle = title || t('locationTitle')
+  const displaySubtitle = subtitle || t('locationSubtitle')
 
   const handleCenterChange = useCallback((c: LocationCenter) => {
     setCenter(c)
@@ -117,16 +123,16 @@ function QuestionLocationInner({
       (err) => {
         const msg =
           err.code === 1
-            ? 'Permiso de ubicación denegado. Actívalo en Ajustes > Privacidad > Localización > Safari'
+            ? t('locationPermissionDenied')
             : err.code === 2
-              ? 'No pudimos obtener tu ubicación. Prueba en un sitio más abierto o busca en el mapa'
-              : 'No pudimos obtener tu ubicación. Inténtalo de nuevo'
+              ? t('locationUnavailable')
+              : t('locationTimeout')
         setGeoError(msg)
         setGeoLoading(false)
       },
       { enableHighAccuracy: true, timeout: 10000 },
     )
-  }, [radius, onLocationChange])
+  }, [radius, onLocationChange, t])
 
   const handleConfirm = useCallback(() => {
     onLocationChange(center, radius)
@@ -147,15 +153,15 @@ function QuestionLocationInner({
           className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
         >
           <ArrowLeft className="h-4 w-4" />
-          Atrás
+          {tCommon('back')}
         </motion.button>
       )}
       <div className="space-y-1.5 sm:space-y-2">
         <h2 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl lg:text-4xl">
-          {title}
+          {displayTitle}
         </h2>
         <p className="text-sm text-stone-400 sm:text-base lg:text-lg">
-          {subtitle}
+          {displaySubtitle}
         </p>
       </div>
 
@@ -190,7 +196,7 @@ function QuestionLocationInner({
 
       <div className="flex flex-wrap items-center gap-3">
         <p className="w-full text-sm font-medium text-stone-500 sm:w-auto">
-          Radio de búsqueda:
+          {t('searchRadius')}
         </p>
         {RADIUS_OPTIONS.map((opt) => (
           <motion.button
@@ -214,7 +220,7 @@ function QuestionLocationInner({
           className="ml-auto inline-flex items-center gap-2 rounded-xl border-2 border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-600 shadow-sm transition-all hover:border-stone-300 hover:shadow-md disabled:opacity-50"
         >
           <Crosshair className={cn('h-4 w-4', geoLoading && 'animate-spin')} />
-          {geoLoading ? 'Buscando...' : 'Usar mi ubicación'}
+          {geoLoading ? t('searching') : t('useMyLocation')}
         </motion.button>
       </div>
 
@@ -223,7 +229,7 @@ function QuestionLocationInner({
       )}
 
       <p className="text-xs text-stone-400">
-        Toca el mapa para mover el marcador, o arrastra el marcador a la posición deseada.
+        {t('locationHint')}
       </p>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -232,7 +238,7 @@ function QuestionLocationInner({
           onClick={handleSkip}
           className="flex-1 rounded-2xl border-2 border-dashed border-stone-300 py-4 text-base font-medium text-stone-500 transition-all hover:border-stone-400 hover:text-stone-700 sm:py-4 sm:text-lg"
         >
-          En cualquier zona
+          {t('anyZone')}
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.97 }}
@@ -240,7 +246,7 @@ function QuestionLocationInner({
           onClick={handleConfirm}
           className="flex-1 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg"
         >
-          Ver resultados
+          {t('seeResults')}
         </motion.button>
       </div>
     </div>

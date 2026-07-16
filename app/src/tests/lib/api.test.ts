@@ -13,15 +13,16 @@ vi.mock('@/lib/supabase', () => ({
 }))
 
 import { getMyRestaurants } from '@/lib/panel/api'
+import { NO_SESSION_ERROR } from '@/lib/constants'
 
 describe('api - session expiry', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('getMyRestaurants throws No hay sesión activa when no session', async () => {
+  it('getMyRestaurants throws NO_SESSION when no session', async () => {
     mockRefreshSession.mockResolvedValue({ data: { session: null }, error: null })
-    await expect(getMyRestaurants()).rejects.toThrow('No hay sesión activa')
+    await expect(getMyRestaurants()).rejects.toThrow(NO_SESSION_ERROR)
     expect(mockInvoke).not.toHaveBeenCalled()
   })
 

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { cn } from '@/lib/utils'
 import { groupCategories } from '@/lib/constants'
@@ -13,12 +14,6 @@ interface QuestionStepProps {
   title?: string
   subtitle?: string
 }
-
-const priceOptions = [
-  { value: 1, label: 'Barato', desc: 'Menos de 15€', Icon: Banknote },
-  { value: 2, label: 'Normal', desc: 'Entre 15€ y 30€', Icon: Coins },
-  { value: 3, label: 'Caro', desc: 'Más de 30€', Icon: Crown },
-]
 
 const containerVariants = {
   hidden: {},
@@ -47,10 +42,15 @@ export function QuestionCategories({
   categories,
   onNext,
   onBack,
-  title = '¿Qué te apetece hoy?',
-  subtitle = 'Selecciona uno o varios tipos de comida',
+  title,
+  subtitle,
 }: QuestionStepProps & { categories: { id: string; name: string }[] }) {
+  const t = useTranslations('Questions')
+  const tCommon = useTranslations('Common')
   const { selectedCategoryIds, setSelectedCategoryIds } = useFlowStore()
+
+  const displayTitle = title || t('categoriesTitle')
+  const displaySubtitle = subtitle || t('categoriesSubtitle')
 
   function toggle(id: string) {
     const next = selectedCategoryIds.includes(id)
@@ -68,10 +68,10 @@ export function QuestionCategories({
           className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
         >
           <ArrowLeft className="h-4 w-4" />
-          Atrás
+          {tCommon('back')}
         </motion.button>
       )}
-      <Header title={title} subtitle={subtitle} />
+      <Header title={displayTitle} subtitle={displaySubtitle} />
 
       <motion.div
         variants={containerVariants}
@@ -110,8 +110,8 @@ export function QuestionCategories({
         )}
       >
         {selectedCategoryIds.length > 0
-          ? `Continuar (${selectedCategoryIds.length})`
-          : 'Selecciona al menos una opción'}
+          ? t('continueWithCount', { count: selectedCategoryIds.length })
+          : t('selectAtLeast')}
       </motion.button>
     </div>
   )
@@ -123,15 +123,26 @@ const groupIcons: Record<string, React.ElementType> = {
   'tomar-algo': Wine,
 }
 
+const groupLabelKeys: Record<string, { label: string; desc: string }> = {
+  'cafe-brunch': { label: 'categoryGroupCafeBrunch', desc: 'categoryGroupCafeBrunchDesc' },
+  'comer-cenar': { label: 'categoryGroupComerCenar', desc: 'categoryGroupComerCenarDesc' },
+  'tomar-algo': { label: 'categoryGroupTomarAlgo', desc: 'categoryGroupTomarAlgoDesc' },
+}
+
 export function QuestionCategoryGroups({
   categories,
   onNext,
   onBack,
-  title = '¿Qué te apetece hoy?',
-  subtitle = 'Elige una o varias opciones',
-}: QuestionStepProps & { categories: { id: string; name: string; group_keys?: string[] }[] }) {
+  title,
+  subtitle,
+}: QuestionStepProps & { categories: { id: string; name: string; group_keys?: string }[] }) {
+  const t = useTranslations('Questions')
+  const tCommon = useTranslations('Common')
   const { selectedCategoryIds, setSelectedCategoryIds } = useFlowStore()
   const [expandedGroups, setExpandedGroups] = React.useState<string[]>([])
+
+  const displayTitle = title || t('categoryGroupsTitle')
+  const displaySubtitle = subtitle || t('categoryGroupsSubtitle')
 
   const groups = React.useMemo(() => groupCategories(categories), [categories])
 
@@ -157,10 +168,10 @@ export function QuestionCategoryGroups({
           className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
         >
           <ArrowLeft className="h-4 w-4" />
-          Atrás
+          {tCommon('back')}
         </motion.button>
       )}
-      <Header title={title} subtitle={subtitle} />
+      <Header title={displayTitle} subtitle={displaySubtitle} />
 
       <div className="flex flex-col gap-3 sm:gap-4">
         {groups.map((group) => {
@@ -187,12 +198,12 @@ export function QuestionCategoryGroups({
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="text-base font-semibold text-stone-900 sm:text-lg lg:text-xl">
-                    {group.label}
+                    {t(groupLabelKeys[group.key]?.label ?? '')}
                   </p>
                   <p className="text-xs text-stone-400 sm:text-sm">
                     {selectedInGroup.length > 0
                       ? selectedInGroup.map((c) => c.name).join(', ')
-                      : group.description}
+                      : t(groupLabelKeys[group.key]?.desc ?? '')}
                   </p>
                 </div>
                 <ChevronDown
@@ -227,7 +238,7 @@ export function QuestionCategoryGroups({
                   ))}
                   {group.availableCats.length === 0 && (
                     <p className="text-sm text-stone-400">
-                      No hay restaurantes de esta categoría por ahora
+                      {t('noCategoriesInGroup')}
                     </p>
                   )}
                 </div>
@@ -250,15 +261,26 @@ export function QuestionCategoryGroups({
         )}
       >
         {selectedCategoryIds.length > 0
-          ? `Continuar (${selectedCategoryIds.length})`
-          : 'Selecciona al menos una opción'}
+          ? t('continueWithCount', { count: selectedCategoryIds.length })
+          : t('selectAtLeast')}
       </motion.button>
     </div>
   )
 }
 
-export function QuestionPrice({ onNext, onBack, title = '¿Cuánto quieres gastar?', subtitle = 'Elige un rango de precio aproximado' }: QuestionStepProps) {
+export function QuestionPrice({ onNext, onBack, title, subtitle }: QuestionStepProps) {
+  const t = useTranslations('Questions')
+  const tCommon = useTranslations('Common')
   const { selectedPriceLevel, setSelectedPriceLevel } = useFlowStore()
+
+  const displayTitle = title || t('priceTitle')
+  const displaySubtitle = subtitle || t('priceSubtitle')
+
+  const priceOptions = [
+    { value: 1, label: t('cheap'), desc: t('cheapDesc'), Icon: Banknote },
+    { value: 2, label: t('normal'), desc: t('normalDesc'), Icon: Coins },
+    { value: 3, label: t('expensive'), desc: t('expensiveDesc'), Icon: Crown },
+  ]
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
@@ -269,10 +291,10 @@ export function QuestionPrice({ onNext, onBack, title = '¿Cuánto quieres gasta
           className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
         >
           <ArrowLeft className="h-4 w-4" />
-          Atrás
+          {tCommon('back')}
         </motion.button>
       )}
-      <Header title={title} subtitle={subtitle} />
+      <Header title={displayTitle} subtitle={displaySubtitle} />
 
       <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:gap-6">
         {priceOptions.map((opt) => (
@@ -331,7 +353,7 @@ export function QuestionPrice({ onNext, onBack, title = '¿Cuánto quieres gasta
             : 'bg-stone-200 text-stone-400'
         )}
       >
-        {selectedPriceLevel !== null ? 'Continuar' : 'Selecciona un rango de precio'}
+        {selectedPriceLevel !== null ? tCommon('continue') : t('selectPrice')}
       </motion.button>
     </div>
   )

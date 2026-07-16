@@ -1,22 +1,27 @@
-import Link from 'next/link'
+'use client'
+
+import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import DsMonogram from '@/components/ds-monogram'
 
-const quickLinks = [
-  { label: 'Inicio', href: '/' },
-  { label: 'Para restaurantes', href: '/restaurantes' },
-]
-
-const contactLinks = [
-  { label: 'info@dimesitio.es', href: 'mailto:info@dimesitio.es' },
-]
-
-const legalLinks = [
-  { label: 'Términos y Condiciones', href: '/terminos' },
-  { label: 'Política de Privacidad', href: '/privacidad' },
-  { label: 'Aviso Legal', href: '/aviso-legal' },
-]
-
 export default function Footer() {
+  const t = useTranslations('Common')
+
+  const quickLinks = [
+    { label: t('home'), href: '/' },
+    { label: t('forRestaurants'), href: '/restaurantes' },
+  ]
+
+  const contactLinks = [
+    { label: 'info@dimesitio.es', href: 'mailto:info@dimesitio.es' },
+  ]
+
+  const legalLinks = [
+    { label: t('terms'), href: '/terminos' },
+    { label: t('privacy'), href: '/privacidad' },
+    { label: t('legalNotice'), href: '/aviso-legal' },
+  ]
+
   return (
     <footer className="border-t border-stone-100 bg-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-12 sm:px-8 sm:py-16 lg:flex-row lg:items-start lg:justify-between lg:px-12">
@@ -24,17 +29,17 @@ export default function Footer() {
         <div className="flex max-w-xs flex-col gap-3">
           <div className="flex items-center gap-2 text-lg font-bold text-stone-900">
             <DsMonogram className="h-8 w-8 shadow-sm" />
-            DimeSitio
+            {t('appName')}
           </div>
           <p className="text-sm leading-relaxed text-stone-500">
-            Dinos qué te apetece y encuentra restaurante en Valencia sin perder tiempo decidiendo.
+            {t('tagline')}
           </p>
         </div>
 
         {/* Links */}
         <div className="flex flex-col gap-3">
           <span className="text-xs font-semibold uppercase tracking-widest text-stone-400">
-            Enlaces
+            {t('links')}
           </span>
           {quickLinks.map((link) => (
             <Link
@@ -47,10 +52,10 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Contacto */}
+        {/* Contact */}
         <div className="flex flex-col gap-3">
           <span className="text-xs font-semibold uppercase tracking-widest text-stone-400">
-            Contacto
+            {t('contact')}
           </span>
           {contactLinks.map((link) => (
             <a
@@ -66,7 +71,7 @@ export default function Footer() {
         {/* Legal */}
         <div className="flex flex-col gap-3">
           <span className="text-xs font-semibold uppercase tracking-widest text-stone-400">
-            Legal
+            {t('legal')}
           </span>
           {legalLinks.map((link) => (
             <Link
@@ -83,8 +88,8 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="border-t border-stone-100 px-6 py-6 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 text-center text-xs text-stone-400 sm:flex-row sm:text-left">
-          <span>&copy; {new Date().getFullYear()} DimeSitio. Todos los derechos reservados.</span>
-          <span>Hecho en Valencia ❤️</span>
+          <span>&copy; {new Date().getFullYear()} DimeSitio. {t('allRightsReserved')}</span>
+          <span>{t('madeInValencia')}</span>
         </div>
       </div>
     </footer>

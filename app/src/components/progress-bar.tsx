@@ -2,8 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
-
-const labels = ['¿Qué te apetece?', '¿Cuánto gastas?', '¿Por qué zona?']
+import { useTranslations } from 'next-intl'
 
 export default function ProgressBar({
   current,
@@ -12,12 +11,15 @@ export default function ProgressBar({
   current: number
   total: number
 }) {
+  const t = useTranslations('Questions')
+  const labels = [t('cuisine'), t('budget'), t('location')]
+
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
       <div className="flex items-center justify-between">
         <span className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-700">
           <Sparkles className="h-3.5 w-3.5" />
-          {labels[current] ?? `Paso ${current + 1}`}
+          {labels[current] ?? t('fallback', { number: current + 1 })}
         </span>
         <span className="text-sm text-stone-400">
           {current + 1} / {total}

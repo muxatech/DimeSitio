@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import RestaurantesPage from '@/app/restaurantes/page'
+import RestaurantesPage from '@/app/[locale]/restaurantes/page'
+import { TestWrapper } from '@/tests/helpers'
 
 vi.mock('framer-motion', async () => {
   const React = await import('react')
@@ -14,28 +15,28 @@ vi.mock('framer-motion', async () => {
   }
 })
 
-vi.mock('next/link', () => ({
-  default: ({ children, href, ...props }: Record<string, unknown>) => <a href={href as string} {...props}>{children}</a>,
+vi.mock('@/i18n/navigation', () => ({
+  Link: ({ children, href, ...props }: Record<string, unknown>) => <a href={href as string} {...props}>{children}</a>,
 }))
 
 describe('RestaurantesPage founder section', () => {
   it('shows the founder section title', () => {
-    render(<RestaurantesPage />)
+    render(<RestaurantesPage />, { wrapper: TestWrapper })
     expect(screen.getByText(/100 establecimientos fundadores/)).toBeInTheDocument()
   })
 
   it('shows the founder badge text in the section', () => {
-    render(<RestaurantesPage />)
+    render(<RestaurantesPage />, { wrapper: TestWrapper })
     expect(screen.getAllByText('Fundador').length).toBeGreaterThan(0)
   })
 
   it('shows the benefit text about appearing first', () => {
-    render(<RestaurantesPage />)
+    render(<RestaurantesPage />, { wrapper: TestWrapper })
     expect(screen.getByText(/aparecen siempre antes/)).toBeInTheDocument()
   })
 
   it('shows the founder banner with link to section', () => {
-    render(<RestaurantesPage />)
+    render(<RestaurantesPage />, { wrapper: TestWrapper })
     expect(screen.getByText(/Sé de los primeros/)).toBeInTheDocument()
     const verLink = screen.getByText('Ver')
     expect(verLink).toBeInTheDocument()

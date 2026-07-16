@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import PanelLayout from '@/app/(panel)/layout'
+import PanelLayout from '@/app/[locale]/(panel)/layout'
+import { TestWrapper } from '@/tests/helpers'
 
 const mockReplace = vi.fn()
 const mockUsePathname = vi.fn(() => '/forgot-password')
@@ -10,12 +11,24 @@ vi.mock('next/navigation', () => ({
   usePathname: () => mockUsePathname(),
 }))
 
+vi.mock('@/i18n/navigation', () => ({
+  useRouter: () => ({ replace: mockReplace }),
+  usePathname: () => mockUsePathname(),
+  Link: ({ children, href, ...props }: React.PropsWithChildren<{ href: string }>) => <a href={href} {...props}>{children}</a>,
+}))
+
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       getSession: vi.fn(),
     },
   },
+}))
+
+vi.mock('next/link', () => ({
+  default: ({ children, href, ...props }: Record<string, unknown>) => (
+    <a href={href as string} {...props}>{children}</a>
+  ),
 }))
 
 import { supabase } from '@/lib/supabase'
@@ -35,7 +48,8 @@ describe('PanelLayout - forgot-password redirect', () => {
     render(
       <PanelLayout>
         <div>Forgot password content</div>
-      </PanelLayout>
+      </PanelLayout>,
+      { wrapper: TestWrapper }
     )
 
     await waitFor(() => {
@@ -54,7 +68,8 @@ describe('PanelLayout - forgot-password redirect', () => {
     render(
       <PanelLayout>
         <div>Login content</div>
-      </PanelLayout>
+      </PanelLayout>,
+      { wrapper: TestWrapper }
     )
 
     await waitFor(() => {
@@ -73,7 +88,8 @@ describe('PanelLayout - forgot-password redirect', () => {
     render(
       <PanelLayout>
         <div>Dashboard content</div>
-      </PanelLayout>
+      </PanelLayout>,
+      { wrapper: TestWrapper }
     )
 
     await waitFor(() => {

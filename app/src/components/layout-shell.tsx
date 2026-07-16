@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname } from '@/i18n/navigation'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 

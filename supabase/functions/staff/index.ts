@@ -93,7 +93,7 @@ function validateCreate(body: Record<string, unknown>) {
 
 function sanitizeStrings(body: Record<string, unknown>) {
   const sanitized = { ...body }
-  for (const key of ['name', 'description', 'phone', 'address', 'zone', 'image_url', 'menu_url', 'reservations_url', 'instagram_url', 'owner_email']) {
+  for (const key of ['name', 'description', 'phone', 'address', 'zone', 'image_url', 'menu_url', 'reservations_url', 'instagram_url', 'owner_email', 'locale']) {
     if (typeof sanitized[key] === 'string') {
       sanitized[key] = sanitized[key].trim()
     }
@@ -135,6 +135,7 @@ async function sendPaymentLinkEmail(
   restaurantName: string,
   paymentLink: string,
   planType: string,
+  locale: string = 'es',
 ) {
   const planLabel = planType === 'founder' ? 'Plan Founder — 39€ (pago único)' : 'Plan Normal — 29€/mes'
   const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
@@ -150,22 +151,22 @@ async function sendPaymentLinkEmail(
       body: JSON.stringify({
         to: ownerEmail,
         type: 'payment_link',
-        subject: 'Activa tu restaurante en DimeSitio',
+        subject: locale === 'en' ? 'Activate your restaurant on DimeSitio' : 'Activa tu restaurante en DimeSitio',
         html: `<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Activa tu restaurante</title></head>
+<html lang="${locale}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${locale === 'en' ? 'Activate your restaurant' : 'Activa tu restaurante'}</title></head>
 <body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
 <tr><td align="center" style="padding:40px 16px;">
 <table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
 <tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
 <tr><td style="padding:24px 24px 8px;text-align:center;">
-<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">Te han creado un perfil para <strong>${restaurantName}</strong> en DimeSitio.</p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Plan seleccionado: <strong>${planLabel}</strong></p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Haz clic en el siguiente enlace para completar el pago y activar tu restaurante.</p>
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">${locale === 'en' ? `A profile has been created for <strong>${restaurantName}</strong> on DimeSitio.` : `Te han creado un perfil para <strong>${restaurantName}</strong> en DimeSitio.`}</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${locale === 'en' ? `Selected plan: <strong>${planLabel}</strong>` : `Plan seleccionado: <strong>${planLabel}</strong>`}</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${locale === 'en' ? 'Click the following link to complete payment and activate your restaurant.' : 'Haz clic en el siguiente enlace para completar el pago y activar tu restaurante.'}</p>
 </td></tr>
 <tr><td align="center" style="padding:24px;">
-<a href="${paymentLink}" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Activar ahora</a>
+<a href="${paymentLink}" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">${locale === 'en' ? 'Activate now' : 'Activar ahora'}</a>
 </td></tr>
 <tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
 </table>
@@ -184,6 +185,7 @@ async function sendPaymentReminderEmail(
   restaurantName: string,
   paymentLink: string,
   planType: string,
+  locale: string = 'es',
 ) {
   const planLabel = planType === 'founder' ? 'Plan Founder — 39€ (pago único)' : 'Plan Normal — 29€/mes'
   const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
@@ -199,22 +201,22 @@ async function sendPaymentReminderEmail(
       body: JSON.stringify({
         to: ownerEmail,
         type: 'payment_reminder',
-        subject: `Recordatorio — activación de ${restaurantName} en DimeSitio`,
+        subject: locale === 'en' ? `Reminder — activate ${restaurantName} on DimeSitio` : `Recordatorio — activación de ${restaurantName} en DimeSitio`,
         html: `<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Recordatorio de activación</title></head>
+<html lang="${locale}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${locale === 'en' ? 'Activation reminder' : 'Recordatorio de activación'}</title></head>
 <body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
 <tr><td align="center" style="padding:40px 16px;">
 <table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
 <tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
 <tr><td style="padding:24px 24px 8px;text-align:center;">
-<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">El perfil de <strong>${restaurantName}</strong> en DimeSitio está pendiente de activación.</p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Plan seleccionado: <strong>${planLabel}</strong></p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Para finalizar el proceso, solo tienes que completar el pago a través del siguiente enlace. Una vez activado, tu restaurante aparecerá en las búsquedas de DimeSitio.</p>
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">${locale === 'en' ? `The profile for <strong>${restaurantName}</strong> on DimeSitio is pending activation.` : `El perfil de <strong>${restaurantName}</strong> en DimeSitio está pendiente de activación.`}</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${locale === 'en' ? `Selected plan: <strong>${planLabel}</strong>` : `Plan seleccionado: <strong>${planLabel}</strong>`}</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${locale === 'en' ? 'To complete the process, just pay through the following link. Once activated, your restaurant will appear in DimeSitio searches.' : 'Para finalizar el proceso, solo tienes que completar el pago a través del siguiente enlace. Una vez activado, tu restaurante aparecerá en las búsquedas de DimeSitio.'}</p>
 </td></tr>
 <tr><td align="center" style="padding:24px;">
-<a href="${paymentLink}" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Activar restaurante</a>
+<a href="${paymentLink}" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">${locale === 'en' ? 'Activate restaurant' : 'Activar restaurante'}</a>
 </td></tr>
 <tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
 </table>
@@ -383,6 +385,7 @@ async function handleCreateForClient(
   const categoryIds: string[] = (sanitized.category_ids as string[]) ?? []
   const planType = (sanitized.plan_type as string) || 'standard'
   const paymentMethod = (sanitized.payment_method as string) || 'redirect'
+  const locale = (sanitized.locale as string) || 'es'
 
   // Create restaurant (no owner_id yet)
   const { data: restaurant, error: insertError } = await supabase
@@ -452,8 +455,8 @@ async function handleCreateForClient(
     plan: planType,
   }
 
-  const successUrl = `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/pago-exitoso?email=${encodeURIComponent(ownerEmail)}`
-  const cancelUrl = `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/establecimientos`
+  const successUrl = `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/${locale}/pago-exitoso?email=${encodeURIComponent(ownerEmail)}`
+  const cancelUrl = `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/${locale}/establecimientos`
 
   if (paymentMethod === 'email') {
     // Use Payment Link for email (never expires)
@@ -469,7 +472,7 @@ async function handleCreateForClient(
 
     console.log('staff: payment link created', { restaurantId: restaurant.id, paymentLinkId: paymentLink.id })
 
-    await sendPaymentLinkEmail(supabase, ownerEmail, sanitized.name as string, paymentLink.url, planType)
+    await sendPaymentLinkEmail(supabase, ownerEmail, sanitized.name as string, paymentLink.url, planType, locale)
     return ok({
       restaurant_id: restaurant.id,
       checkout_url: null,
@@ -504,6 +507,7 @@ async function handleSendPaymentEmail(
   const ownerEmail = body.owner_email as string
   const paymentUrl = body.payment_url as string
   const planType = (body.plan_type as string) || 'standard'
+  const locale = (body.locale as string) || 'es'
 
   if (!restaurantId || !ownerEmail || !paymentUrl) {
     return fail('restaurant_id, owner_email and payment_url are required')
@@ -513,7 +517,7 @@ async function handleSendPaymentEmail(
     .from('restaurants').select('id, name').eq('id', restaurantId).single()
   if (rErr || !restaurant) return fail('Restaurant not found', 404)
 
-  await sendPaymentLinkEmail(supabase, ownerEmail, restaurant.name, paymentUrl, planType)
+  await sendPaymentLinkEmail(supabase, ownerEmail, restaurant.name, paymentUrl, planType, locale)
 
   return ok({ sent: true })
 }

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import CategoriasPage from '@/app/(panel)/categorias/page'
+import CategoriasPage from '@/app/[locale]/(panel)/categorias/page'
+import { TestWrapper } from '../helpers'
 
 const { mockReplace, mockCheckStaff } = vi.hoisted(() => ({
   mockReplace: vi.fn(),
@@ -10,6 +11,10 @@ const { mockReplace, mockCheckStaff } = vi.hoisted(() => ({
 let mockOrderFn = vi.fn()
 
 vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: mockReplace }),
+}))
+
+vi.mock('@/i18n/navigation', () => ({
   useRouter: () => ({ replace: mockReplace }),
 }))
 
@@ -56,14 +61,14 @@ describe('CategoriasPage', () => {
 
   it('redirects to dashboard if not staff', async () => {
     mockCheckStaff.mockResolvedValue(false)
-    render(<CategoriasPage />)
+    render(<TestWrapper><CategoriasPage /></TestWrapper>)
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith('/dashboard')
     })
   })
 
   it('renders categories list when staff', async () => {
-    render(<CategoriasPage />)
+    render(<TestWrapper><CategoriasPage /></TestWrapper>)
     await waitFor(() => {
       expect(screen.getByText('Italiana')).toBeInTheDocument()
       expect(screen.getByText('Japonesa')).toBeInTheDocument()
@@ -71,14 +76,14 @@ describe('CategoriasPage', () => {
   })
 
   it('shows Añadir categoría button', async () => {
-    render(<CategoriasPage />)
+    render(<TestWrapper><CategoriasPage /></TestWrapper>)
     await waitFor(() => {
       expect(screen.getByText('Añadir categoría')).toBeInTheDocument()
     })
   })
 
   it('opens create modal on Añadir click', async () => {
-    render(<CategoriasPage />)
+    render(<TestWrapper><CategoriasPage /></TestWrapper>)
     await waitFor(() => {
       fireEvent.click(screen.getByText('Añadir categoría'))
     })
@@ -86,7 +91,7 @@ describe('CategoriasPage', () => {
   })
 
   it('opens edit modal on pencil click', async () => {
-    render(<CategoriasPage />)
+    render(<TestWrapper><CategoriasPage /></TestWrapper>)
     await waitFor(() => {
       expect(screen.getByLabelText('Editar Italiana')).toBeInTheDocument()
     })
@@ -99,7 +104,7 @@ describe('CategoriasPage', () => {
       data: [],
       error: null,
     })
-    render(<CategoriasPage />)
+    render(<TestWrapper><CategoriasPage /></TestWrapper>)
     await waitFor(() => {
       expect(screen.getByText('No hay categorías')).toBeInTheDocument()
     })

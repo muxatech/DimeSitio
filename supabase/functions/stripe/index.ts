@@ -62,7 +62,7 @@ async function assignFounderRank(supabase: ReturnType<typeof createClient>, rest
 async function handleCreateCheckout(
   supabase: ReturnType<typeof createClient>,
   user: { id: string },
-  body: { restaurant_id: string; success_url?: string; cancel_url?: string }
+  body: { restaurant_id: string; locale?: string; success_url?: string; cancel_url?: string }
 ) {
   console.log('stripe: create-checkout', JSON.stringify({ restaurant_id: body.restaurant_id }))
 
@@ -101,13 +101,16 @@ async function handleCreateCheckout(
     customerId = customer.id
   }
 
+  const locale = body.locale || 'es'
+  const siteUrl = Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'
+
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: PRICE_ID, quantity: 1 }],
-    metadata: { restaurant_id: body.restaurant_id, source: 'self-service' },
-    success_url: body.success_url ?? `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/suscripcion?checking=true&restaurant_id=${body.restaurant_id}`,
-    cancel_url: body.cancel_url ?? `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/suscripcion`,
+    metadata: { restaurant_id: body.restaurant_id, source: 'self-service', locale },
+    success_url: body.success_url ?? `${siteUrl}/${locale}/suscripcion?checking=true&restaurant_id=${body.restaurant_id}`,
+    cancel_url: body.cancel_url ?? `${siteUrl}/${locale}/suscripcion`,
   })
 
   console.log('stripe: checkout session created', session.id)
@@ -119,7 +122,7 @@ async function handleCreateCheckout(
 async function handleCreatePortal(
   supabase: ReturnType<typeof createClient>,
   user: { id: string },
-  body: { restaurant_id: string; return_url?: string }
+  body: { restaurant_id: string; locale?: string; return_url?: string }
 ) {
   console.log('stripe: create-portal', JSON.stringify({ restaurant_id: body.restaurant_id }))
 
@@ -146,9 +149,12 @@ async function handleCreatePortal(
 
   const stripe = getStripe()
 
+  const locale = body.locale || 'es'
+  const siteUrl = Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'
+
     const session = await stripe.billingPortal.sessions.create({
     customer: sub.stripe_customer_id,
-    return_url: body.return_url ?? `${Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:3000'}/suscripcion`,
+    return_url: body.return_url ?? `${siteUrl}/${locale}/suscripcion`,
   })
 
   console.log('stripe: portal session created', session.url)
@@ -336,7 +342,11 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 
         console.log('stripe: founder flow — setting up owner for', ownerEmail)
 
+        const founderLocale = session.metadata?.locale || 'es'
+        const founderSiteUrl = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'
+
         const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(ownerEmail, {
+          redirectTo: `${founderSiteUrl}/${founderLocale}/auth/invite`,
           data: { onboarded: true },
         })
 
@@ -372,6 +382,8 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 
         const { data: rData } = await supabase.from('restaurants').select('name').eq('id', restaurantId).single()
         const rName = escapeHtml(rData?.name ?? 'tu restaurante')
+        const locale = founderLocale
+        const siteUrl = founderSiteUrl
 
         try {
           await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
@@ -384,21 +396,21 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
               to: ownerEmail,
               type: 'payment_receipt',
               restaurant_id: restaurantId,
-              subject: '¡Tu restaurante ya está activo en DimeSitio!',
+              subject: locale === 'en' ? 'Your restaurant is now active on DimeSitio!' : '¡Tu restaurante ya está activo en DimeSitio!',
               html: `<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Restaurante activo</title></head>
+<html lang="${locale}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${locale === 'en' ? 'Restaurant active' : 'Restaurante activo'}</title></head>
 <body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
 <tr><td align="center" style="padding:40px 16px;">
 <table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
 <tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
 <tr><td style="padding:24px 24px 8px;text-align:center;">
-<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${rName}</strong> ya está activo en DimeSitio.</p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Pago único de 39€ — sin cuotas hasta enero de 2027. Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil.</p>
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${rName}</strong> ${locale === 'en' ? 'is now active on DimeSitio.' : 'ya está activo en DimeSitio.'}</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${locale === 'en' ? 'One-time payment of €39 — no fees until January 2027. You will receive an invitation email to create your account and manage your profile.' : 'Pago único de 39€ — sin cuotas hasta enero de 2027. Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil.'}</p>
 </td></tr>
 <tr><td align="center" style="padding:24px;">
-<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/set-password" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
+<a href="${siteUrl}/${locale}/set-password" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">${locale === 'en' ? 'Go to dashboard' : 'Ir al panel'}</a>
 </td></tr>
 <tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
 </table>
@@ -445,6 +457,10 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
         Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
       }
 
+      // Locale from checkout metadata, fallback to 'es'
+      const emailLocale = session.metadata?.locale || 'es'
+      const siteUrl = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'
+
       if (source === 'self-service') {
         console.log('stripe: subscription activated (self-service)', restaurantId)
 
@@ -460,22 +476,22 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
                 to: ownerEmail,
                 type: 'payment_receipt',
                 restaurant_id: restaurantId,
-                subject: '¡Pago confirmado! Tu restaurante ya está activo en DimeSitio',
+                subject: emailLocale === 'en' ? 'Payment confirmed! Your restaurant is now active on DimeSitio' : '¡Pago confirmado! Tu restaurante ya está activo en DimeSitio',
                 html: `<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Pago confirmado</title></head>
+<html lang="${emailLocale}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${emailLocale === 'en' ? 'Payment confirmed' : 'Pago confirmado'}</title></head>
 <body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
 <tr><td align="center" style="padding:40px 16px;">
 <table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
 <tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
 <tr><td style="padding:24px 24px 8px;text-align:center;">
-<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">¡Pago confirmado!</p>
-<p style="margin:12px 0 0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${restaurantName}</strong> ya está activo en DimeSitio.</p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Tu suscripción de ${planLabel} está al día. Puedes gestionar tu perfil y ver estadísticas desde el panel.</p>
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">${emailLocale === 'en' ? 'Payment confirmed!' : '¡Pago confirmado!'}</p>
+<p style="margin:12px 0 0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${restaurantName}</strong> ${emailLocale === 'en' ? 'is now active on DimeSitio.' : 'ya está activo en DimeSitio.'}</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${emailLocale === 'en' ? `Your ${planLabel} subscription is up to date. You can manage your profile and view statistics from the dashboard.` : `Tu suscripción de ${planLabel} está al día. Puedes gestionar tu perfil y ver estadísticas desde el panel.`}</p>
 </td></tr>
 <tr><td align="center" style="padding:24px;">
-<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/dashboard" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
+<a href="${siteUrl}/${emailLocale}/dashboard" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">${emailLocale === 'en' ? 'Go to dashboard' : 'Ir al panel'}</a>
 </td></tr>
 <tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
 </table>
@@ -497,6 +513,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
         console.log('stripe: subscription activated (staff)', restaurantId)
 
         const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(ownerEmail, {
+          redirectTo: `${siteUrl}/${emailLocale}/auth/invite`,
           data: { onboarded: true },
         })
 
@@ -538,21 +555,21 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
               to: ownerEmail,
               type: 'payment_receipt',
               restaurant_id: restaurantId,
-              subject: '¡Tu restaurante ya está activo en DimeSitio!',
+              subject: emailLocale === 'en' ? 'Your restaurant is now active on DimeSitio!' : '¡Tu restaurante ya está activo en DimeSitio!',
               html: `<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Restaurante activo</title></head>
+<html lang="${emailLocale}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${emailLocale === 'en' ? 'Restaurant active' : 'Restaurante activo'}</title></head>
 <body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
 <tr><td align="center" style="padding:40px 16px;">
 <table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
 <tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
 <tr><td style="padding:24px 24px 8px;text-align:center;">
-<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${restaurantName}</strong> ya está activo en DimeSitio.</p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Tu ${planLabel}. Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil. Revisa tu bandeja de entrada.</p>
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${restaurantName}</strong> ${emailLocale === 'en' ? 'is now active on DimeSitio.' : 'ya está activo en DimeSitio.'}</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${emailLocale === 'en' ? `Your ${planLabel}. You will receive an invitation email to create your account and manage your profile. Check your inbox.` : `Tu ${planLabel}. Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil. Revisa tu bandeja de entrada.`}</p>
 </td></tr>
 <tr><td align="center" style="padding:24px;">
-<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/set-password" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
+<a href="${siteUrl}/${emailLocale}/set-password" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">${emailLocale === 'en' ? 'Go to dashboard' : 'Ir al panel'}</a>
 </td></tr>
 <tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
 </table>
@@ -638,6 +655,8 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
               const { data: rData } = await supabase.from('restaurants').select('name').eq('id', subs.restaurant_id).single()
               const rName = escapeHtml(rData?.name ?? 'tu restaurante')
               const invoiceTotal = (invoice.amount_paid / 100).toFixed(2)
+              const emailLocale = 'es'
+              const siteUrl = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'
 
               await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
                 method: 'POST',
@@ -649,23 +668,23 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
                   to: ownerEmail,
                   type: 'invoice',
                   restaurant_id: subs.restaurant_id,
-                  subject: 'Recibo de tu suscripción DimeSitio',
+                  subject: emailLocale === 'en' ? 'Your DimeSitio subscription receipt' : 'Recibo de tu suscripción DimeSitio',
                   html: `<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Recibo</title></head>
+<html lang="${emailLocale}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${emailLocale === 'en' ? 'Receipt' : 'Recibo'}</title></head>
 <body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;">
 <tr><td align="center" style="padding:40px 16px;">
 <table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;">
 <tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
 <tr><td style="padding:24px 24px 8px;text-align:center;">
-<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">Recibo de suscripción</p>
+<p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;">${emailLocale === 'en' ? 'Subscription receipt' : 'Recibo de suscripción'}</p>
 <p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;"><strong>${rName}</strong></p>
-<p style="margin:4px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Importe: <strong>${invoiceTotal}€</strong></p>
-<p style="margin:4px 0 0;font-size:14px;color:#57534e;line-height:1.5;">Tu suscripción sigue activa. Gracias por confiar en DimeSitio.</p>
+<p style="margin:4px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${emailLocale === 'en' ? 'Amount' : 'Importe'}: <strong>${invoiceTotal}€</strong></p>
+<p style="margin:4px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${emailLocale === 'en' ? 'Your subscription is still active. Thank you for trusting DimeSitio.' : 'Tu suscripción sigue activa. Gracias por confiar en DimeSitio.'}</p>
 </td></tr>
 <tr><td align="center" style="padding:24px;">
-<a href="${Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'}/dashboard" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">Ir al panel</a>
+<a href="${siteUrl}/${emailLocale}/dashboard" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">${emailLocale === 'en' ? 'Go to dashboard' : 'Ir al panel'}</a>
 </td></tr>
 <tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr>
 </table>

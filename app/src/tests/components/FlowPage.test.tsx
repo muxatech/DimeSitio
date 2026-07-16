@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import FlowPage from '@/components/flow-page'
 import { useFlowStore } from '@/store/flow-store'
+import { TestWrapper } from '@/tests/helpers'
 import type { Restaurant } from '@/types'
 
 const { mockUseQuery } = vi.hoisted(() => ({
@@ -80,80 +81,108 @@ describe('FlowPage', () => {
     window.history.replaceState = vi.fn()
   })
 
-  it('renders LandingHero when step is landing', () => {
-    render(<FlowPage />)
-    expect(screen.getByTestId('landing-hero')).toBeInTheDocument()
-  })
-
-  it('renders loading state while queries are loading', () => {
-    useFlowStore.setState({ step: 'questions' })
-    mockUseQuery.mockReturnValue({ data: undefined, isLoading: true, isError: false })
-    render(<FlowPage />)
-    expect(screen.getByText(/Buscando los mejores restaurantes/)).toBeInTheDocument()
-  })
-
-  it('renders error state when queries fail', () => {
-    useFlowStore.setState({ step: 'questions' })
-    mockUseQuery.mockReturnValue({ data: undefined, isLoading: false, isError: true })
-    render(<FlowPage />)
-    expect(screen.getByText(/Vaya, algo salió mal/)).toBeInTheDocument()
-    expect(screen.getByText('Reintentar')).toBeInTheDocument()
-  })
-
-  it('renders empty state when no restaurants', () => {
-    useFlowStore.setState({ step: 'questions' })
-    mockUseQuery
-      .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
-      .mockReturnValueOnce({ data: [], isLoading: false, isError: false })
-    render(<FlowPage />)
-    expect(screen.getByText(/Todavía no hay restaurantes/)).toBeInTheDocument()
-  })
-
-  it('renders questions step with ProgressBar', () => {
-    useFlowStore.setState({ step: 'questions', qIndex: 0 })
-    mockUseQuery
-      .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
-      .mockReturnValueOnce({ data: mockRestaurants, isLoading: false, isError: false })
-    render(<FlowPage />)
-    expect(screen.getByText('1 / 3')).toBeInTheDocument()
-  })
-
-  it('renders Top5Grid when step is top5', () => {
-    useFlowStore.setState({
-      step: 'top5',
-      top5: mockRestaurants,
+  describe('Spanish (default)', () => {
+    it('renders LandingHero when step is landing', () => {
+      render(<FlowPage />, { wrapper: TestWrapper })
+      expect(screen.getByTestId('landing-hero')).toBeInTheDocument()
     })
-    mockUseQuery
-      .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
-      .mockReturnValueOnce({ data: mockRestaurants, isLoading: false, isError: false })
-    render(<FlowPage />)
-    expect(screen.getByText(/opciones/)).toBeInTheDocument()
+
+    it('renders loading state while queries are loading', () => {
+      useFlowStore.setState({ step: 'questions' })
+      mockUseQuery.mockReturnValue({ data: undefined, isLoading: true, isError: false })
+      render(<FlowPage />, { wrapper: TestWrapper })
+      expect(screen.getByText(/Buscando los mejores restaurantes/)).toBeInTheDocument()
+    })
+
+    it('renders error state when queries fail', () => {
+      useFlowStore.setState({ step: 'questions' })
+      mockUseQuery.mockReturnValue({ data: undefined, isLoading: false, isError: true })
+      render(<FlowPage />, { wrapper: TestWrapper })
+      expect(screen.getByText(/Vaya, algo salió mal/)).toBeInTheDocument()
+      expect(screen.getByText('Reintentar')).toBeInTheDocument()
+    })
+
+    it('renders empty state when no restaurants', () => {
+      useFlowStore.setState({ step: 'questions' })
+      mockUseQuery
+        .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
+        .mockReturnValueOnce({ data: [], isLoading: false, isError: false })
+      render(<FlowPage />, { wrapper: TestWrapper })
+      expect(screen.getByText(/Todavía no hay restaurantes/)).toBeInTheDocument()
+    })
+
+    it('renders questions step with ProgressBar', () => {
+      useFlowStore.setState({ step: 'questions', qIndex: 0 })
+      mockUseQuery
+        .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
+        .mockReturnValueOnce({ data: mockRestaurants, isLoading: false, isError: false })
+      render(<FlowPage />, { wrapper: TestWrapper })
+      expect(screen.getByText('1 / 3')).toBeInTheDocument()
+    })
+
+    it('renders Top5Grid when step is top5', () => {
+      useFlowStore.setState({
+        step: 'top5',
+        top5: mockRestaurants,
+      })
+      mockUseQuery
+        .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
+        .mockReturnValueOnce({ data: mockRestaurants, isLoading: false, isError: false })
+      render(<FlowPage />, { wrapper: TestWrapper })
+      expect(screen.getByText(/opciones/)).toBeInTheDocument()
+    })
+
+    it('renders BattleView when step is battle', () => {
+      useFlowStore.setState({
+        step: 'battle',
+        battleChampion: mockRestaurants[0],
+        battleChallenger: mockRestaurants[1],
+        battleRound: 1,
+        top5: mockRestaurants,
+      })
+      mockUseQuery
+        .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
+        .mockReturnValueOnce({ data: mockRestaurants, isLoading: false, isError: false })
+      render(<FlowPage />, { wrapper: TestWrapper })
+      expect(screen.getByText('¿Cuál te convence más?')).toBeInTheDocument()
+    })
+
+    it('renders WinnerView when step is winner', () => {
+      useFlowStore.setState({
+        step: 'winner',
+        winner: mockRestaurants[0],
+      })
+      mockUseQuery
+        .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
+        .mockReturnValueOnce({ data: mockRestaurants, isLoading: false, isError: false })
+      render(<FlowPage />, { wrapper: TestWrapper })
+      expect(screen.getByText('Tu restaurante ideal')).toBeInTheDocument()
+    })
   })
 
-  it('renders BattleView when step is battle', () => {
-    useFlowStore.setState({
-      step: 'battle',
-      battleChampion: mockRestaurants[0],
-      battleChallenger: mockRestaurants[1],
-      battleRound: 1,
-      top5: mockRestaurants,
+  describe('English', () => {
+    it('renders loading state in English', () => {
+      useFlowStore.setState({ step: 'questions' })
+      mockUseQuery.mockReturnValue({ data: undefined, isLoading: true, isError: false })
+      render(<FlowPage />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
+      expect(screen.getByText(/Finding the best restaurants/)).toBeInTheDocument()
     })
-    mockUseQuery
-      .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
-      .mockReturnValueOnce({ data: mockRestaurants, isLoading: false, isError: false })
-    render(<FlowPage />)
-    expect(screen.getByText('¿Cuál te convence más?')).toBeInTheDocument()
-  })
 
-  it('renders WinnerView when step is winner', () => {
-    useFlowStore.setState({
-      step: 'winner',
-      winner: mockRestaurants[0],
+    it('renders error state in English', () => {
+      useFlowStore.setState({ step: 'questions' })
+      mockUseQuery.mockReturnValue({ data: undefined, isLoading: false, isError: true })
+      render(<FlowPage />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
+      expect(screen.getByText(/Oops, something went wrong/)).toBeInTheDocument()
+      expect(screen.getByText('Retry')).toBeInTheDocument()
     })
-    mockUseQuery
-      .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
-      .mockReturnValueOnce({ data: mockRestaurants, isLoading: false, isError: false })
-    render(<FlowPage />)
-    expect(screen.getByText('Tu restaurante ideal')).toBeInTheDocument()
+
+    it('renders empty state in English', () => {
+      useFlowStore.setState({ step: 'questions' })
+      mockUseQuery
+        .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
+        .mockReturnValueOnce({ data: [], isLoading: false, isError: false })
+      render(<FlowPage />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
+      expect(screen.getByText(/No restaurants in Valencia yet/)).toBeInTheDocument()
+    })
   })
 })

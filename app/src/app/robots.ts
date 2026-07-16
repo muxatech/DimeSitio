@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/login', '/register', '/dashboard'],
+        disallow: ['/es/login', '/en/login', '/es/register', '/en/register', '/es/dashboard', '/en/dashboard'],
       },
     ],
     sitemap: 'https://dimesitio.es/sitemap.xml',

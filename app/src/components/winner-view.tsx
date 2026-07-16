@@ -3,11 +3,14 @@
 import { type ComponentType } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel } from '@/lib/utils'
 import { MapPin, Phone, Navigation, Menu, Calendar, PartyPopper, UtensilsCrossed, RotateCcw, Crown } from 'lucide-react'
 
 export default function WinnerView() {
+  const t = useTranslations('Winner')
+  const tCommon = useTranslations('Common')
   const { winner, startNewFlow } = useFlowStore()
 
   if (!winner) {
@@ -18,14 +21,14 @@ export default function WinnerView() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <p className="text-base font-semibold text-stone-700 sm:text-lg">No se ha seleccionado ningún restaurante</p>
-        <p className="max-w-xs text-sm text-stone-400">Vuelve a empezar y busca tu restaurante ideal.</p>
+        <p className="text-base font-semibold text-stone-700 sm:text-lg">{t('noSelection')}</p>
+        <p className="max-w-xs text-sm text-stone-400">{t('noSelectionDesc')}</p>
         <button
         onClick={startNewFlow}
           className="inline-flex items-center gap-2 rounded-2xl bg-stone-800 px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-all hover:bg-stone-700"
         >
           <RotateCcw className="h-5 w-5" />
-          Volver a empezar
+          {tCommon('startOver')}
         </button>
       </div>
     )
@@ -50,7 +53,7 @@ export default function WinnerView() {
           </span>
         </motion.div>
         <p className="text-sm font-medium text-stone-500 sm:text-base">
-          Tu restaurante ideal
+          {t('celebration')}
         </p>
         <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
           {winner.name}
@@ -88,13 +91,13 @@ export default function WinnerView() {
           <div className="space-y-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
             <div className="flex flex-wrap gap-2">
               {winner.founder_rank && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-800 sm:text-base" title="Fundador">
-                  <Crown className="h-3.5 w-3.5" /> Fundador
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-800 sm:text-base" title={tCommon('founder')}>
+                  <Crown className="h-3.5 w-3.5" /> {tCommon('founder')}
                 </span>
               )}
               {winner.is_demo && (
                 <span className="rounded-full bg-stone-200 px-3 py-1 text-sm font-medium text-stone-500 sm:text-base">
-                  Demo
+                  {tCommon('demo')}
                 </span>
               )}
               {winner.zone && (
@@ -122,7 +125,7 @@ export default function WinnerView() {
             {winner.phone && (
               <ActionButton
                 href={`tel:${winner.phone}`}
-                label="Llamar"
+                label={tCommon('call')}
                 icon={Phone}
               />
             )}
@@ -130,7 +133,7 @@ export default function WinnerView() {
             {winner.address && (
               <ActionButton
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winner.address + ', Valencia')}`}
-                label="Cómo llegar"
+                label={tCommon('directions')}
                 icon={Navigation}
               />
             )}
@@ -138,7 +141,7 @@ export default function WinnerView() {
             {winner.menu_url && (
               <ActionButton
                 href={winner.menu_url}
-                label="Ver menú"
+                label={tCommon('viewMenu')}
                 icon={Menu}
               />
             )}
@@ -146,7 +149,7 @@ export default function WinnerView() {
             {winner.reservations_url && (
               <ActionButton
                 href={winner.reservations_url}
-                label="Reservar"
+                label={tCommon('reserve')}
                 icon={Calendar}
               />
             )}
@@ -154,7 +157,7 @@ export default function WinnerView() {
             {winner.instagram_url && (
               <ActionButton
                 href={winner.instagram_url}
-                label="Ver Instagram"
+                label={tCommon('viewInstagram')}
                 icon={InstagramIcon}
               />
             )}
@@ -169,7 +172,7 @@ export default function WinnerView() {
         className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-4 sm:text-lg lg:py-5 lg:text-xl"
       >
         <RotateCcw className="h-5 w-5" />
-        Volver a empezar
+        {tCommon('startOver')}
       </motion.button>
     </motion.div>
   )

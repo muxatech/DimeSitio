@@ -1,5 +1,26 @@
 'use client'
 
+const STRINGS = {
+  es: {
+    criticalError: 'Error crítico',
+    cannotLoadApp: 'No se ha podido cargar la aplicación. Prueba a recargar la página.',
+    backHome: 'Volver al inicio',
+    reloadPage: 'Recargar página',
+  },
+  en: {
+    criticalError: 'Critical error',
+    cannotLoadApp: 'Could not load the application. Try reloading the page.',
+    backHome: 'Back to home',
+    reloadPage: 'Reload page',
+  },
+}
+
+function getLocale(): 'es' | 'en' {
+  if (typeof window === 'undefined') return 'es'
+  const lang = document.documentElement.lang || navigator.language || 'es'
+  return lang.startsWith('en') ? 'en' : 'es'
+}
+
 export default function GlobalError({
   error,
   reset,
@@ -7,8 +28,10 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const t = STRINGS[getLocale()]
+
   return (
-    <html lang="es">
+    <html lang={getLocale()}>
       <body style={{
         margin: 0,
         minHeight: '100dvh',
@@ -37,10 +60,10 @@ export default function GlobalError({
         </div>
         <div style={{ maxWidth: '320px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#1c1917' }}>
-            Error crítico
+            {t.criticalError}
           </h2>
           <p style={{ marginTop: '8px', fontSize: '14px', color: '#78716c', lineHeight: 1.5 }}>
-            No se ha podido cargar la aplicación. Prueba a recargar la página.
+            {t.cannotLoadApp}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -60,7 +83,7 @@ export default function GlobalError({
               cursor: 'pointer',
             }}
           >
-            Volver al inicio
+            {t.backHome}
           </button>
           <button
             onClick={() => reset()}
@@ -78,7 +101,7 @@ export default function GlobalError({
               cursor: 'pointer',
             }}
           >
-            Recargar página
+            {t.reloadPage}
           </button>
         </div>
       </body>

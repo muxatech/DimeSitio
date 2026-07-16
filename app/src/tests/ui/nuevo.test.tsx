@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import NuevoEstablecimientoPage from '@/app/(panel)/establecimientos/nuevo/page'
+import NuevoEstablecimientoPage from '@/app/[locale]/(panel)/establecimientos/nuevo/page'
+import { TestWrapper } from '../helpers'
 
 const mockCreateRestaurant = vi.fn()
 const mockCreateCheckout = vi.fn()
@@ -33,6 +34,10 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }))
 
+vi.mock('@/i18n/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}))
+
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
@@ -40,7 +45,7 @@ vi.mock('framer-motion', () => ({
   },
 }))
 
-vi.mock('@/app/(panel)/establecimientos/restaurant-form', () => ({
+vi.mock('@/app/[locale]/(panel)/establecimientos/restaurant-form', () => ({
   default: ({ onSubmit, isSubmitting }: { onSubmit: (data: { name: string }) => void; isSubmitting: boolean }) => (
     <div>
       <button onClick={() => onSubmit({ name: 'Test' })} disabled={isSubmitting}>
@@ -56,11 +61,11 @@ describe('NuevoEstablecimientoPage', () => {
     mutationCallback = null
   })
 
-  it('shows created dialog after successful creation', async () => {
+  it('shows created dialog in Spanish after successful creation', async () => {
     mockCreateRestaurant.mockResolvedValue({ id: 'r-new' })
     mockCreateCheckout.mockResolvedValue('https://checkout.stripe.com/test')
 
-    render(<NuevoEstablecimientoPage />)
+    render(<NuevoEstablecimientoPage />, { wrapper: TestWrapper })
     await act(async () => {
       fireEvent.click(screen.getByText('Crear'))
     })
@@ -69,11 +74,24 @@ describe('NuevoEstablecimientoPage', () => {
     })
   })
 
+  it('shows created dialog in English after successful creation', async () => {
+    mockCreateRestaurant.mockResolvedValue({ id: 'r-new' })
+    mockCreateCheckout.mockResolvedValue('https://checkout.stripe.com/test')
+
+    render(<NuevoEstablecimientoPage />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Crear'))
+    })
+    await waitFor(() => {
+      expect(screen.getByText('Establishment created')).toBeInTheDocument()
+    })
+  })
+
   it('shows error when checkout fails', async () => {
     mockCreateRestaurant.mockResolvedValue({ id: 'r-new' })
     mockCreateCheckout.mockRejectedValue(new Error('Error de pago'))
 
-    render(<NuevoEstablecimientoPage />)
+    render(<NuevoEstablecimientoPage />, { wrapper: TestWrapper })
     await act(async () => {
       fireEvent.click(screen.getByText('Crear'))
     })
@@ -83,6 +101,19 @@ describe('NuevoEstablecimientoPage', () => {
     fireEvent.click(screen.getByText('Completar activación'))
     await waitFor(() => {
       expect(screen.getByText('Error de pago')).toBeInTheDocument()
+    })
+  })
+
+  it('shows English activation button', async () => {
+    mockCreateRestaurant.mockResolvedValue({ id: 'r-new' })
+    mockCreateCheckout.mockRejectedValue(new Error('Payment error'))
+
+    render(<NuevoEstablecimientoPage />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Crear'))
+    })
+    await waitFor(() => {
+      expect(screen.getByText('Complete activation')).toBeInTheDocument()
     })
   })
 })

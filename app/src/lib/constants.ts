@@ -1,5 +1,7 @@
 import type { Category } from '@/types'
 
+export const NO_SESSION_ERROR = 'NO_SESSION'
+
 export interface CategoryGroupDisplay {
   key: string
   label: string
@@ -91,24 +93,4 @@ export const FOOD_TYPES = [
   'Peruano', 'Tailandés', 'Griego', 'Francés', 'Americano',
 ]
 
-export const PROBLEMS = [
-  {
-    title: 'Decides en minutos',
-    desc: 'Olvídate de comparar decenas de restaurantes. Elige tipo de comida, presupuesto y zona, y nosotros hacemos el resto.',
-  },
-  {
-    title: 'Menos opciones, mejores decisiones',
-    desc: 'No necesitas ver cien sitios para encontrar uno bueno. Te enseñamos solo las opciones que realmente encajan contigo.',
-  },
-  {
-    title: 'Todo listo para salir',
-    desc: 'Consulta el menú, abre la ruta o llama directamente al restaurante. Sin vueltas. Sin estrés.',
-  },
-]
 
-export const HERO_STATS = [
-  { value: '18+', label: 'Establecimientos' },
-  { value: '15', label: 'Tipos de cocina' },
-  { value: '22', label: 'Zonas' },
-  { value: '0€', label: 'Siempre gratis' },
-]

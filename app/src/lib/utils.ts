@@ -11,6 +11,12 @@ export function cn(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(' ')
 }
 
+const LOCALE_RE = /^\/(es|en)(\/|$)/
+
+export function stripLocalePrefix(pathname: string): string {
+  return pathname.replace(LOCALE_RE, '/$2')
+}
+
 function fallbackUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0

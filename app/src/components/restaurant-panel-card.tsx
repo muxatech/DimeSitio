@@ -1,11 +1,12 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { MapPin, UtensilsCrossed, Pencil, Trash2, Eye, CheckCircle2, Phone, Crown } from 'lucide-react'
 import { getPriceLabel } from '@/lib/utils'
 import type { RestaurantWithRole } from '@/types'
+import { useTranslations } from 'next-intl'
 
 const itemVariants = {
   hidden: { opacity: 0, y: 12 },
@@ -28,6 +29,8 @@ export default function RestaurantPanelCard({
   isDeleting,
 }: RestaurantPanelCardProps) {
   const router = useRouter()
+  const t = useTranslations('RestaurantPanel')
+  const tCommon = useTranslations('Common')
 
   function handleNavigate() {
     router.push(`/establecimientos/${restaurant.id}`)
@@ -96,8 +99,8 @@ export default function RestaurantPanelCard({
 
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
           {(restaurant.founder_rank || restaurant.plan_type === 'founder') && (
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800" title="Fundador">
-              <Crown className="h-3 w-3" /> Fundador
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800" title={tCommon('founder')}>
+              <Crown className="h-3 w-3" /> {tCommon('founder')}
             </span>
           )}
           {restaurant.is_demo && (
@@ -107,15 +110,15 @@ export default function RestaurantPanelCard({
           )}
           {restaurant.active ? (
             <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-medium text-white">
-              Activo
+              {t('active')}
             </span>
           ) : restaurant.subscription_status === 'active' ? (
             <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-400">
-              Oculto
+              {t('hidden')}
             </span>
           ) : (
             <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-400">
-              Sin suscripción
+              {t('noSubscription')}
             </span>
           )}
         </div>
@@ -125,7 +128,7 @@ export default function RestaurantPanelCard({
             <button
               onClick={handleEdit}
               className="inline-flex items-center justify-center rounded-xl p-2 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-700"
-              aria-label="Editar"
+              aria-label={t('edit')}
             >
               <Pencil className="h-4 w-4" />
             </button>
@@ -133,7 +136,7 @@ export default function RestaurantPanelCard({
               onClick={handleDeleteClick}
               disabled={isDeleting}
               className="inline-flex items-center justify-center rounded-xl p-2 text-stone-400 transition-colors hover:bg-red-50 hover:text-red-400 disabled:opacity-50"
-              aria-label="Eliminar"
+              aria-label={t('delete')}
             >
               <Trash2 className="h-4 w-4" />
             </button>

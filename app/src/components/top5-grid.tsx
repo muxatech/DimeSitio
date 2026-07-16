@@ -2,10 +2,12 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { Frown, Swords, ArrowLeft, UtensilsCrossed } from 'lucide-react'
 
 export default function Top5Grid() {
+  const t = useTranslations('Top5')
   const { top5, initBattle, goBackToQuestions } = useFlowStore()
 
   if (top5.length === 0) {
@@ -14,10 +16,10 @@ export default function Top5Grid() {
         <Frown className="h-12 w-12 text-stone-300" />
         <div className="space-y-1">
           <p className="text-base font-semibold text-stone-700 sm:text-lg">
-            No encontramos restaurantes con esos filtros
+            {t('emptyTitle')}
           </p>
           <p className="text-sm text-stone-400">
-            Prueba cambiando el tipo de cocina, el presupuesto o la zona.
+            {t('emptyDesc')}
           </p>
         </div>
         <motion.button
@@ -27,7 +29,7 @@ export default function Top5Grid() {
           className="inline-flex items-center gap-2 rounded-2xl bg-stone-800 px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-all hover:bg-stone-700 sm:px-8 sm:py-4 sm:text-lg"
         >
           <ArrowLeft className="h-5 w-5" />
-          Cambiar filtros
+          {t('changeFilters')}
         </motion.button>
       </div>
     )
@@ -39,15 +41,13 @@ export default function Top5Grid() {
     <div className="flex flex-col gap-8 sm:gap-10">
       <div className="space-y-1 text-center">
         <p className="text-base text-stone-600 sm:text-lg">
-          Hemos seleccionado<br />
-          <strong className="text-xl sm:text-2xl">{top5.length} opciones</strong><br />
-          para ti.
+          {t('selected', { count: top5.length })}
         </p>
       </div>
 
       <div className="space-y-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 sm:p-6">
         <p className="text-center text-xs font-semibold uppercase tracking-widest text-stone-400">
-          Vista previa del primer duelo
+          {t('preview')}
         </p>
         <div className="flex items-stretch gap-3 sm:gap-6">
           <PreviewCard restaurant={first} />
@@ -64,7 +64,7 @@ export default function Top5Grid() {
         </div>
         {top5.length > 2 && (
           <p className="text-center text-sm text-stone-400">
-            +{top5.length - 2} más
+            {t('more', { count: top5.length - 2 })}
           </p>
         )}
       </div>
@@ -77,7 +77,7 @@ export default function Top5Grid() {
           className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-stone-800 py-4 text-base font-semibold text-white shadow-lg shadow-stone-200/50 transition-all hover:bg-stone-700 sm:py-5 sm:text-lg"
         >
           <Swords className="h-5 w-5" />
-          Elegir favorito
+          {t('chooseFavorite')}
         </motion.button>
       )}
     </div>

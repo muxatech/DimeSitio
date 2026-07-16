@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import RestaurantForm from '@/app/(panel)/establecimientos/restaurant-form'
+import RestaurantForm from '@/app/[locale]/(panel)/establecimientos/restaurant-form'
+import { TestWrapper } from '@/tests/helpers'
 import type { RestaurantWithRole } from '@/types'
 
 vi.mock('framer-motion', () => ({
@@ -12,6 +13,10 @@ vi.mock('framer-motion', () => ({
 
 vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: Record<string, unknown>) => <a href={href as string} {...props}>{children}</a>,
+}))
+
+vi.mock('@/i18n/navigation', () => ({
+  Link: ({ children, href, ...props }: Record<string, unknown>) => <a href={href as string} {...props}>{children}</a>,
 }))
 
 const { mockFormValues } = vi.hoisted(() => ({
@@ -87,13 +92,13 @@ describe('RestaurantForm T&C acceptance', () => {
   const onSubmit = vi.fn()
 
   it('renders T&C checkbox when creating', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
     expect(screen.getByText(/Términos y Condiciones/)).toBeInTheDocument()
     expect(screen.getByText(/Política de Privacidad/)).toBeInTheDocument()
   })
 
   it('submit button is disabled when checkbox is not checked', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
     const checkbox = screen.getByRole('checkbox')
     expect(checkbox).not.toBeChecked()
     const submitBtn = screen.getByText('Crear establecimiento')
@@ -101,7 +106,7 @@ describe('RestaurantForm T&C acceptance', () => {
   })
 
   it('submit button is enabled after checking the checkbox', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
     const checkbox = screen.getByRole('checkbox') as HTMLInputElement
     fireEvent.click(checkbox)
     expect(checkbox.checked).toBe(true)
@@ -115,13 +120,14 @@ describe('RestaurantForm T&C acceptance', () => {
         onSubmit={onSubmit}
         isSubmitting={false}
         defaultValues={{ id: 'r-1', name: 'Existing' } as unknown as RestaurantWithRole}
-      />
+      />,
+      { wrapper: TestWrapper }
     )
     expect(screen.queryByText(/Términos y Condiciones/)).not.toBeInTheDocument()
   })
 
   it('T&C link points to /terminos and privacy link to /privacidad', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
     const termLink = screen.getByText('Términos y Condiciones')
     expect(termLink.closest('a')).toHaveAttribute('href', '/terminos')
     const privLink = screen.getByText('Política de Privacidad')
@@ -133,24 +139,24 @@ describe('RestaurantForm staff category creation', () => {
   const onSubmit = vi.fn()
 
   it('does not show Nueva button without staffMode', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
     expect(screen.queryByText('Nueva')).not.toBeInTheDocument()
   })
 
   it('shows Nueva button with staffMode', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />, { wrapper: TestWrapper })
     expect(screen.getByText('Nueva')).toBeInTheDocument()
   })
 
   it('opens dialog when Nueva is clicked', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />, { wrapper: TestWrapper })
     fireEvent.click(screen.getByText('Nueva'))
     expect(screen.getByText('Nueva categoría')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Ej: Kebab')).toBeInTheDocument()
   })
 
   it('closes dialog on Cancel', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />, { wrapper: TestWrapper })
     fireEvent.click(screen.getByText('Nueva'))
     expect(screen.getByText('Nueva categoría')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
@@ -162,17 +168,17 @@ describe('RestaurantForm is_demo toggle', () => {
   const onSubmit = vi.fn()
 
   it('does not show demo section without staffMode', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
     expect(screen.queryByText('Restaurante demo')).not.toBeInTheDocument()
   })
 
   it('shows demo section with staffMode', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />, { wrapper: TestWrapper })
     expect(screen.getByText('Restaurante demo')).toBeInTheDocument()
   })
 
   it('checkbox is unchecked by default', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />, { wrapper: TestWrapper })
     const checkboxes = screen.getAllByRole('checkbox')
     const demoCheckbox = checkboxes.find((cb) => cb.closest('section')?.textContent?.includes('Restaurante demo'))
     expect(demoCheckbox).toBeDefined()
@@ -180,7 +186,7 @@ describe('RestaurantForm is_demo toggle', () => {
   })
 
   it('checkbox can be checked', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />, { wrapper: TestWrapper })
     const checkboxes = screen.getAllByRole('checkbox')
     const demoCheckbox = checkboxes.find((cb) => cb.closest('section')?.textContent?.includes('Restaurante demo')) as HTMLInputElement
     fireEvent.click(demoCheckbox)
@@ -192,7 +198,7 @@ describe('RestaurantForm Instagram field', () => {
   const onSubmit = vi.fn()
 
   it('renders Instagram input with placeholder', () => {
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
     expect(screen.getByText('Instagram')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('@usuario')).toBeInTheDocument()
   })
@@ -227,7 +233,7 @@ describe('RestaurantForm Instagram normalization on submit', () => {
 
   it('normalizes @handle to full URL', () => {
     mockFormValues.instagram_url = '@test_user'
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
 
     const checkbox = screen.getByRole('checkbox') as HTMLInputElement
     fireEvent.click(checkbox)
@@ -240,7 +246,7 @@ describe('RestaurantForm Instagram normalization on submit', () => {
 
   it('does not duplicate already normalized URL', () => {
     mockFormValues.instagram_url = 'https://instagram.com/test_user'
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
 
     const checkbox = screen.getByRole('checkbox') as HTMLInputElement
     fireEvent.click(checkbox)
@@ -253,7 +259,7 @@ describe('RestaurantForm Instagram normalization on submit', () => {
 
   it('adds https:// to instagram.com/handle without protocol', () => {
     mockFormValues.instagram_url = 'instagram.com/test_user'
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
 
     const checkbox = screen.getByRole('checkbox') as HTMLInputElement
     fireEvent.click(checkbox)
@@ -266,7 +272,7 @@ describe('RestaurantForm Instagram normalization on submit', () => {
 
   it('strips plan_type and payment_method before calling onSubmit when not in staff mode', () => {
     mockFormValues.instagram_url = '@test'
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
 
     const checkbox = screen.getByRole('checkbox') as HTMLInputElement
     fireEvent.click(checkbox)
@@ -281,7 +287,7 @@ describe('RestaurantForm Instagram normalization on submit', () => {
     mockFormValues.instagram_url = '@test'
     mockFormValues.plan_type = 'founder'
     mockFormValues.payment_method = 'email'
-    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />)
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} staffMode />, { wrapper: TestWrapper })
 
     const checkboxes = screen.getAllByRole('checkbox')
     const termsCheckbox = checkboxes.find((cb) =>
