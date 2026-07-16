@@ -4,10 +4,11 @@ import { useLocale } from 'next-intl'
 import { usePathname, useRouter } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 const locales = [
-  { code: 'es', flag: '🇪🇸', label: 'ES' },
-  { code: 'en', flag: '🇬🇧', label: 'EN' },
+  { code: 'es', label: 'ES' },
+  { code: 'en', label: 'EN' },
 ] as const
 
 export default function LocaleSwitcher({ isDark, className }: { isDark?: boolean; className?: string }) {
@@ -45,7 +46,13 @@ export default function LocaleSwitcher({ isDark, className }: { isDark?: boolean
               transition={{ type: 'spring', stiffness: 500, damping: 35 }}
             />
           )}
-          <span className="relative z-10 text-sm">{l.flag}</span>
+          <Image
+            src={`/flags/${l.code}.svg`}
+            alt={l.label}
+            width={16}
+            height={12}
+            className="relative z-10 rounded-full"
+          />
           <span className="relative z-10">{l.label}</span>
         </button>
       ))}
