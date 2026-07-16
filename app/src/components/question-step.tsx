@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { cn } from '@/lib/utils'
 import { groupCategories } from '@/lib/constants'
+import type { Category } from '@/types'
 import { Banknote, Coins, Crown, ArrowLeft, Coffee, UtensilsCrossed, Wine, ChevronDown } from 'lucide-react'
 
 interface QuestionStepProps {
@@ -135,7 +136,7 @@ export function QuestionCategoryGroups({
   onBack,
   title,
   subtitle,
-}: QuestionStepProps & { categories: { id: string; name: string; group_keys?: string }[] }) {
+}: QuestionStepProps & { categories: Category[] }) {
   const t = useTranslations('Questions')
   const tCommon = useTranslations('Common')
   const { selectedCategoryIds, setSelectedCategoryIds } = useFlowStore()
