@@ -9,6 +9,6 @@ export function proxy(request: Parameters<typeof handleI18nRouting>[0]) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|opengraph-image|robots\\.xml|sitemap\\.xml).*)',
+    '/((?!api|_next/static|_next/image|flags|favicon.ico|opengraph-image|robots\\.xml|sitemap\\.xml).*)',
   ],
 }
