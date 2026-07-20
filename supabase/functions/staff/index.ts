@@ -102,16 +102,27 @@ function sanitizeStrings(body: Record<string, unknown>) {
 }
 
 async function assignFounderRank(supabase: ReturnType<typeof createClient>, restaurantId: string) {
-  const { count } = await supabase
+  const { count, error: countErr } = await supabase
     .from('restaurants')
     .select('*', { count: 'exact', head: true })
     .not('founder_rank', 'is', null)
 
+  if (countErr) {
+    console.error('staff: assignFounderRank count failed', countErr.message)
+    return
+  }
+
   if (count !== null && count < 100) {
-    await supabase
+    const { error: updateErr } = await supabase
       .from('restaurants')
       .update({ founder_rank: count + 1 })
       .eq('id', restaurantId)
+
+    if (updateErr) {
+      console.error('staff: assignFounderRank update failed', updateErr.message)
+    } else {
+      console.log(`staff: assigned founder_rank ${count + 1} to ${restaurantId}`)
+    }
   }
 }
 
