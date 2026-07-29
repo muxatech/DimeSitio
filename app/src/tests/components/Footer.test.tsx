@@ -11,11 +11,23 @@ vi.mock('@/i18n/navigation', () => ({
   Link: ({ children, href, ...props }: Record<string, unknown>) => <a href={href as string} {...props}>{children}</a>,
 }))
 
-vi.mock('next-intl/server', () => ({
-  getTranslations: async () => {
-    const es = await import('../../../messages/es.json')
-    const t = (key: string) => es.default.Common[key as keyof typeof es.default.Common] || key
-    return t
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
+    const map: Record<string, string> = {
+      appName: 'DimeSitio',
+      tagline: 'Encuentra tu próximo plan gastronómico',
+      links: 'Links',
+      home: 'Inicio',
+      forRestaurants: 'Para restaurantes',
+      contact: 'Contacto',
+      legal: 'Legal',
+      terms: 'Términos y Condiciones',
+      privacy: 'Política de Privacidad',
+      legalNotice: 'Aviso Legal',
+      allRightsReserved: 'Todos los derechos reservados.',
+      madeInValencia: 'Hecho en Valencia',
+    }
+    return map[key] || key
   },
 }))
 

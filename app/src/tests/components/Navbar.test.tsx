@@ -26,6 +26,10 @@ vi.mock('framer-motion', () => ({
   },
 }))
 
+vi.mock('@/components/locale-switcher', () => ({
+  default: () => <div />,
+}))
+
 vi.mock('@/lib/utils', () => ({
   cn: (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' '),
   getSessionId: () => 'mock-session-id',
