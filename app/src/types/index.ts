@@ -14,6 +14,7 @@ export interface Restaurant {
   city: string
   lat: number | null
   lng: number | null
+  google_maps_url: string | null
   price_level: 1 | 2 | 3
   image_url: string | null
   menu_url: string | null
@@ -76,6 +77,7 @@ export interface RestaurantFormData {
   zone: string
   lat?: number | null
   lng?: number | null
+  google_maps_url?: string | null
   image_url?: string
   menu_url?: string
   reservations_url?: string

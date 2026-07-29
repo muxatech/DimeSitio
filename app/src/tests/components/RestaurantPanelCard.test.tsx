@@ -36,6 +36,8 @@ const base: RestaurantWithRole = {
   image_url: null,
   menu_url: null,
   reservations_url: null,
+  instagram_url: null,
+  google_maps_url: null,
   zone: 'centro',
   active: true,
   role: 'owner',

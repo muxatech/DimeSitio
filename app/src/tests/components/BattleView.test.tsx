@@ -21,14 +21,14 @@ const champion: Restaurant = {
   id: 'a', owner_id: null, name: 'Champion', description: 'Champion desc',
   phone: null, address: null, city: 'Valencia', lat: null, lng: null,
   price_level: 1, image_url: null, menu_url: null, reservations_url: null,
-  instagram_url: null, zone: 'centro', active: true,
+  instagram_url: null, google_maps_url: null, zone: 'centro', active: true,
 }
 
 const challenger: Restaurant = {
   id: 'b', owner_id: null, name: 'Challenger', description: 'Challenger desc',
   phone: null, address: null, city: 'Valencia', lat: null, lng: null,
   price_level: 2, image_url: null, menu_url: null, reservations_url: null,
-  instagram_url: 'https://instagram.com/challenger', zone: 'russafa', active: true,
+  instagram_url: 'https://instagram.com/challenger', google_maps_url: null, zone: 'russafa', active: true,
 }
 
 const founderRestaurant: Restaurant = {

@@ -128,9 +128,9 @@ export default function WinnerView() {
               />
             )}
 
-            {winner.address && (
+            {(winner.google_maps_url || winner.address) && (
               <ActionButton
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winner.address + ', Valencia')}`}
+                href={winner.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winner.address + ', Valencia')}`}
                 label={tCommon('directions')}
                 icon={Navigation}
               />

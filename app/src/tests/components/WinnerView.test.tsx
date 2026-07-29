@@ -38,6 +38,8 @@ const demoRestaurant: Restaurant = {
   zone: 'centro',
   active: true,
   is_demo: true,
+  google_maps_url: null,
+  instagram_url: null,
 }
 
 const founderRestaurant: Restaurant = {
@@ -57,6 +59,8 @@ const founderRestaurant: Restaurant = {
   zone: 'russafa',
   active: true,
   founder_rank: 42,
+  google_maps_url: null,
+  instagram_url: null,
 }
 
 const normalRestaurant: Restaurant = {
@@ -76,6 +80,7 @@ const normalRestaurant: Restaurant = {
   instagram_url: null,
   zone: 'cabanyal',
   active: true,
+  google_maps_url: null,
 }
 
 const restaurantWithInstagram: Restaurant = {
@@ -93,8 +98,9 @@ const restaurantWithInstagram: Restaurant = {
   menu_url: null,
   reservations_url: null,
   instagram_url: 'https://instagram.com/myhandle',
-  zone: 'centro',
+  zone: 'cabanyal',
   active: true,
+  google_maps_url: null,
 }
 
 describe('WinnerView', () => {

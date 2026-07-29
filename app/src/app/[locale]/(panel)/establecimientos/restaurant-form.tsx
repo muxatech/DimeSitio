@@ -14,7 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getCategories } from '@/lib/panel/api'
 import { supabase } from '@/lib/supabase'
 import { ZONES, groupCategories, CATEGORY_GROUPS } from '@/lib/constants'
-import { cn, getPriceLabel, normalizeInstagramUrl } from '@/lib/utils'
+import { cn, getPriceLabel, normalizeInstagramUrl, extractCoordsFromGoogleMapsUrl } from '@/lib/utils'
 import type { RestaurantFormData, RestaurantWithRole } from '@/types'
 
 const categoryGroupLabelMap: Record<string, string> = {
@@ -124,8 +124,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
     address: z.string().optional(),
     price_level: z.number().min(1).max(3),
     zone: z.string().min(1, t('zoneRequired')),
-    lat: z.number().nullable().optional(),
-    lng: z.number().nullable().optional(),
+    google_maps_url: z.string().optional(),
     image_url: z.string().optional(),
     menu_url: z.string().optional(),
     reservations_url: z.string().optional(),
@@ -182,8 +181,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       address: defaultValues?.address ?? '',
       price_level: defaultValues?.price_level ?? 1,
       zone: defaultValues?.zone ?? '',
-      lat: defaultValues?.lat ?? null,
-      lng: defaultValues?.lng ?? null,
+      google_maps_url: defaultValues?.google_maps_url ?? '',
       image_url: defaultValues?.image_url ?? '',
       menu_url: defaultValues?.menu_url ?? '',
       reservations_url: defaultValues?.reservations_url ?? '',
@@ -232,10 +230,18 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       if (data.instagram_url) {
         data.instagram_url = normalizeInstagramUrl(data.instagram_url)
       }
+      const coords = data.google_maps_url
+        ? extractCoordsFromGoogleMapsUrl(data.google_maps_url)
+        : null
+      const apiData = {
+        ...data,
+        lat: coords?.lat ?? null,
+        lng: coords?.lng ?? null,
+      } as unknown as RestaurantFormData
       if (staffMode) {
-        await onSubmit(data as unknown as RestaurantFormData)
+        await onSubmit(apiData)
       } else {
-        const { plan_type, payment_method, ...cleanData } = data
+        const { plan_type, payment_method, ...cleanData } = apiData
         await onSubmit(cleanData as RestaurantFormData)
       }
     } catch (e) {
@@ -407,31 +413,19 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
               </div>
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
-                  {t('latitude')}
-                </label>
-                <input
-                  {...register('lat', { valueAsNumber: true })}
-                  type="number"
-                  step="any"
-                  placeholder="39.4699"
-                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
-                  {t('longitude')}
-                </label>
-                <input
-                  {...register('lng', { valueAsNumber: true })}
-                  type="number"
-                  step="any"
-                  placeholder="-0.3763"
-                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
-                />
-              </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
+                {t('googleMapsUrl')}
+              </label>
+              <input
+                {...register('google_maps_url')}
+                type="url"
+                placeholder="https://www.google.com/maps/place/..."
+                className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
+              />
+              <p className="mt-1 text-xs text-stone-400">
+                {t('googleMapsUrlHint')}
+              </p>
             </div>
           </div>
         </section>

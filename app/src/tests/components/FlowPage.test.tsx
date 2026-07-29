@@ -46,14 +46,14 @@ const mockRestaurants: Restaurant[] = [
   {
     id: 'r-1', owner_id: null, name: 'Rest A', description: null, phone: null,
     address: null, city: 'Valencia', lat: null, lng: null, price_level: 2,
-    image_url: null, menu_url: null, reservations_url: null, instagram_url: null,
+    image_url: null, menu_url: null, reservations_url: null, instagram_url: null, google_maps_url: null,
     zone: 'centro', active: true,
     restaurant_categories: [{ category_id: 'cat-1' }],
   },
   {
     id: 'r-2', owner_id: null, name: 'Rest B', description: null, phone: null,
     address: null, city: 'Valencia', lat: null, lng: null, price_level: 1,
-    image_url: null, menu_url: null, reservations_url: null, instagram_url: null,
+    image_url: null, menu_url: null, reservations_url: null, instagram_url: null, google_maps_url: null,
     zone: 'russafa', active: true,
     restaurant_categories: [{ category_id: 'cat-2' }],
   },

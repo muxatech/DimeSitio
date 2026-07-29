@@ -48,6 +48,17 @@ export function getPriceLabel(level: 1 | 2 | 3): string {
   return PRICE_LABELS[level] ?? '€'.repeat(level)
 }
 
+const GOOGLE_MAPS_COORDS_RE = /@(-?\d+\.?\d*),(-?\d+\.?\d*)/
+
+export function extractCoordsFromGoogleMapsUrl(url: string): { lat: number; lng: number } | null {
+  const match = url.match(GOOGLE_MAPS_COORDS_RE)
+  if (!match) return null
+  const lat = parseFloat(match[1])
+  const lng = parseFloat(match[2])
+  if (isNaN(lat) || isNaN(lng)) return null
+  return { lat, lng }
+}
+
 export function normalizeInstagramUrl(url: string): string {
   const trimmed = url.trim()
   if (!trimmed) return trimmed
