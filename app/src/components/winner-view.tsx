@@ -2,7 +2,6 @@
 
 import { type ComponentType } from 'react'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel } from '@/lib/utils'
@@ -70,11 +69,10 @@ export default function WinnerView() {
         >
           <div className="relative h-56 bg-stone-100 sm:h-full sm:min-h-64 lg:min-h-80">
             {winner.image_url ? (
-              <Image
+              <img
                 src={winner.image_url}
                 alt={winner.name}
-                width={800}
-                height={600}
+                loading="lazy"
                 className="h-full w-full object-cover"
               />
             ) : (

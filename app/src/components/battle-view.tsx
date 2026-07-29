@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel } from '@/lib/utils'
@@ -140,11 +139,10 @@ function BattleCard({
     >
       <div className="relative h-44 bg-stone-100 sm:h-52 lg:h-64">
         {restaurant.image_url ? (
-          <Image
+          <img
             src={restaurant.image_url}
             alt={restaurant.name}
-            width={400}
-            height={300}
+            loading="lazy"
             className="h-full w-full object-cover"
           />
         ) : (

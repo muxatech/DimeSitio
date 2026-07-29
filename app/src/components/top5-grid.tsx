@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { Frown, Swords, ArrowLeft, UtensilsCrossed } from 'lucide-react'
@@ -89,11 +88,10 @@ function PreviewCard({ restaurant }: { restaurant: { id: string; name: string; i
     <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
       <div className="relative h-32 sm:h-40">
         {restaurant.image_url ? (
-          <Image
+          <img
             src={restaurant.image_url}
             alt={restaurant.name}
-            width={300}
-            height={200}
+            loading="lazy"
             className="h-full w-full object-cover"
           />
         ) : (

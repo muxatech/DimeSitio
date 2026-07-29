@@ -2,7 +2,6 @@
 
 import { useRouter } from '@/i18n/navigation'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import { MapPin, UtensilsCrossed, Pencil, Trash2, Eye, CheckCircle2, Phone, Crown } from 'lucide-react'
 import { getPriceLabel } from '@/lib/utils'
 import type { RestaurantWithRole } from '@/types'
@@ -56,11 +55,10 @@ export default function RestaurantPanelCard({
     >
       <div className="relative h-36 w-full overflow-hidden bg-stone-100 sm:h-40 lg:h-44">
         {restaurant.image_url ? (
-          <Image
+          <img
             src={restaurant.image_url}
             alt={restaurant.name}
-            width={400}
-            height={300}
+            loading="lazy"
             className="h-full w-full object-cover"
           />
         ) : (
