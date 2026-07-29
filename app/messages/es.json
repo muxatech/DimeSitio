@@ -224,8 +224,7 @@
     "emptyDesc": "Prueba cambiando el tipo de cocina, el presupuesto o la zona.",
     "changeFilters": "Cambiar filtros",
     "selected": "Hemos seleccionado {count} opciones para ti.",
-    "preview": "Vista previa del primer duelo",
-    "more": "+{count} más",
+    "subtitle": "Ahora te ayudaremos a elegir el mejor.",
     "chooseFavorite": "Elegir favorito"
   },
   "Battle": {

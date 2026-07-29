@@ -224,8 +224,7 @@
     "emptyDesc": "Try changing the cuisine type, budget, or area.",
     "changeFilters": "Change filters",
     "selected": "We've selected {count} options for you.",
-    "preview": "Preview of the first matchup",
-    "more": "+{count} more",
+    "subtitle": "Now we'll help you choose the best one.",
     "chooseFavorite": "Choose favorite"
   },
   "Battle": {

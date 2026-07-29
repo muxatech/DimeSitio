@@ -10,10 +10,6 @@ vi.mock('framer-motion', () => ({
   },
 }))
 
-vi.mock('next/image', () => ({
-  default: ({ alt, ...props }: Record<string, unknown>) => <img alt={alt as string} {...props} />,
-}))
-
 describe('Top5Grid', () => {
   beforeEach(() => {
     useFlowStore.setState({
@@ -28,63 +24,35 @@ describe('Top5Grid', () => {
       expect(screen.getByText(/No encontramos/)).toBeInTheDocument()
     })
 
-    it('shows VS preview for the first two and count of remaining', () => {
+    it('shows selection count and subtitle', () => {
       useFlowStore.setState({
         top5: [
-          { id: 'a', name: 'Rest A', image_url: null },
-          { id: 'b', name: 'Rest B', image_url: null },
-          { id: 'c', name: 'Rest C', image_url: null },
-        ] as any,
-      })
-      render(<Top5Grid />, { wrapper: TestWrapper })
-      expect(screen.getByText('VS')).toBeInTheDocument()
-      expect(screen.getByText('Rest A')).toBeInTheDocument()
-      expect(screen.getByText('Rest B')).toBeInTheDocument()
-      expect(screen.getByText('+1 más')).toBeInTheDocument()
-      expect(screen.getByText(/Elegir favorito/)).toBeInTheDocument()
-    })
-
-    it('shows only one card when only 1 option', () => {
-      useFlowStore.setState({
-        top5: [{ id: 'a', name: 'Solo Rest', image_url: null }] as any,
-      })
-      render(<Top5Grid />, { wrapper: TestWrapper })
-      expect(screen.getByText('Solo Rest')).toBeInTheDocument()
-      expect(screen.queryByText('VS')).not.toBeInTheDocument()
-      expect(screen.queryByText(/Elegir favorito/)).not.toBeInTheDocument()
-    })
-
-    it('does not show +N more when only 2 options', () => {
-      useFlowStore.setState({
-        top5: [
-          { id: 'a', name: 'Rest A', image_url: null },
-          { id: 'b', name: 'Rest B', image_url: null },
-        ] as any,
-      })
-      render(<Top5Grid />, { wrapper: TestWrapper })
-      expect(screen.queryByText(/más/)).not.toBeInTheDocument()
-    })
-
-    it('shows selection count text', () => {
-      useFlowStore.setState({
-        top5: [
-          { id: 'a', name: 'Rest A', image_url: null },
-          { id: 'b', name: 'Rest B', image_url: null },
+          { id: 'a', name: 'Rest A' },
+          { id: 'b', name: 'Rest B' },
         ] as any,
       })
       render(<Top5Grid />, { wrapper: TestWrapper })
       expect(screen.getByText(/Hemos seleccionado/)).toBeInTheDocument()
+      expect(screen.getByText('Ahora te ayudaremos a elegir el mejor.')).toBeInTheDocument()
     })
 
-    it('shows preview label', () => {
+    it('shows choose favorite button when 2+ options', () => {
       useFlowStore.setState({
         top5: [
-          { id: 'a', name: 'Rest A', image_url: null },
-          { id: 'b', name: 'Rest B', image_url: null },
+          { id: 'a', name: 'Rest A' },
+          { id: 'b', name: 'Rest B' },
         ] as any,
       })
       render(<Top5Grid />, { wrapper: TestWrapper })
-      expect(screen.getByText('Vista previa del primer duelo')).toBeInTheDocument()
+      expect(screen.getByText(/Elegir favorito/)).toBeInTheDocument()
+    })
+
+    it('does not show button when only 1 option', () => {
+      useFlowStore.setState({
+        top5: [{ id: 'a', name: 'Solo Rest' }] as any,
+      })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+      expect(screen.queryByText(/Elegir favorito/)).not.toBeInTheDocument()
     })
   })
 
@@ -99,49 +67,27 @@ describe('Top5Grid', () => {
       expect(screen.getByText('Change filters')).toBeInTheDocument()
     })
 
-    it('shows +N more in English', () => {
+    it('shows subtitle and button in English', () => {
       useFlowStore.setState({
         top5: [
-          { id: 'a', name: 'Rest A', image_url: null },
-          { id: 'b', name: 'Rest B', image_url: null },
-          { id: 'c', name: 'Rest C', image_url: null },
+          { id: 'a', name: 'Rest A' },
+          { id: 'b', name: 'Rest B' },
         ] as any,
       })
       render(<Top5Grid />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
-      expect(screen.getByText('+1 more')).toBeInTheDocument()
-    })
-
-    it('shows choose favorite button in English', () => {
-      useFlowStore.setState({
-        top5: [
-          { id: 'a', name: 'Rest A', image_url: null },
-          { id: 'b', name: 'Rest B', image_url: null },
-        ] as any,
-      })
-      render(<Top5Grid />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
+      expect(screen.getByText("Now we'll help you choose the best one.")).toBeInTheDocument()
       expect(screen.getByText(/Choose favorite/)).toBeInTheDocument()
     })
 
     it('shows selection count in English', () => {
       useFlowStore.setState({
         top5: [
-          { id: 'a', name: 'Rest A', image_url: null },
-          { id: 'b', name: 'Rest B', image_url: null },
+          { id: 'a', name: 'Rest A' },
+          { id: 'b', name: 'Rest B' },
         ] as any,
       })
       render(<Top5Grid />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
       expect(screen.getByText(/We've selected/)).toBeInTheDocument()
-    })
-
-    it('shows preview label in English', () => {
-      useFlowStore.setState({
-        top5: [
-          { id: 'a', name: 'Rest A', image_url: null },
-          { id: 'b', name: 'Rest B', image_url: null },
-        ] as any,
-      })
-      render(<Top5Grid />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
-      expect(screen.getByText('Preview of the first matchup')).toBeInTheDocument()
     })
   })
 })
