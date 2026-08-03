@@ -15,6 +15,7 @@ import { getCategories } from '@/lib/panel/api'
 import { supabase } from '@/lib/supabase'
 import { ZONES, groupCategories, CATEGORY_GROUPS } from '@/lib/constants'
 import { cn, getPriceLabel, normalizeInstagramUrl, extractCoordsFromGoogleMapsUrl } from '@/lib/utils'
+import PhotoUploader from '@/components/photo-uploader'
 import type { RestaurantFormData, RestaurantWithRole } from '@/types'
 
 const categoryGroupLabelMap: Record<string, string> = {
@@ -126,6 +127,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
     zone: z.string().min(1, t('zoneRequired')),
     google_maps_url: z.string().optional(),
     image_url: z.string().optional(),
+    photos: z.array(z.string()),
     menu_url: z.string().optional(),
     reservations_url: z.string().optional(),
     instagram_url: z.string().optional(),
@@ -183,6 +185,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       zone: defaultValues?.zone ?? '',
       google_maps_url: defaultValues?.google_maps_url ?? '',
       image_url: defaultValues?.image_url ?? '',
+      photos: defaultValues?.photos ?? [],
       menu_url: defaultValues?.menu_url ?? '',
       reservations_url: defaultValues?.reservations_url ?? '',
       instagram_url: defaultValues?.instagram_url ?? '',
@@ -197,6 +200,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
   const selectedPriceLevel = watch('price_level')
   const selectedCategoryIds = watch('category_ids')
   const imageUrlValue = watch('image_url')
+  const photosValue = watch('photos') ?? []
   const menuUrlValue = watch('menu_url')
   const reservationsUrlValue = watch('reservations_url')
   const instagramUrlValue = watch('instagram_url')
@@ -770,29 +774,12 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-stone-700 sm:text-base">
-                {t('imageUrl')}
+                {t('photos')}
               </label>
-              <input
-                {...register('image_url')}
-                placeholder="https://..."
-                className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm transition-all placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 sm:px-5 sm:py-3.5 sm:text-base"
+              <PhotoUploader
+                photos={photosValue}
+                onChange={(next) => setValue('photos', next, { shouldValidate: true })}
               />
-              {imageUrlValue && (
-                <div className="mt-3 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50">
-                  <img
-                    src={imageUrlValue}
-                    alt={tCommon('preview')}
-                    className="h-48 w-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.classList.add('hidden')
-                      e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                    }}
-                  />
-                  <div className="hidden h-48 w-full items-center justify-center bg-stone-100 px-4 text-sm text-stone-400">
-                    {t('imagePreviewError')}
-                  </div>
-                </div>
-              )}
             </div>
 
             <div>
@@ -995,7 +982,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
             <h3 className="mb-3 text-sm font-semibold text-stone-500">{t('preview')}</h3>
             <LivePreviewCard
               name={previewName}
-              imageUrl={imageUrlValue}
+              imageUrl={photosValue[0] || imageUrlValue}
               zone={zoneValue}
               priceLevel={previewPriceLevel as 1 | 2 | 3}
               description={previewDescription}
@@ -1003,20 +990,20 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
             />
           </div>
         </div>
-      </div>
 
-      {/* Mobile preview below form */}
-      <div className="lg:hidden">
-        <h3 className="mb-3 text-sm font-semibold text-stone-500">{t('preview')}</h3>
-        <LivePreviewCard
-          name={previewName}
-          imageUrl={imageUrlValue}
-          zone={zoneValue}
-          priceLevel={previewPriceLevel as 1 | 2 | 3}
-          description={previewDescription}
-          namePlaceholder={t('namePlaceholder')}
-        />
-      </div>
+        {/* Mobile preview below form */}
+        <div className="lg:hidden">
+          <h3 className="mb-3 text-sm font-semibold text-stone-500">{t('preview')}</h3>
+          <LivePreviewCard
+            name={previewName}
+            imageUrl={photosValue[0] || imageUrlValue}
+            zone={zoneValue}
+            priceLevel={previewPriceLevel as 1 | 2 | 3}
+            description={previewDescription}
+            namePlaceholder={t('namePlaceholder')}
+          />
+        </div>
+        </div>
     </motion.div>
   )
 }

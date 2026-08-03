@@ -59,6 +59,11 @@
     "edit": "Editar",
     "delete": "Eliminar"
   },
+  "PhotoCarousel": {
+    "previous": "Foto anterior",
+    "next": "Foto siguiente",
+    "photoLabel": "Foto {n}"
+  },
   "Restaurantes": {
     "founderBanner": "Sé de los primeros. Los 100 primeros establecimientos reciben la insignia Fundador.",
     "heroBadge": "Para restaurantes y cafeterías de Valencia",
@@ -439,6 +444,16 @@
     "menuUrl": "URL del menú",
     "imageUrl": "URL de la imagen",
     "imagePreviewError": "No se puede previsualizar la imagen",
+    "photos": "Fotos",
+    "photosHint": "{count} de {max} fotos",
+    "addPhotos": "Añadir fotos",
+    "uploadingPhoto": "Subiendo...",
+    "removePhoto": "Quitar foto",
+    "photoInvalid": "Formato no válido. Usa JPG, PNG o WebP",
+    "photoTooLarge": "La imagen es demasiado grande",
+    "photosLimit": "Máximo {max} fotos",
+    "uploadFailed": "Error al subir la foto",
+    "photoAlt": "Foto {n}",
     "instagramUrl": "Instagram",
     "reservationsWeb": "Reservas web",
     "yes": "Sí",

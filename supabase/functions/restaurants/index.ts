@@ -1,5 +1,7 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
+
+type Supabase = SupabaseClient<any, any, any, any, any>
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +24,7 @@ function fail(error: string, status = 400) {
   return json({ success: false, data: null, error }, status)
 }
 
-async function getUser(authHeader: string | null, supabase: ReturnType<typeof createClient>) {
+async function getUser(authHeader: string | null, supabase: Supabase) {
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null
   const token = authHeader.replace('Bearer ', '')
   const { data, error } = await supabase.auth.getUser(token)
@@ -31,7 +33,7 @@ async function getUser(authHeader: string | null, supabase: ReturnType<typeof cr
 }
 
 async function getAdminAccess(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Supabase,
   restaurantId: string,
   userId: string
 ): Promise<boolean> {
@@ -46,7 +48,7 @@ async function getAdminAccess(
 }
 
 async function getStaffAccess(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Supabase,
   userId: string
 ): Promise<boolean> {
   const { data } = await supabase
@@ -58,7 +60,7 @@ async function getStaffAccess(
 }
 
 async function canAccessAsStaff(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Supabase,
   restaurantId: string,
   userId: string
 ): Promise<boolean> {
@@ -75,7 +77,26 @@ async function canAccessAsStaff(
 }
 
 const VALID_PRICE_LEVELS = new Set([1, 2, 3])
-const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'menu_url', 'reservations_url', 'instagram_url', 'google_maps_url', 'active', 'is_demo', 'founder_rank', 'category_ids', 'lat', 'lng'])
+const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'photos', 'menu_url', 'reservations_url', 'instagram_url', 'google_maps_url', 'active', 'is_demo', 'founder_rank', 'category_ids', 'lat', 'lng'])
+const MAX_PHOTOS = 8
+
+function isValidPhotoUrl(value: unknown): value is string {
+  if (typeof value !== 'string' || value.length === 0 || value.length > 500) return false
+  try {
+    const u = new URL(value)
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return false
+    return u.pathname.startsWith('/images/')
+  } catch {
+    return false
+  }
+}
+
+function validatePhotos(value: unknown): string | null {
+  if (!Array.isArray(value)) return 'photos must be an array'
+  if (value.length > MAX_PHOTOS) return `photos must have at most ${MAX_PHOTOS} items`
+  if (!value.every(isValidPhotoUrl)) return 'photos must contain valid image URLs'
+  return null
+}
 
 function validateCreate(body: Record<string, unknown>) {
   const errors: string[] = []
@@ -99,6 +120,10 @@ function validateCreate(body: Record<string, unknown>) {
   }
   if (body.image_url !== undefined && typeof body.image_url !== 'string') {
     errors.push('image_url must be a string')
+  }
+  if (body.photos !== undefined) {
+    const photoError = validatePhotos(body.photos)
+    if (photoError) errors.push(photoError)
   }
   if (body.menu_url !== undefined && typeof body.menu_url !== 'string') {
     errors.push('menu_url must be a string')
@@ -126,6 +151,9 @@ function sanitizeStrings(body: Record<string, unknown>) {
       sanitized[key] = sanitized[key].trim()
     }
   }
+  if (Array.isArray(sanitized.photos)) {
+    sanitized.photos = sanitized.photos.filter((p: unknown) => typeof p === 'string' && p.trim() !== '')
+  }
   return sanitized
 }
 
@@ -143,6 +171,11 @@ function validateUpdate(body: Record<string, unknown>): string[] {
       } else if (!body[key].every((id: unknown) => typeof id === 'string')) {
         errors.push('category_ids must contain only strings')
       }
+      continue
+    }
+    if (key === 'photos') {
+      const photoError = validatePhotos(body[key])
+      if (photoError) errors.push(photoError)
       continue
     }
     if (key === 'price_level' && !VALID_PRICE_LEVELS.has(body[key] as number)) {
@@ -164,7 +197,7 @@ function validateUpdate(body: Record<string, unknown>): string[] {
 
 // ─── Handlers ──────────────────────────────────────────────
 
-async function handleCreate(supabase: ReturnType<typeof createClient>, user: { id: string }, body: Record<string, unknown>) {
+async function handleCreate(supabase: Supabase, user: { id: string }, body: Record<string, unknown>) {
   console.log('restaurants: create', JSON.stringify({ name: body.name, zone: body.zone }))
 
   const errs = validateCreate(body)
@@ -189,6 +222,7 @@ async function handleCreate(supabase: ReturnType<typeof createClient>, user: { i
       lat: body.lat != null ? Number(body.lat) : null,
       lng: body.lng != null ? Number(body.lng) : null,
       image_url: sanitized.image_url ?? null,
+      photos: Array.isArray(sanitized.photos) ? sanitized.photos : [],
       menu_url: sanitized.menu_url ?? null,
       reservations_url: sanitized.reservations_url ?? null,
       instagram_url: sanitized.instagram_url ?? null,
@@ -247,7 +281,7 @@ async function handleCreate(supabase: ReturnType<typeof createClient>, user: { i
   return ok(responseRestaurant)
 }
 
-async function handleListMine(supabase: ReturnType<typeof createClient>, user: { id: string }) {
+async function handleListMine(supabase: Supabase, user: { id: string }) {
   console.log('restaurants: list mine', user.id)
 
   const { data: admins, error: adminsError } = await supabase
@@ -320,6 +354,7 @@ async function handleListMine(supabase: ReturnType<typeof createClient>, user: {
     price_level: r.price_level,
     zone: r.zone,
     image_url: r.image_url,
+    photos: Array.isArray(r.photos) ? r.photos : [],
     menu_url: r.menu_url,
     instagram_url: r.instagram_url ?? null,
       active: r.active,
@@ -342,7 +377,7 @@ async function handleListMine(supabase: ReturnType<typeof createClient>, user: {
 }
 
 async function handleUpdate(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Supabase,
   user: { id: string },
   restaurantId: string,
   body: Record<string, unknown>
@@ -452,7 +487,7 @@ async function handleUpdate(
 }
 
 async function handleDelete(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Supabase,
   user: { id: string },
   restaurantId: string
 ) {
@@ -483,7 +518,7 @@ async function handleDelete(
 }
 
 async function handleStats(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Supabase,
   user: { id: string },
   restaurantId: string
 ) {
@@ -527,7 +562,7 @@ async function handleStats(
   })
 }
 
-async function assignFounderRank(supabase: ReturnType<typeof createClient>, restaurantId: string) {
+async function assignFounderRank(supabase: Supabase, restaurantId: string) {
   const { count } = await supabase
     .from('restaurants')
     .select('*', { count: 'exact', head: true })

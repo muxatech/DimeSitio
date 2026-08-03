@@ -76,6 +76,39 @@ export async function getCategories(): Promise<Category[]> {
   return data ?? []
 }
 
+// ─── Photos (R2) ─────────────────────────────────────────────
+
+export interface UploadItem {
+  key: string
+  uploadUrl: string
+  publicUrl: string
+}
+
+export interface DeleteItem {
+  key: string
+  deleteUrl: string
+}
+
+export async function getUploadUrls(files: { ext: string }[]): Promise<UploadItem[]> {
+  const res = await invoke<{ success: boolean; data: { items: UploadItem[] } }>(
+    'POST',
+    '/presign-upload',
+    { files },
+    'photos'
+  )
+  return res.data.items
+}
+
+export async function getDeleteUrls(keys: string[]): Promise<DeleteItem[]> {
+  const res = await invoke<{ success: boolean; data: { items: DeleteItem[] } }>(
+    'POST',
+    '/presign-delete',
+    { keys },
+    'photos'
+  )
+  return res.data.items
+}
+
 // ─── Analytics ───────────────────────────────────────────────
 
 export async function getRestaurantAnalytics(id: string): Promise<AnalyticsData> {

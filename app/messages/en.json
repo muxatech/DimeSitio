@@ -59,6 +59,11 @@
     "edit": "Edit",
     "delete": "Delete"
   },
+  "PhotoCarousel": {
+    "previous": "Previous photo",
+    "next": "Next photo",
+    "photoLabel": "Photo {n}"
+  },
   "Restaurantes": {
     "founderBanner": "Be among the first. The first 100 establishments receive the Founder badge.",
     "heroBadge": "For restaurants and cafés in Valencia",
@@ -439,6 +444,16 @@
     "menuUrl": "Menu URL",
     "imageUrl": "Image URL",
     "imagePreviewError": "Cannot preview image",
+    "photos": "Photos",
+    "photosHint": "{count} of {max} photos",
+    "addPhotos": "Add photos",
+    "uploadingPhoto": "Uploading...",
+    "removePhoto": "Remove photo",
+    "photoInvalid": "Invalid format. Use JPG, PNG or WebP",
+    "photoTooLarge": "The image is too large",
+    "photosLimit": "Maximum of {max} photos",
+    "uploadFailed": "Failed to upload photo",
+    "photoAlt": "Photo {n}",
     "instagramUrl": "Instagram",
     "reservationsWeb": "Online reservations",
     "yes": "Yes",

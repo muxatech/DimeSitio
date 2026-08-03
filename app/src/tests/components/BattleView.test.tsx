@@ -169,7 +169,7 @@ describe('BattleView', () => {
       })
       render(<BattleView />, { wrapper: TestWrapper })
       const card = screen.getByText('Champion')
-      fireEvent.click(card.closest('button')!)
+      fireEvent.click(card.closest('[role="button"]')!)
       vi.advanceTimersByTime(400)
       const state = useFlowStore.getState()
       expect(state.step).toBe('winner')
@@ -187,7 +187,7 @@ describe('BattleView', () => {
       })
       render(<BattleView />, { wrapper: TestWrapper })
       const card = screen.getByText('Champion')
-      fireEvent.click(card.closest('button')!)
+      fireEvent.click(card.closest('[role="button"]')!)
       vi.advanceTimersByTime(400)
       const state = useFlowStore.getState()
       expect(state.step).toBe('battle')
@@ -208,8 +208,8 @@ describe('BattleView', () => {
       render(<BattleView />, { wrapper: TestWrapper })
       const cardA = screen.getByText('Champion')
       const cardB = screen.getByText('Challenger')
-      fireEvent.click(cardA.closest('button')!)
-      fireEvent.click(cardB.closest('button')!)
+      fireEvent.click(cardA.closest('[role="button"]')!)
+      fireEvent.click(cardB.closest('[role="button"]')!)
       vi.advanceTimersByTime(400)
       const state = useFlowStore.getState()
       expect(state.battleChampion?.id).toBe('a')
@@ -227,7 +227,7 @@ describe('BattleView', () => {
         top5: [withImage, challenger],
       })
       render(<BattleView />, { wrapper: TestWrapper })
-      const img = screen.getByAltText('Champion') as HTMLImageElement
+      const img = screen.getByRole('img') as HTMLImageElement
       expect(img).toBeInTheDocument()
       expect(img.src).toBe('https://example.com/img.jpg')
     })

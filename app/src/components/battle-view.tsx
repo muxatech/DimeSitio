@@ -6,7 +6,8 @@ import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel } from '@/lib/utils'
 import type { Restaurant } from '@/types'
-import { MapPin, UtensilsCrossed, Sparkles, Swords, RotateCcw, Crown } from 'lucide-react'
+import { MapPin, Sparkles, Swords, RotateCcw, Crown } from 'lucide-react'
+import PhotoCarousel from '@/components/photo-carousel'
 
 export default function BattleView() {
   const t = useTranslations('Battle')
@@ -90,7 +91,6 @@ export default function BattleView() {
             restaurant={battleChampion}
             onPick={handlePick}
             isSelected={selectedId === battleChampion.id}
-            disabled={picking}
           />
 
           <div className="flex items-center gap-3 sm:flex-col sm:py-16 sm:pt-20">
@@ -105,7 +105,6 @@ export default function BattleView() {
             restaurant={battleChallenger}
             onPick={handlePick}
             isSelected={selectedId === battleChallenger.id}
-            disabled={picking}
           />
         </motion.div>
       </AnimatePresence>
@@ -117,39 +116,40 @@ function BattleCard({
   restaurant,
   onPick,
   isSelected,
-  disabled,
 }: {
   restaurant: Restaurant
   onPick: (r: Restaurant) => void
   isSelected: boolean
-  disabled: boolean
 }) {
   const tCommon = useTranslations('Common')
 
   return (
-    <motion.button
+    <motion.div
       whileTap={{ scale: 0.97 }}
       onClick={() => onPick(restaurant)}
-      disabled={disabled}
-      className={`relative w-full overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition-all sm:flex-1 ${
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onPick(restaurant)
+        }
+      }}
+      className={`relative w-full cursor-pointer overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition-all sm:flex-1 ${
         isSelected
           ? 'border-stone-900 ring-2 ring-stone-200 ring-offset-2'
           : 'border-stone-200 hover:shadow-md'
       }`}
     >
       <div className="relative h-44 bg-stone-100 sm:h-52 lg:h-64">
-        {restaurant.image_url ? (
-          <img
-            src={restaurant.image_url}
-            alt={restaurant.name}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <UtensilsCrossed className="h-8 w-8 text-stone-300 sm:h-10 sm:w-10" />
-          </div>
-        )}
+        <PhotoCarousel
+          photos={restaurant.photos?.length
+            ? restaurant.photos
+            : restaurant.image_url
+              ? [restaurant.image_url]
+              : []}
+          name={restaurant.name}
+        />
         {isSelected && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/5 backdrop-blur-[2px]">
             <motion.div
@@ -211,6 +211,6 @@ function BattleCard({
           </div>
         )}
       </div>
-    </motion.button>
+    </motion.div>
   )
 }

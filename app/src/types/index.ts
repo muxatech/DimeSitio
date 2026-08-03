@@ -17,6 +17,7 @@ export interface Restaurant {
   google_maps_url: string | null
   price_level: 1 | 2 | 3
   image_url: string | null
+  photos?: string[]
   menu_url: string | null
   reservations_url: string | null
   instagram_url: string | null
@@ -79,6 +80,7 @@ export interface RestaurantFormData {
   lng?: number | null
   google_maps_url?: string | null
   image_url?: string
+  photos?: string[]
   menu_url?: string
   reservations_url?: string
   instagram_url?: string

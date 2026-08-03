@@ -5,7 +5,8 @@ import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel } from '@/lib/utils'
-import { MapPin, Phone, Navigation, Menu, Calendar, PartyPopper, UtensilsCrossed, RotateCcw, Crown } from 'lucide-react'
+import { MapPin, Phone, Navigation, Menu, Calendar, PartyPopper, RotateCcw, Crown } from 'lucide-react'
+import PhotoCarousel from '@/components/photo-carousel'
 
 export default function WinnerView() {
   const t = useTranslations('Winner')
@@ -68,18 +69,14 @@ export default function WinnerView() {
           className="overflow-hidden rounded-2xl bg-stone-100 shadow-sm sm:flex-1"
         >
           <div className="relative h-56 bg-stone-100 sm:h-full sm:min-h-64 lg:min-h-80">
-            {winner.image_url ? (
-              <img
-                src={winner.image_url}
-                alt={winner.name}
-                loading="lazy"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                <UtensilsCrossed className="h-10 w-10 text-stone-300 sm:h-12 sm:w-12" />
-              </div>
-            )}
+            <PhotoCarousel
+              photos={winner.photos?.length
+                ? winner.photos
+                : winner.image_url
+                  ? [winner.image_url]
+                  : []}
+              name={winner.name}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
           </div>
         </motion.div>
