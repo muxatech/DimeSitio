@@ -76,6 +76,7 @@ export default function WinnerView() {
                   ? [winner.image_url]
                   : []}
               name={winner.name}
+              showArrows
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
           </div>

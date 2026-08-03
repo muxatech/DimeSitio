@@ -29,6 +29,17 @@ describe('PhotoCarousel', () => {
     expect(screen.getByRole('button', { name: 'Foto 3' })).toBeInTheDocument()
   })
 
+  it('renders side arrows only when showArrows is set', () => {
+    const { unmount } = render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    expect(screen.queryByRole('button', { name: 'Foto siguiente' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Foto anterior' })).not.toBeInTheDocument()
+    unmount()
+
+    render(<PhotoCarousel photos={photos} name="Resto" showArrows />, { wrapper: TestWrapper })
+    expect(screen.getByRole('button', { name: 'Foto siguiente' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Foto anterior' })).toBeInTheDocument()
+  })
+
   it('jumps to a photo when clicking a dot', () => {
     render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
     fireEvent.click(screen.getByRole('button', { name: 'Foto 3' }))
