@@ -70,6 +70,15 @@ describe('PhotoCarousel', () => {
     expect(within(dialog).getByRole('img')).toHaveAttribute('src', photos[0])
   })
 
+  it('expand button stays clickable after a pointer press and release', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const button = screen.getByRole('button', { name: 'Ver fotos en grande' })
+    fireEvent.pointerDown(button, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerUp(button, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.click(button)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
   it('closes fullscreen viewer when clicking the close button', () => {
     render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
     fireEvent.click(screen.getByRole('button', { name: 'Ver fotos en grande' }))

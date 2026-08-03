@@ -87,9 +87,6 @@ export default function PhotoCarousel({ photos, name, className = '' }: PhotoCar
     dragStartX.current = e.clientX
     wasDragged.current = false
     setDragging(true)
-    if (typeof e.currentTarget.setPointerCapture === 'function') {
-      e.currentTarget.setPointerCapture(e.pointerId)
-    }
   }
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
