@@ -109,6 +109,14 @@ export default function PhotoCarousel({ photos, name, className = '' }: PhotoCar
     }
   }
 
+  function onPointerCancel() {
+    if (dragStartX.current == null) return
+    dragStartX.current = null
+    setDragging(false)
+    setDragOffset(0)
+    wasDragged.current = false
+  }
+
   function onPointerLeave() {
     if (dragStartX.current == null) return
     dragStartX.current = null
@@ -131,6 +139,7 @@ export default function PhotoCarousel({ photos, name, className = '' }: PhotoCar
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
       onPointerLeave={onPointerLeave}
       onClickCapture={onClickCapture}
     >
@@ -205,6 +214,7 @@ export default function PhotoCarousel({ photos, name, className = '' }: PhotoCar
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
+            onPointerCancel={onPointerCancel}
             onPointerLeave={onPointerLeave}
             onClickCapture={onClickCapture}
           >

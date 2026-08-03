@@ -66,7 +66,7 @@ export default function WinnerView() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15 }}
-          className="overflow-hidden rounded-2xl bg-stone-100 shadow-sm sm:flex-1"
+          className="overflow-hidden rounded-2xl bg-stone-100 shadow-sm sm:max-h-96 sm:flex-1 lg:max-h-[28rem]"
         >
           <div className="relative h-56 bg-stone-100 sm:h-full sm:min-h-64 lg:min-h-80">
             <PhotoCarousel
