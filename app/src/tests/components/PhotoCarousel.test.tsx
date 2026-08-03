@@ -94,4 +94,15 @@ describe('PhotoCarousel', () => {
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
+
+  it('navigates photos with the arrows in fullscreen', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    fireEvent.click(screen.getByRole('button', { name: 'Ver fotos en grande' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('img')).toHaveAttribute('src', photos[0])
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Foto siguiente' }))
+    expect(within(dialog).getByRole('img')).toHaveAttribute('src', photos[1])
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Foto anterior' }))
+    expect(within(dialog).getByRole('img')).toHaveAttribute('src', photos[0])
+  })
 })

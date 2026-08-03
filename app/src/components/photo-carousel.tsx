@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
-import { Maximize2, UtensilsCrossed, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Maximize2, UtensilsCrossed, X } from 'lucide-react'
 
 interface PhotoCarouselProps {
   photos?: string[] | null
@@ -241,6 +241,33 @@ export default function PhotoCarousel({ photos, name, className = '' }: PhotoCar
             >
               <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
+
+            {showControls && (
+              <>
+                <button
+                  type="button"
+                  aria-label={t('previous')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    paginate(-1)
+                  }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white shadow-md backdrop-blur-md transition-all hover:bg-white/20 hover:scale-105 active:scale-90 sm:p-2.5"
+                >
+                  <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                </button>
+                <button
+                  type="button"
+                  aria-label={t('next')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    paginate(1)
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white shadow-md backdrop-blur-md transition-all hover:bg-white/20 hover:scale-105 active:scale-90 sm:p-2.5"
+                >
+                  <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                </button>
+              </>
+            )}
 
             <span className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md">
               {index + 1} / {count}

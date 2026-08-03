@@ -63,6 +63,8 @@
   "PhotoCarousel": {
     "openFullscreen": "View photos fullscreen",
     "closeFullscreen": "Close",
+    "previous": "Previous photo",
+    "next": "Next photo",
     "photoLabel": "Photo {n}"
   },
   "Restaurantes": {
