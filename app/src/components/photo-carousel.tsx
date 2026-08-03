@@ -1,8 +1,9 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
-import { UtensilsCrossed } from 'lucide-react'
+import { Maximize2, UtensilsCrossed, X } from 'lucide-react'
 
 interface PhotoCarouselProps {
   photos?: string[] | null
@@ -22,11 +23,26 @@ export default function PhotoCarousel({ photos, name, className = '' }: PhotoCar
   const [dragOffset, setDragOffset] = useState(0)
   const [dragging, setDragging] = useState(false)
   const [wrapJump, setWrapJump] = useState(false)
+  const [fullscreen, setFullscreen] = useState(false)
 
   const dragStartX = useRef<number | null>(null)
   const wasDragged = useRef(false)
 
   const showControls = count > 1
+
+  useEffect(() => {
+    if (!fullscreen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFullscreen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [fullscreen])
 
   if (count === 0) {
     return (
@@ -143,6 +159,18 @@ export default function PhotoCarousel({ photos, name, className = '' }: PhotoCar
         ))}
       </div>
 
+      <button
+        type="button"
+        aria-label={t('openFullscreen')}
+        onClick={(e) => {
+          e.stopPropagation()
+          setFullscreen(true)
+        }}
+        className="absolute right-2 top-2 rounded-full bg-black/40 p-1.5 text-white shadow-md backdrop-blur-md transition-all hover:bg-black/60 hover:scale-105 active:scale-90"
+      >
+        <Maximize2 className="h-4 w-4 sm:h-5 sm:w-5" />
+      </button>
+
       {showControls && (
         <>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/30 to-transparent" />
@@ -169,6 +197,79 @@ export default function PhotoCarousel({ photos, name, className = '' }: PhotoCar
           </span>
         </>
       )}
+
+      {fullscreen &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={name}
+            className="fixed inset-0 z-50 touch-pan-y select-none bg-black/95"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerLeave={onPointerLeave}
+            onClickCapture={onClickCapture}
+          >
+            <div
+              className="flex h-full w-full"
+              style={{
+                transform: `translateX(calc(${-index * 100}% + ${dragOffset}px))`,
+                transition: dragging || wrapJump
+                  ? 'none'
+                  : 'transform 450ms cubic-bezier(0.22, 1, 0.36, 1)',
+              }}
+            >
+              {list.map((src, i) => (
+                <div key={src} className="h-full w-full shrink-0" aria-hidden={i !== index}>
+                  <img
+                    src={src}
+                    alt={t('photoLabel', { n: i + 1 })}
+                    title={name}
+                    draggable={false}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              aria-label={t('closeFullscreen')}
+              onClick={(e) => {
+                e.stopPropagation()
+                setFullscreen(false)
+              }}
+              className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white backdrop-blur-md transition-all hover:bg-white/20"
+            >
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
+
+            <span className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md">
+              {index + 1} / {count}
+            </span>
+
+            {showControls && (
+              <div className="absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-2">
+                {list.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    aria-label={t('photoLabel', { n: i + 1 })}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      goTo(i)
+                    }}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      i === index ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }

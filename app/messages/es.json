@@ -61,8 +61,8 @@
     "delete": "Eliminar"
   },
   "PhotoCarousel": {
-    "previous": "Foto anterior",
-    "next": "Foto siguiente",
+    "openFullscreen": "Ver fotos en grande",
+    "closeFullscreen": "Cerrar",
     "photoLabel": "Foto {n}"
   },
   "Restaurantes": {

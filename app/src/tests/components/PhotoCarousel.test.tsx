@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import PhotoCarousel from '@/components/photo-carousel'
 import { TestWrapper } from '@/tests/helpers'
 
@@ -60,5 +60,29 @@ describe('PhotoCarousel', () => {
     fireEvent.pointerMove(carousel, { clientX: 170, pointerId: 1 })
     fireEvent.pointerUp(carousel, { clientX: 170, pointerId: 1 })
     expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[0])
+  })
+
+  it('opens fullscreen viewer when clicking the expand button', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    fireEvent.click(screen.getByRole('button', { name: 'Ver fotos en grande' }))
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toBeInTheDocument()
+    expect(within(dialog).getByRole('img')).toHaveAttribute('src', photos[0])
+  })
+
+  it('closes fullscreen viewer when clicking the close button', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    fireEvent.click(screen.getByRole('button', { name: 'Ver fotos en grande' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('closes fullscreen viewer when pressing Escape', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    fireEvent.click(screen.getByRole('button', { name: 'Ver fotos en grande' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

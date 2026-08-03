@@ -163,7 +163,7 @@ function BattleCard({
             </motion.div>
           </div>
         )}
-        <div className="absolute right-2 top-2 flex flex-col gap-1">
+        <div className="absolute left-2 top-2 flex flex-col gap-1">
           {restaurant.founder_rank && (
             <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 shadow-sm" title={tCommon('founder')}>
               <Crown className="h-3 w-3" />
