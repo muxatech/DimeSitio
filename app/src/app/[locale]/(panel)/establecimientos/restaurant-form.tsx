@@ -779,6 +779,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
               </label>
               <PhotoUploader
                 photos={photosValue}
+                name={previewName || t('photos')}
                 onChange={(next) => setValue('photos', next, { shouldValidate: true })}
               />
             </div>
