@@ -48,4 +48,31 @@ describe('PhotoCarousel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Foto 3' }))
     expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[2])
   })
+
+  it('advances when swiping left', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+    fireEvent.pointerDown(carousel, { clientX: 200, pointerId: 1 })
+    fireEvent.pointerMove(carousel, { clientX: 100, pointerId: 1 })
+    fireEvent.pointerUp(carousel, { clientX: 100, pointerId: 1 })
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[1])
+  })
+
+  it('goes back when swiping right', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+    fireEvent.pointerDown(carousel, { clientX: 100, pointerId: 1 })
+    fireEvent.pointerMove(carousel, { clientX: 220, pointerId: 1 })
+    fireEvent.pointerUp(carousel, { clientX: 220, pointerId: 1 })
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[photos.length - 1])
+  })
+
+  it('does not change photo on a short drag', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+    fireEvent.pointerDown(carousel, { clientX: 150, pointerId: 1 })
+    fireEvent.pointerMove(carousel, { clientX: 170, pointerId: 1 })
+    fireEvent.pointerUp(carousel, { clientX: 170, pointerId: 1 })
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[0])
+  })
 })

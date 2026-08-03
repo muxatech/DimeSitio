@@ -7,7 +7,7 @@ const env = new Map<string, string>([
   ['R2_ACCESS_KEY_ID', 'test-access-key'],
   ['R2_SECRET_ACCESS_KEY', 'test-secret-key'],
   ['R2_BUCKET_NAME', 'test-bucket'],
-  ['R2_PUBLIC_BASE_URL', 'https://dimesitio.es'],
+  ['R2_PUBLIC_URL', 'https://pub-test.r2.dev'],
 ])
 
 const originalGet = Deno.env.get
@@ -126,7 +126,7 @@ Deno.test({
         assertEquals(typeof item.key, 'string')
         assertEquals(item.key.startsWith('restaurants/'), true)
         assertEquals(item.key.endsWith('.webp') || item.key.endsWith('.jpg'), true)
-        assertEquals(item.publicUrl, `https://dimesitio.es/images/${item.key}`)
+        assertEquals(item.publicUrl, `https://pub-test.r2.dev/${item.key}`)
         assertEquals(item.uploadUrl.includes('X-Amz-Signature='), true)
         assertEquals(item.uploadUrl.startsWith('https://test-account.r2.cloudflarestorage.com/test-bucket/restaurants/'), true)
       }

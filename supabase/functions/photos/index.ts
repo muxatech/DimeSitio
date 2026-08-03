@@ -156,7 +156,7 @@ export async function presignUrl({ method, key, contentType }: SignOptions): Pro
 // ─── Handlers ────────────────────────────────────────────────────────
 
 function publicBase(): string {
-  return (Deno.env.get('R2_PUBLIC_BASE_URL') ?? '').replace(/\/+$/, '')
+  return (Deno.env.get('R2_PUBLIC_URL') ?? '').replace(/\/+$/, '')
 }
 
 async function handlePresignUpload(body: Record<string, unknown>) {
@@ -174,13 +174,13 @@ async function handlePresignUpload(body: Record<string, unknown>) {
     if (!ALLOWED_EXTS.has(rawExt)) {
       return fail(`Unsupported file extension: ${rawExt}`)
     }
-    const key = `restaurants/${crypto.randomUUID()}/${crypto.randomUUID()}.${rawExt}`
+    const key = `restaurants/${crypto.randomUUID()}.${rawExt}`
     const uploadUrl = await presignUrl({
       method: 'PUT',
       key,
       contentType: MIME_BY_EXT[rawExt],
     })
-    items.push({ key, uploadUrl, publicUrl: `${base}/images/${key}` })
+    items.push({ key, uploadUrl, publicUrl: `${base}/${key}` })
   }
 
   return ok({ items })

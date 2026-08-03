@@ -85,7 +85,7 @@ function isValidPhotoUrl(value: unknown): value is string {
   try {
     const u = new URL(value)
     if (u.protocol !== 'https:' && u.protocol !== 'http:') return false
-    return u.pathname.startsWith('/images/')
+    return u.hostname.endsWith('.r2.dev') && u.pathname.startsWith('/restaurants/')
   } catch {
     return false
   }

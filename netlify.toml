@@ -5,14 +5,3 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-[[redirects]]
-  from = "/images/*"
-  to = "https://pub-e9d941c3d3b344169bf2fef9e4fe5741.r2.dev/:splat"
-  status = 200
-  force = true
-
-[[headers]]
-  for = "/images/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"

@@ -7,7 +7,7 @@ import { getUploadUrls, getDeleteUrls } from '@/lib/panel/api'
 import { compressImage, getImageExt, isAllowedImage, MAX_PHOTOS } from '@/lib/photos'
 
 function extractKey(publicUrl: string): string | null {
-  const match = publicUrl.match(/\/images\/(restaurants\/.+)$/)
+  const match = publicUrl.match(/(restaurants\/.+)$/)
   return match ? match[1] : null
 }
 
