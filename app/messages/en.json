@@ -35,6 +35,7 @@
     "allRightsReserved": "All rights reserved.",
     "madeInValencia": "Made in Valencia ❤️",
     "backToEstablishments": "Back to establishments",
+    "backToRestaurants": "Back to restaurants",
     "errorDescription": "An unexpected error occurred. Try reloading the page.",
     "saving": "Saving...",
     "sending": "Sending...",
@@ -261,6 +262,7 @@
     "dashboard": "Dashboard",
     "establishments": "Establishments",
     "subscription": "Subscription",
+    "restaurants": "Restaurants",
     "categories": "Categories",
     "logout": "Log out"
   },
@@ -476,6 +478,19 @@
     "preview": "Preview",
     "errorSaving": "Error saving",
     "newCategoryNamePlaceholder": "e.g. Kebab"
+  },
+  "StaffRestaurants": {
+    "title": "Restaurants",
+    "searchPlaceholder": "Search by name...",
+    "count": "{count, plural, one {# restaurant} other {# restaurants}}",
+    "empty": "No restaurants found",
+    "emptyDesc": "Try a different search term.",
+    "confirmDelete": "Are you sure you want to delete {name}?",
+    "pageInfo": "Page {page} of {totalPages}",
+    "prev": "Previous",
+    "next": "Next",
+    "errorTitle": "Error loading restaurants",
+    "errorDesc": "Restaurants could not be loaded. Please try again."
   },
   "Legal": {
     "Terms": {

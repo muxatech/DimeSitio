@@ -35,6 +35,7 @@
     "allRightsReserved": "Todos los derechos reservados.",
     "madeInValencia": "Hecho en Valencia ❤️",
     "backToEstablishments": "Volver a establecimientos",
+    "backToRestaurants": "Volver a restaurantes",
     "errorDescription": "Ha ocurrido un error inesperado. Prueba a recargar la página.",
     "saving": "Guardando...",
     "sending": "Enviando...",
@@ -261,6 +262,7 @@
     "dashboard": "Dashboard",
     "establishments": "Establecimientos",
     "subscription": "Suscripción",
+    "restaurants": "Restaurantes",
     "categories": "Categorías",
     "logout": "Cerrar sesión"
   },
@@ -476,6 +478,19 @@
     "preview": "Vista previa",
     "errorSaving": "Error al guardar",
     "newCategoryNamePlaceholder": "Ej: Kebab"
+  },
+  "StaffRestaurants": {
+    "title": "Restaurantes",
+    "searchPlaceholder": "Buscar por nombre...",
+    "count": "{count, plural, one {# restaurante} other {# restaurantes}}",
+    "empty": "No se encontraron restaurantes",
+    "emptyDesc": "Prueba con otro término de búsqueda.",
+    "confirmDelete": "¿Seguro que quieres eliminar {name}?",
+    "pageInfo": "Página {page} de {totalPages}",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "errorTitle": "Error al cargar los restaurantes",
+    "errorDesc": "No se han podido cargar los restaurantes. Inténtalo de nuevo."
   },
   "Legal": {
     "Terms": {

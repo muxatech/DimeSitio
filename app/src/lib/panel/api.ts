@@ -154,3 +154,34 @@ export async function checkStaffStatus(): Promise<boolean> {
   const { data } = await supabase.from('staff_users').select('user_id').maybeSingle()
   return !!data
 }
+
+export interface StaffRestaurantList {
+  items: RestaurantWithRole[]
+  total: number
+  page: number
+  per_page: number
+  total_pages: number
+}
+
+export async function getStaffRestaurants(search: string, page: number): Promise<StaffRestaurantList> {
+  const qs = new URLSearchParams({ per_page: '25' })
+  if (search.trim()) qs.set('search', search.trim())
+  if (page > 1) qs.set('page', String(page))
+  const res = await invoke<{ success: boolean; data: StaffRestaurantList }>(
+    'GET',
+    `/staff/restaurants?${qs.toString()}`,
+    undefined,
+    'restaurants'
+  )
+  return res.data
+}
+
+export async function getStaffRestaurant(id: string): Promise<RestaurantWithRole> {
+  const res = await invoke<{ success: boolean; data: RestaurantWithRole }>(
+    'GET',
+    `/staff/restaurants/${id}`,
+    undefined,
+    'restaurants'
+  )
+  return res.data
+}

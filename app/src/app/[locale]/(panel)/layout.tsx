@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import DsMonogram from '@/components/ds-monogram'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, Store, LogOut, Menu, X, CreditCard, Tags } from 'lucide-react'
+import { LayoutDashboard, Store, LogOut, Menu, X, CreditCard, Tags, UtensilsCrossed } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useFlowStore } from '@/store/flow-store'
 import { checkStaffStatus } from '@/lib/panel/api'
@@ -141,19 +141,34 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
             )
           })}
           {isStaff && (
-            <Link
-              href="/categorias"
-              onClick={() => setSidebarOpen(false)}
-              className={cn(
-                'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all',
-                pathname.startsWith('/categorias')
-                  ? 'bg-stone-700 text-white'
-                  : 'text-stone-400 hover:bg-stone-800 hover:text-white'
-              )}
-            >
-              <Tags className="h-5 w-5" />
-              {t('categories')}
-            </Link>
+            <>
+              <Link
+                href="/gestion-restaurantes"
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all',
+                  pathname.startsWith('/gestion-restaurantes')
+                    ? 'bg-stone-700 text-white'
+                    : 'text-stone-400 hover:bg-stone-800 hover:text-white'
+                )}
+              >
+                <UtensilsCrossed className="h-5 w-5" />
+                {t('restaurants')}
+              </Link>
+              <Link
+                href="/categorias"
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all',
+                  pathname.startsWith('/categorias')
+                    ? 'bg-stone-700 text-white'
+                    : 'text-stone-400 hover:bg-stone-800 hover:text-white'
+                )}
+              >
+                <Tags className="h-5 w-5" />
+                {t('categories')}
+              </Link>
+            </>
           )}
         </nav>
 

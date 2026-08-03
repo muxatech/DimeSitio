@@ -195,6 +195,67 @@ function validateUpdate(body: Record<string, unknown>): string[] {
   return errors
 }
 
+// ─── Shared serializers ────────────────────────────────────
+
+interface SerializeCtx {
+  roleMap?: Map<string, string>
+  subMap: Map<string, string>
+  impCount: Record<string, number>
+  selCount: Record<string, number>
+  calCount: Record<string, number>
+}
+
+function serializeRestaurant(r: Record<string, unknown>, ctx: SerializeCtx) {
+  return {
+    id: r.id,
+    owner_id: r.owner_id,
+    name: r.name,
+    description: r.description,
+    phone: r.phone,
+    address: r.address,
+    city: r.city,
+    lat: r.lat ?? null,
+    lng: r.lng ?? null,
+    google_maps_url: r.google_maps_url ?? null,
+    price_level: r.price_level,
+    zone: r.zone,
+    image_url: r.image_url,
+    photos: Array.isArray(r.photos) ? r.photos : [],
+    menu_url: r.menu_url,
+    reservations_url: r.reservations_url ?? null,
+    instagram_url: r.instagram_url ?? null,
+    active: r.active,
+    is_demo: r.is_demo ?? false,
+    plan_type: r.plan_type ?? 'standard',
+    founder_rank: r.founder_rank ?? null,
+    created_at: r.created_at,
+    restaurant_categories: r.restaurant_categories,
+    role: ctx.roleMap?.get(r.id as string) ?? null,
+    subscription_status: ctx.subMap.get(r.id as string) ?? null,
+    stats: {
+      impressions: ctx.impCount[r.id as string] ?? 0,
+      selections: ctx.selCount[r.id as string] ?? 0,
+      calls: ctx.calCount[r.id as string] ?? 0,
+    },
+  }
+}
+
+async function aggregateStats(supabase: Supabase, restaurantIds: string[]) {
+  if (restaurantIds.length === 0) return { impCount: {}, selCount: {}, calCount: {} }
+  const [allImp, allSel, allCal] = await Promise.all([
+    supabase.from('impressions').select('restaurant_id').in('restaurant_id', restaurantIds),
+    supabase.from('selections').select('restaurant_id').in('restaurant_id', restaurantIds),
+    supabase.from('calls').select('restaurant_id').in('restaurant_id', restaurantIds),
+  ])
+  const impCount: Record<string, number> = {}
+  const selCount: Record<string, number> = {}
+  const calCount: Record<string, number> = {}
+  for (const row of allImp.data ?? []) impCount[row.restaurant_id] = (impCount[row.restaurant_id] || 0) + 1
+  for (const row of allSel.data ?? []) selCount[row.restaurant_id] = (selCount[row.restaurant_id] || 0) + 1
+  for (const row of allCal.data ?? []) calCount[row.restaurant_id] = (calCount[row.restaurant_id] || 0) + 1
+  return { impCount, selCount, calCount }
+}
+
 // ─── Handlers ──────────────────────────────────────────────
 
 async function handleCreate(supabase: Supabase, user: { id: string }, body: Record<string, unknown>) {
@@ -318,62 +379,101 @@ async function handleListMine(supabase: Supabase, user: { id: string }) {
 
   const subMap = new Map((subscriptions ?? []).map((s: { restaurant_id: string; status: string }) => [s.restaurant_id, s.status]))
 
-  // Aggregate stats
-  const [allImp, allSel, allCal] = await Promise.all([
-    supabase.from('impressions').select('restaurant_id').in('restaurant_id', restaurantIds),
-    supabase.from('selections').select('restaurant_id').in('restaurant_id', restaurantIds),
-    supabase.from('calls').select('restaurant_id').in('restaurant_id', restaurantIds),
-  ])
+  const { impCount, selCount, calCount } = await aggregateStats(supabase, restaurantIds)
 
-  if (allImp.error) console.error('restaurants: stats impressions query failed', JSON.stringify(allImp.error))
-  if (allSel.error) console.error('restaurants: stats selections query failed', JSON.stringify(allSel.error))
-  if (allCal.error) console.error('restaurants: stats calls query failed', JSON.stringify(allCal.error))
-
-  const impCount: Record<string, number> = {}
-  const selCount: Record<string, number> = {}
-  const calCount: Record<string, number> = {}
-
-  for (const row of allImp.data ?? []) {
-    impCount[row.restaurant_id] = (impCount[row.restaurant_id] || 0) + 1
-  }
-  for (const row of allSel.data ?? []) {
-    selCount[row.restaurant_id] = (selCount[row.restaurant_id] || 0) + 1
-  }
-  for (const row of allCal.data ?? []) {
-    calCount[row.restaurant_id] = (calCount[row.restaurant_id] || 0) + 1
-  }
-
-  const result = (restaurants ?? []).map((r: Record<string, unknown>) => ({
-    id: r.id,
-    owner_id: r.owner_id,
-    name: r.name,
-    description: r.description,
-    phone: r.phone,
-    address: r.address,
-    city: r.city,
-    price_level: r.price_level,
-    zone: r.zone,
-    image_url: r.image_url,
-    photos: Array.isArray(r.photos) ? r.photos : [],
-    menu_url: r.menu_url,
-    instagram_url: r.instagram_url ?? null,
-      active: r.active,
-      is_demo: r.is_demo ?? false,
-      plan_type: r.plan_type ?? 'standard',
-      founder_rank: r.founder_rank ?? null,
-    created_at: r.created_at,
-    restaurant_categories: r.restaurant_categories,
-    role: roleMap.get(r.id as string),
-    subscription_status: subMap.get(r.id as string) ?? null,
-    stats: {
-      impressions: impCount[r.id as string] ?? 0,
-      selections: selCount[r.id as string] ?? 0,
-      calls: calCount[r.id as string] ?? 0,
-    },
-  }))
+  const result = (restaurants ?? []).map((r: Record<string, unknown>) =>
+    serializeRestaurant(r, { roleMap, subMap, impCount, selCount, calCount })
+  )
 
   console.log('restaurants: listed', result.length, 'for user', user.id)
   return ok(result)
+}
+
+async function handleStaffListRestaurants(
+  supabase: Supabase,
+  user: { id: string },
+  searchParams: URLSearchParams
+) {
+  console.log('restaurants: staff list', user.id)
+
+  const isStaff = await getStaffAccess(supabase, user.id)
+  if (!isStaff) return fail('Forbidden', 403)
+
+  const perPage = Math.min(Math.max(parseInt(searchParams.get('per_page') ?? '25', 10) || 25, 1), 50)
+  const page = Math.max(parseInt(searchParams.get('page') ?? '1', 10) || 1, 1)
+  const search = (searchParams.get('search') ?? '').trim()
+  const offset = (page - 1) * perPage
+
+  let query = supabase
+    .from('restaurants')
+    .select('*, restaurant_categories(category_id)', { count: 'exact' })
+    .eq('is_demo', false)
+    .order('name', { ascending: true })
+    .range(offset, offset + perPage - 1)
+
+  if (search) {
+    const escaped = search.replace(/[%_]/g, (c) => `\\${c}`)
+    query = query.ilike('name', `%${escaped}%`)
+  }
+
+  const { data: restaurants, count, error } = await query
+
+  if (error) {
+    console.error('restaurants: staff list failed', JSON.stringify(error))
+    return fail('Failed to fetch restaurants', 500)
+  }
+
+  const restaurantIds = (restaurants ?? []).map((r: { id: string }) => r.id)
+
+  const { data: subscriptions } = await supabase
+    .from('subscriptions')
+    .select('restaurant_id, status')
+    .in('restaurant_id', restaurantIds)
+
+  const subMap = new Map((subscriptions ?? []).map((s: { restaurant_id: string; status: string }) => [s.restaurant_id, s.status]))
+
+  const { impCount, selCount, calCount } = await aggregateStats(supabase, restaurantIds)
+
+  const items = (restaurants ?? []).map((r: Record<string, unknown>) =>
+    serializeRestaurant(r, { subMap, impCount, selCount, calCount })
+  )
+
+  const total = count ?? 0
+  const totalPages = Math.max(Math.ceil(total / perPage), 1)
+
+  console.log('restaurants: staff listed', items.length, 'total', total, 'for user', user.id)
+  return ok({ items, total, page, per_page: perPage, total_pages: totalPages })
+}
+
+async function handleStaffGetRestaurant(supabase: Supabase, user: { id: string }, restaurantId: string) {
+  console.log('restaurants: staff get', restaurantId)
+
+  const isStaff = await getStaffAccess(supabase, user.id)
+  if (!isStaff) return fail('Forbidden', 403)
+
+  const { data: restaurant, error } = await supabase
+    .from('restaurants')
+    .select('*, restaurant_categories(category_id)')
+    .eq('id', restaurantId)
+    .maybeSingle()
+
+  if (error) {
+    console.error('restaurants: staff get failed', JSON.stringify(error))
+    return fail('Failed to fetch restaurant', 500)
+  }
+  if (!restaurant) return fail('Not found', 404)
+
+  const { data: subscriptions } = await supabase
+    .from('subscriptions')
+    .select('restaurant_id, status')
+    .eq('restaurant_id', restaurantId)
+
+  const subMap = new Map((subscriptions ?? []).map((s: { restaurant_id: string; status: string }) => [s.restaurant_id, s.status]))
+
+  const { impCount, selCount, calCount } = await aggregateStats(supabase, [restaurantId])
+
+  const item = serializeRestaurant(restaurant as Record<string, unknown>, { subMap, impCount, selCount, calCount })
+  return ok(item)
 }
 
 async function handleUpdate(
@@ -384,9 +484,11 @@ async function handleUpdate(
 ) {
   console.log('restaurants: update', restaurantId)
 
+  let viaStaff = false
   let hasAccess = await getAdminAccess(supabase, restaurantId, user.id)
   if (!hasAccess) {
     hasAccess = await canAccessAsStaff(supabase, restaurantId, user.id)
+    viaStaff = hasAccess
   }
   if (!hasAccess) {
     return fail('Not found or no permission', 404)
@@ -402,7 +504,7 @@ async function handleUpdate(
     return fail(errs.join('; '))
   }
 
-  if (body.active === true) {
+  if (body.active === true && !viaStaff) {
     const { data: sub } = await supabase
       .from('subscriptions')
       .select('status')
@@ -592,6 +694,9 @@ function route(method: string, pathname: string): { handler: string; params: Rec
     if (m) return { handler: 'delete', params: { id: m[1] } }
   }
   if (method === 'GET') {
+    if (path === '/staff/restaurants') return { handler: 'staffList', params: {} }
+    const sm = path.match(/^\/staff\/restaurants\/([^/]+)$/)
+    if (sm) return { handler: 'staffGet', params: { id: sm[1] } }
     const m = path.match(/^\/([^/]+)\/stats$/)
     if (m) return { handler: 'stats', params: { id: m[1] } }
   }
@@ -618,7 +723,7 @@ async function handler(req: Request): Promise<Response> {
 
     // Only GET /restaurants/mine and login/register might need auth differently
     // For create, update, delete, stats — auth is required
-    const requiresAuth = ['create', 'listMine', 'update', 'delete', 'stats'].includes(handler)
+    const requiresAuth = ['create', 'listMine', 'update', 'delete', 'stats', 'staffList', 'staffGet'].includes(handler)
 
     let user: { id: string } | null = null
     if (requiresAuth) {
@@ -648,6 +753,10 @@ async function handler(req: Request): Promise<Response> {
         return await handleDelete(supabase, authedUser!, params.id)
       case 'stats':
         return await handleStats(supabase, authedUser!, params.id)
+      case 'staffList':
+        return await handleStaffListRestaurants(supabase, authedUser!, url.searchParams)
+      case 'staffGet':
+        return await handleStaffGetRestaurant(supabase, authedUser!, params.id)
       default:
         return fail('Not found', 404)
     }

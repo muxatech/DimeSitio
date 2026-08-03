@@ -111,9 +111,10 @@ interface RestaurantFormProps {
   isSubmitting: boolean
   staffMode?: boolean
   hideBackButton?: boolean
+  backHref?: string
 }
 
-export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, staffMode, hideBackButton }: RestaurantFormProps) {
+export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, staffMode, hideBackButton, backHref }: RestaurantFormProps) {
   const t = useTranslations('RestaurantForm')
   const tCommon = useTranslations('Common')
   const tQuestions = useTranslations('Questions')
@@ -261,11 +262,11 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
     >
       {!hideBackButton && (
         <Link
-          href="/establecimientos"
+          href={backHref ?? '/establecimientos'}
           className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-stone-400 transition-colors hover:text-stone-600"
         >
           <ArrowLeft className="h-4 w-4" />
-          {tCommon('backToEstablishments')}
+          {backHref === '/gestion-restaurantes' ? tCommon('backToRestaurants') : tCommon('backToEstablishments')}
         </Link>
       )}
 
