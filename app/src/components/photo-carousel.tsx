@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { ChevronLeft, ChevronRight, UtensilsCrossed } from 'lucide-react'
+import { UtensilsCrossed } from 'lucide-react'
 
 interface PhotoCarouselProps {
   photos?: string[] | null
@@ -146,29 +146,6 @@ export default function PhotoCarousel({ photos, name, className = '' }: PhotoCar
       {showControls && (
         <>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/30 to-transparent" />
-
-          <button
-            type="button"
-            aria-label={t('previous')}
-            onClick={(e) => {
-              e.stopPropagation()
-              paginate(-1)
-            }}
-            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white shadow-md backdrop-blur-md transition-all hover:bg-black/60 hover:scale-105 active:scale-90 sm:p-2"
-          >
-            <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-          </button>
-          <button
-            type="button"
-            aria-label={t('next')}
-            onClick={(e) => {
-              e.stopPropagation()
-              paginate(1)
-            }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white shadow-md backdrop-blur-md transition-all hover:bg-black/60 hover:scale-105 active:scale-90 sm:p-2"
-          >
-            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-          </button>
 
           <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1.5">
             {list.map((_, i) => (
