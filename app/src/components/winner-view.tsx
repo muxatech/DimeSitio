@@ -77,7 +77,7 @@ export default function WinnerView() {
                   : []}
               name={winner.name}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
           </div>
         </motion.div>
 
