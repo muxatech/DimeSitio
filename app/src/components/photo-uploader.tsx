@@ -200,7 +200,7 @@ export default function PhotoUploader({
               onDragOver={(e) => handleDragOverItem(e, i)}
               onDrop={(e) => handleDropItem(e, i)}
               onDragEnd={resetDrag}
-              className={`relative aspect-square cursor-grab overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 transition-all ${
+              className={`relative aspect-square cursor-grab rounded-2xl border border-stone-200 bg-stone-100 transition-all ${
                 dragIndex === i ? 'opacity-40' : ''
               }`}
             >
@@ -208,18 +208,18 @@ export default function PhotoUploader({
                 src={photo}
                 alt={t('photoAlt', { n: i + 1 })}
                 draggable={false}
-                className="h-full w-full object-cover"
+                className="h-full w-full rounded-2xl object-cover"
               />
               {dropIndex === i && (
                 <span
                   data-testid="photo-drop-indicator"
-                  className="pointer-events-none absolute inset-y-0 left-0 z-10 w-1 bg-stone-900"
+                  className="pointer-events-none absolute inset-y-0 left-0 z-10 w-1 -ml-1.5 bg-stone-900 sm:-ml-2"
                 />
               )}
               {dropIndex === photos.length && i === photos.length - 1 && (
                 <span
                   data-testid="photo-drop-indicator"
-                  className="pointer-events-none absolute inset-y-0 right-0 z-10 w-1 bg-stone-900"
+                  className="pointer-events-none absolute inset-y-0 right-0 z-10 w-1 -mr-1.5 bg-stone-900 sm:-mr-2"
                 />
               )}
               <span className="absolute left-1 top-1 rounded-md bg-black/40 p-0.5 text-white">
