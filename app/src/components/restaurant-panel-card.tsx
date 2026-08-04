@@ -2,10 +2,11 @@
 
 import { useRouter } from '@/i18n/navigation'
 import { motion } from 'framer-motion'
-import { MapPin, UtensilsCrossed, Pencil, Trash2, Eye, CheckCircle2, Phone, Crown } from 'lucide-react'
+import { MapPin, Pencil, Trash2, Eye, CheckCircle2, Phone, Crown } from 'lucide-react'
 import { getPriceLabel } from '@/lib/utils'
 import type { RestaurantWithRole } from '@/types'
 import { useTranslations } from 'next-intl'
+import PhotoCarousel from '@/components/photo-carousel'
 
 const itemVariants = {
   hidden: { opacity: 0, y: 12 },
@@ -54,18 +55,14 @@ export default function RestaurantPanelCard({
       className="cursor-pointer overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition-all hover:shadow-md"
     >
       <div className="relative h-36 w-full overflow-hidden bg-stone-100 sm:h-40 lg:h-44">
-        {restaurant.image_url ? (
-          <img
-            src={restaurant.image_url}
-            alt={restaurant.name}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <UtensilsCrossed className="h-8 w-8 text-stone-300 sm:h-10 sm:w-10" />
-          </div>
-        )}
+        <PhotoCarousel
+          photos={restaurant.photos?.length
+            ? restaurant.photos
+            : restaurant.image_url
+              ? [restaurant.image_url]
+              : []}
+          name={restaurant.name}
+        />
       </div>
 
       <div className="p-3 sm:p-4">
