@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase'
 import { ZONES, groupCategories, CATEGORY_GROUPS } from '@/lib/constants'
 import { cn, getPriceLabel, normalizeInstagramUrl, extractCoordsFromGoogleMapsUrl } from '@/lib/utils'
 import PhotoUploader from '@/components/photo-uploader'
+import PhotoCarousel from '@/components/photo-carousel'
 import type { RestaurantFormData, RestaurantWithRole } from '@/types'
 
 const categoryGroupLabelMap: Record<string, string> = {
@@ -55,31 +56,25 @@ function formatPhone(value: string): string {
   return parts.join(' ')
 }
 
-function LivePreviewCard({ name, imageUrl, zone, priceLevel, description, namePlaceholder }: {
+function LivePreviewCard({ name, photos, zone, priceLevel, description, namePlaceholder }: {
   name?: string
-  imageUrl?: string
+  photos: string[]
   zone?: string
   priceLevel?: 1 | 2 | 3
   description?: string
   namePlaceholder: string
 }) {
+  const list = photos.filter(Boolean)
   return (
     <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
       <div className="relative h-32 w-full overflow-hidden bg-stone-100 sm:h-36">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={name || namePlaceholder}
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              e.currentTarget.classList.add('hidden')
-              e.currentTarget.nextElementSibling?.classList.remove('hidden')
-            }}
-          />
-        ) : null}
-        <div className={imageUrl ? 'hidden' : 'flex h-full w-full items-center justify-center'}>
-          <UtensilsCrossed className="h-7 w-7 text-stone-300" />
-        </div>
+        {list.length > 0 ? (
+          <PhotoCarousel photos={list} name={name || namePlaceholder} showArrows />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <UtensilsCrossed className="h-7 w-7 text-stone-300" />
+          </div>
+        )}
       </div>
       <div className="p-3 sm:p-4">
         <p className="truncate font-bold text-stone-900 sm:text-lg">
@@ -209,6 +204,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
   const previewName = watch('name')
   const previewDescription = watch('description')
   const previewPriceLevel = watch('price_level')
+  const previewPhotos = photosValue.length > 0 ? photosValue : imageUrlValue ? [imageUrlValue] : []
 
   const [customZone, setCustomZone] = useState(
     defaultValues?.zone && !ZONES.includes(defaultValues.zone) ? defaultValues.zone : ''
@@ -779,7 +775,6 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
               </label>
               <PhotoUploader
                 photos={photosValue}
-                name={previewName || t('photos')}
                 onChange={(next) => setValue('photos', next, { shouldValidate: true })}
               />
             </div>
@@ -984,7 +979,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
             <h3 className="mb-3 text-sm font-semibold text-stone-500">{t('preview')}</h3>
             <LivePreviewCard
               name={previewName}
-              imageUrl={photosValue[0] || imageUrlValue}
+              photos={previewPhotos}
               zone={zoneValue}
               priceLevel={previewPriceLevel as 1 | 2 | 3}
               description={previewDescription}
@@ -998,7 +993,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
           <h3 className="mb-3 text-sm font-semibold text-stone-500">{t('preview')}</h3>
           <LivePreviewCard
             name={previewName}
-            imageUrl={photosValue[0] || imageUrlValue}
+            photos={previewPhotos}
             zone={zoneValue}
             priceLevel={previewPriceLevel as 1 | 2 | 3}
             description={previewDescription}

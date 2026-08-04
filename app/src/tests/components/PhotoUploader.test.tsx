@@ -58,14 +58,8 @@ describe('PhotoUploader', () => {
     vi.unstubAllGlobals()
   })
 
-  it('renders the carousel preview with fullscreen option when there are photos', () => {
-    render(<PhotoUploader photos={photos} onChange={vi.fn()} name="Resto" />, { wrapper: TestWrapper })
-    expect(screen.getByRole('button', { name: 'Ver fotos en grande' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Añadir fotos' })).toBeInTheDocument()
-  })
-
   it('shows thumbnails with remove buttons and a reorder hint', () => {
-    render(<PhotoUploader photos={photos} onChange={vi.fn()} name="Resto" />, { wrapper: TestWrapper })
+    render(<PhotoUploader photos={photos} onChange={vi.fn()} />, { wrapper: TestWrapper })
     expect(screen.getByText(/arrastra las fotos para ordenarlas/i)).toBeInTheDocument()
     const removeButtons = screen.getAllByRole('button', { name: 'Quitar foto' })
     expect(removeButtons).toHaveLength(3)
@@ -73,7 +67,7 @@ describe('PhotoUploader', () => {
 
   it('reorders photos when dragging a thumbnail over another', () => {
     const onChange = vi.fn()
-    render(<PhotoUploader photos={photos} onChange={onChange} name="Resto" />, { wrapper: TestWrapper })
+    render(<PhotoUploader photos={photos} onChange={onChange} />, { wrapper: TestWrapper })
 
     const dt = createDataTransfer()
     fireEvent.dragStart(screen.getByTestId('photo-thumb-0'), { dataTransfer: dt })
@@ -88,16 +82,26 @@ describe('PhotoUploader', () => {
     ])
   })
 
+  it('shows the insertion indicator between thumbnails while dragging', () => {
+    render(<PhotoUploader photos={photos} onChange={vi.fn()} />, { wrapper: TestWrapper })
+
+    const dt = createDataTransfer()
+    fireEvent.dragStart(screen.getByTestId('photo-thumb-0'), { dataTransfer: dt })
+    fireEvent.dragOver(screen.getByTestId('photo-thumb-1'), { dataTransfer: dt })
+
+    expect(screen.getByTestId('photo-drop-indicator')).toBeInTheDocument()
+  })
+
   it('removes a photo when clicking the remove button', () => {
     const onChange = vi.fn()
-    render(<PhotoUploader photos={photos} onChange={onChange} name="Resto" />, { wrapper: TestWrapper })
+    render(<PhotoUploader photos={photos} onChange={onChange} />, { wrapper: TestWrapper })
     fireEvent.click(screen.getAllByRole('button', { name: 'Quitar foto' })[0])
     expect(onChange).toHaveBeenCalledWith([photos[1], photos[2]])
   })
 
   it('uploads dropped files and appends the public url', async () => {
     const onChange = vi.fn()
-    render(<PhotoUploader photos={[]} onChange={onChange} name="Resto" />, { wrapper: TestWrapper })
+    render(<PhotoUploader photos={[]} onChange={onChange} />, { wrapper: TestWrapper })
 
     const dt = createDataTransfer()
     dt.files = [new File(['data'], 'foto.jpg', { type: 'image/jpeg' })]
@@ -113,7 +117,7 @@ describe('PhotoUploader', () => {
   })
 
   it('keeps the hidden file input with multiple selection for click uploads', () => {
-    const { container } = render(<PhotoUploader photos={[]} onChange={vi.fn()} name="Resto" />, { wrapper: TestWrapper })
+    const { container } = render(<PhotoUploader photos={[]} onChange={vi.fn()} />, { wrapper: TestWrapper })
     const input = container.querySelector('input[type="file"]') as HTMLInputElement
     expect(input).toHaveAttribute('multiple')
     expect(input).toHaveAttribute('accept', 'image/jpeg,image/png,image/webp')

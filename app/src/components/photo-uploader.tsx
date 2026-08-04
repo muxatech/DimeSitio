@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl'
 import { GripVertical, ImagePlus, Loader2, X } from 'lucide-react'
 import { getUploadUrls, getDeleteUrls } from '@/lib/panel/api'
 import { compressImage, getImageExt, isAllowedImage, MAX_PHOTOS } from '@/lib/photos'
-import PhotoCarousel from '@/components/photo-carousel'
 
 const REORDER_TYPE = 'application/x-dimesitio-photo'
 
@@ -25,11 +24,9 @@ function isReorderDrag(e: { dataTransfer: DataTransfer | null }): boolean {
 export default function PhotoUploader({
   photos,
   onChange,
-  name = '',
 }: {
   photos: string[]
   onChange: (next: string[]) => void
-  name?: string
 }) {
   const t = useTranslations('RestaurantForm')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -37,7 +34,7 @@ export default function PhotoUploader({
   const [error, setError] = useState('')
   const [dropActive, setDropActive] = useState(false)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
-  const [dropTarget, setDropTarget] = useState<number | null>(null)
+  const [dropIndex, setDropIndex] = useState<number | null>(null)
 
   async function handleFiles(files: FileList | File[] | null) {
     if (!files || files.length === 0) return
@@ -111,7 +108,7 @@ export default function PhotoUploader({
 
   function resetDrag() {
     setDragIndex(null)
-    setDropTarget(null)
+    setDropIndex(null)
   }
 
   function handleDragStart(e: React.DragEvent<HTMLDivElement>, i: number) {
@@ -127,18 +124,30 @@ export default function PhotoUploader({
   function handleDragOverItem(e: React.DragEvent<HTMLDivElement>, i: number) {
     if (!isReorderDrag(e)) return
     e.preventDefault()
+    e.stopPropagation()
     e.dataTransfer.dropEffect = 'move'
-    setDropTarget(i)
+    const rect = e.currentTarget.getBoundingClientRect()
+    setDropIndex(e.clientX < rect.left + rect.width / 2 ? i : i + 1)
   }
 
   function handleDropItem(e: React.DragEvent<HTMLDivElement>, i: number) {
     e.preventDefault()
+    e.stopPropagation()
     const from = Number(e.dataTransfer.getData(REORDER_TYPE))
-    if (!Number.isNaN(from)) handleReorder(from, i)
+    if (!Number.isNaN(from)) {
+      const rect = e.currentTarget.getBoundingClientRect()
+      handleReorder(from, e.clientX < rect.left + rect.width / 2 ? i : i + 1)
+    }
     resetDrag()
   }
 
   function handleDragOverContainer(e: React.DragEvent<HTMLDivElement>) {
+    if (isReorderDrag(e)) {
+      e.preventDefault()
+      e.dataTransfer.dropEffect = 'move'
+      setDropIndex(photos.length)
+      return
+    }
     if (!hasFiles(e)) return
     e.preventDefault()
     e.dataTransfer.dropEffect = 'copy'
@@ -146,6 +155,10 @@ export default function PhotoUploader({
   }
 
   function handleDragLeaveContainer(e: React.DragEvent<HTMLDivElement>) {
+    if (isReorderDrag(e)) {
+      setDropIndex(null)
+      return
+    }
     if (!hasFiles(e)) return
     const related = e.relatedTarget as Node | null
     if (related && e.currentTarget.contains(related)) return
@@ -153,6 +166,13 @@ export default function PhotoUploader({
   }
 
   function handleDropContainer(e: React.DragEvent<HTMLDivElement>) {
+    if (isReorderDrag(e)) {
+      e.preventDefault()
+      const from = Number(e.dataTransfer.getData(REORDER_TYPE))
+      if (!Number.isNaN(from)) handleReorder(from, photos.length)
+      resetDrag()
+      return
+    }
     if (!hasFiles(e)) return
     e.preventDefault()
     setDropActive(false)
@@ -161,14 +181,6 @@ export default function PhotoUploader({
 
   return (
     <div>
-      {photos.length > 0 && (
-        <div className="mb-3 overflow-hidden rounded-2xl bg-stone-100">
-          <div className="relative h-52 sm:h-64">
-            <PhotoCarousel photos={photos} name={name} showArrows />
-          </div>
-        </div>
-      )}
-
       <div
         data-testid="photo-uploader-dropzone"
         className={`relative rounded-2xl transition-colors ${
@@ -190,7 +202,7 @@ export default function PhotoUploader({
               onDragEnd={resetDrag}
               className={`relative aspect-square cursor-grab overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 transition-all ${
                 dragIndex === i ? 'opacity-40' : ''
-              } ${dropTarget === i ? 'ring-2 ring-stone-900 ring-offset-2' : ''}`}
+              }`}
             >
               <img
                 src={photo}
@@ -198,6 +210,18 @@ export default function PhotoUploader({
                 draggable={false}
                 className="h-full w-full object-cover"
               />
+              {dropIndex === i && (
+                <span
+                  data-testid="photo-drop-indicator"
+                  className="pointer-events-none absolute inset-y-0 left-0 z-10 w-1 bg-stone-900"
+                />
+              )}
+              {dropIndex === photos.length && i === photos.length - 1 && (
+                <span
+                  data-testid="photo-drop-indicator"
+                  className="pointer-events-none absolute inset-y-0 right-0 z-10 w-1 bg-stone-900"
+                />
+              )}
               <span className="absolute left-1 top-1 rounded-md bg-black/40 p-0.5 text-white">
                 <GripVertical className="h-3.5 w-3.5" />
               </span>
