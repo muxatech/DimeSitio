@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import WinnerView from '@/components/winner-view'
 import { useFlowStore } from '@/store/flow-store'
 import { TestWrapper } from '@/tests/helpers'
@@ -179,6 +179,38 @@ describe('WinnerView', () => {
       expect(screen.getByText('Cómo llegar')).toBeInTheDocument()
       expect(screen.getByText('Ver menú')).toBeInTheDocument()
       expect(screen.getByText('Reservar')).toBeInTheDocument()
+    })
+
+    it('shows a photo carousel with dots and arrows when winner has photos', () => {
+      const withPhotos: Restaurant = {
+        ...normalRestaurant,
+        photos: ['https://r2.example/restaurants/w/1.webp', 'https://r2.example/restaurants/w/2.webp'],
+      }
+      useFlowStore.setState({ winner: withPhotos })
+      render(<WinnerView />, { wrapper: TestWrapper })
+      expect(screen.getByTestId('photo-carousel')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Foto siguiente' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Foto anterior' })).toBeInTheDocument()
+      expect(screen.getByText('1 / 2')).toBeInTheDocument()
+    })
+
+    it('navigates the winner carousel with dots', () => {
+      const withPhotos: Restaurant = {
+        ...normalRestaurant,
+        photos: ['https://r2.example/restaurants/w/1.webp', 'https://r2.example/restaurants/w/2.webp'],
+      }
+      useFlowStore.setState({ winner: withPhotos })
+      render(<WinnerView />, { wrapper: TestWrapper })
+      fireEvent.click(screen.getByRole('button', { name: 'Foto 2' }))
+      expect((screen.getByRole('img') as HTMLImageElement).src).toBe('https://r2.example/restaurants/w/2.webp')
+      expect(screen.getByText('2 / 2')).toBeInTheDocument()
+    })
+
+    it('shows a placeholder when the winner has no photos', () => {
+      useFlowStore.setState({ winner: normalRestaurant })
+      const { container } = render(<WinnerView />, { wrapper: TestWrapper })
+      expect(screen.queryByTestId('photo-carousel')).not.toBeInTheDocument()
+      expect(container.querySelector('.lucide-utensils-crossed')).toBeInTheDocument()
     })
   })
 

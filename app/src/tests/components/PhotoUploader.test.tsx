@@ -24,7 +24,8 @@ vi.mock('@/lib/photos', () => ({
   isAllowedImage: vi.fn(() => true),
 }))
 
-import { getUploadUrls } from '@/lib/panel/api'
+import { getUploadUrls, getDeleteUrls } from '@/lib/panel/api'
+import { isAllowedImage, MAX_PHOTOS } from '@/lib/photos'
 
 const photos = [
   'https://r2.example/restaurants/a.webp',
@@ -48,14 +49,33 @@ function createDataTransfer() {
   return dt
 }
 
+// jsdom does not propagate `clientX` through fireEvent.drop/dragOver init,
+// so we dispatch a real MouseEvent with clientX injected.
+function fireDrag(
+  el: Element,
+  type: string,
+  dt: ReturnType<typeof createDataTransfer>,
+  clientX?: number
+) {
+  const evt = new MouseEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    ...(clientX !== undefined ? { clientX } : {}),
+  })
+  Object.defineProperty(evt, 'dataTransfer', { value: dt })
+  fireEvent(el, evt)
+}
+
 describe('PhotoUploader', () => {
   beforeEach(() => {
     vi.mocked(getUploadUrls).mockClear()
+    vi.mocked(getDeleteUrls).mockClear()
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true })))
   })
 
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.restoreAllMocks()
   })
 
   it('shows thumbnails with remove buttons and a reorder hint', () => {
@@ -114,6 +134,100 @@ describe('PhotoUploader', () => {
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(['https://r2.example/restaurants/x.webp'])
     })
+  })
+
+  it('shows photosLimit error when dropping more photos than the remaining slots', async () => {
+    const fullPhotos = Array.from(
+      { length: MAX_PHOTOS },
+      (_, i) => `https://r2.example/restaurants/${i}.webp`
+    )
+    render(<PhotoUploader photos={fullPhotos} onChange={vi.fn()} />, { wrapper: TestWrapper })
+
+    const dt = createDataTransfer()
+    dt.files = [new File(['data'], 'foto.jpg', { type: 'image/jpeg' })]
+    ;(dt.types as string[]).push('Files')
+
+    fireEvent.drop(screen.getByTestId('photo-uploader-dropzone'), { dataTransfer: dt })
+
+    expect(await screen.findByText('Máximo 8 fotos')).toBeInTheDocument()
+  })
+
+  it('shows photoInvalid error for unsupported file types', async () => {
+    vi.mocked(isAllowedImage).mockReturnValueOnce(false)
+    const onChange = vi.fn()
+    render(<PhotoUploader photos={[]} onChange={onChange} />, { wrapper: TestWrapper })
+
+    const dt = createDataTransfer()
+    dt.files = [new File(['data'], 'foto.gif', { type: 'image/gif' })]
+    ;(dt.types as string[]).push('Files')
+
+    fireEvent.drop(screen.getByTestId('photo-uploader-dropzone'), { dataTransfer: dt })
+
+    expect(await screen.findByText('Formato no válido. Usa JPG, PNG o WebP')).toBeInTheDocument()
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('shows uploadFailed error when the PUT upload fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false })))
+    const onChange = vi.fn()
+    render(<PhotoUploader photos={[]} onChange={onChange} />, { wrapper: TestWrapper })
+
+    const dt = createDataTransfer()
+    dt.files = [new File(['data'], 'foto.jpg', { type: 'image/jpeg' })]
+    ;(dt.types as string[]).push('Files')
+
+    fireEvent.drop(screen.getByTestId('photo-uploader-dropzone'), { dataTransfer: dt })
+
+    expect(await screen.findByText('Error al subir la foto')).toBeInTheDocument()
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('inserts before the target when dropping on the left half of a thumbnail', () => {
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
+      left: 100, right: 300, top: 0, bottom: 200, width: 200, height: 200, x: 100, y: 0,
+      toJSON: () => ({}),
+    } as DOMRect)
+    const onChange = vi.fn()
+    render(<PhotoUploader photos={photos} onChange={onChange} />, { wrapper: TestWrapper })
+
+    const dt = createDataTransfer()
+    fireEvent.dragStart(screen.getByTestId('photo-thumb-2'), { dataTransfer: dt })
+    fireDrag(screen.getByTestId('photo-thumb-1'), 'dragover', dt, 150)
+    fireDrag(screen.getByTestId('photo-thumb-1'), 'drop', dt, 150)
+    fireEvent.dragEnd(screen.getByTestId('photo-thumb-2'), { dataTransfer: dt })
+
+    expect(onChange).toHaveBeenCalledWith([photos[0], photos[2], photos[1]])
+  })
+
+  it('appends at the end when dropping on the dropzone container', () => {
+    const onChange = vi.fn()
+    render(<PhotoUploader photos={photos} onChange={onChange} />, { wrapper: TestWrapper })
+
+    const dt = createDataTransfer()
+    fireEvent.dragStart(screen.getByTestId('photo-thumb-0'), { dataTransfer: dt })
+    fireEvent.dragOver(screen.getByTestId('photo-uploader-dropzone'), { dataTransfer: dt })
+    fireEvent.drop(screen.getByTestId('photo-uploader-dropzone'), { dataTransfer: dt })
+    fireEvent.dragEnd(screen.getByTestId('photo-thumb-0'), { dataTransfer: dt })
+
+    expect(onChange).toHaveBeenCalledWith([photos[1], photos[2], photos[0]])
+  })
+
+  it('calls getDeleteUrls when removing a photo', async () => {
+    const onChange = vi.fn()
+    render(<PhotoUploader photos={photos} onChange={onChange} />, { wrapper: TestWrapper })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Quitar foto' })[0])
+    expect(onChange).toHaveBeenCalledWith([photos[1], photos[2]])
+    await waitFor(() => {
+      expect(getDeleteUrls).toHaveBeenCalledWith(['restaurants/a.webp'])
+    })
+  })
+
+  it('does not start a reorder drag from the remove button', () => {
+    render(<PhotoUploader photos={photos} onChange={vi.fn()} />, { wrapper: TestWrapper })
+    const dt = createDataTransfer()
+    fireEvent.dragStart(screen.getAllByRole('button', { name: 'Quitar foto' })[0], { dataTransfer: dt })
+    expect(dt.types).not.toContain('application/x-dimesitio-photo')
+    expect(screen.queryByTestId('photo-drop-indicator')).not.toBeInTheDocument()
   })
 
   it('keeps the hidden file input with multiple selection for click uploads', () => {

@@ -232,6 +232,58 @@ describe('BattleView', () => {
       expect(img.src).toBe('https://example.com/img.jpg')
     })
 
+    it('shows a photo carousel on each battle card when restaurants have photos', () => {
+      const champ: Restaurant = {
+        ...champion,
+        photos: ['https://r2.example/restaurants/a/1.webp', 'https://r2.example/restaurants/a/2.webp'],
+      }
+      const chall: Restaurant = {
+        ...challenger,
+        photos: ['https://r2.example/restaurants/b/1.webp', 'https://r2.example/restaurants/b/2.webp'],
+      }
+      useFlowStore.setState({
+        battleChampion: champ,
+        battleChallenger: chall,
+        battleRound: 1,
+        top5: [champ, chall],
+      })
+      render(<BattleView />, { wrapper: TestWrapper })
+      expect(screen.getAllByTestId('photo-carousel')).toHaveLength(2)
+      expect(screen.getAllByRole('button', { name: 'Ver fotos en grande' })).toHaveLength(2)
+      const imgs = screen.getAllByRole('img') as HTMLImageElement[]
+      expect(imgs[0].src).toBe('https://r2.example/restaurants/a/1.webp')
+      expect(imgs[1].src).toBe('https://r2.example/restaurants/b/1.webp')
+    })
+
+    it('navigates the battle card carousel without picking the card', () => {
+      const champ: Restaurant = {
+        ...champion,
+        photos: ['https://r2.example/restaurants/a/1.webp', 'https://r2.example/restaurants/a/2.webp'],
+      }
+      useFlowStore.setState({
+        battleChampion: champ,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champ, challenger],
+      })
+      render(<BattleView />, { wrapper: TestWrapper })
+      fireEvent.click(screen.getByRole('button', { name: 'Foto 2' }))
+      expect((screen.getByRole('img') as HTMLImageElement).src).toBe('https://r2.example/restaurants/a/2.webp')
+      expect(useFlowStore.getState().step).toBe('battle')
+    })
+
+    it('shows placeholder carousels when battle cards have no photos', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      expect(screen.queryByTestId('photo-carousel')).not.toBeInTheDocument()
+      expect(container.querySelectorAll('.lucide-utensils-crossed')).toHaveLength(2)
+    })
+
     it('shows price level on each card', () => {
       useFlowStore.setState({
         battleChampion: champion,

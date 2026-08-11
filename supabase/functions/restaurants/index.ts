@@ -80,7 +80,7 @@ const VALID_PRICE_LEVELS = new Set([1, 2, 3])
 const VALID_UPDATE_FIELDS = new Set(['name', 'description', 'phone', 'address', 'price_level', 'zone', 'image_url', 'photos', 'menu_url', 'reservations_url', 'instagram_url', 'google_maps_url', 'active', 'is_demo', 'founder_rank', 'category_ids', 'lat', 'lng'])
 const MAX_PHOTOS = 8
 
-function isValidPhotoUrl(value: unknown): value is string {
+export function isValidPhotoUrl(value: unknown): value is string {
   if (typeof value !== 'string' || value.length === 0 || value.length > 500) return false
   try {
     const u = new URL(value)
@@ -91,7 +91,7 @@ function isValidPhotoUrl(value: unknown): value is string {
   }
 }
 
-function validatePhotos(value: unknown): string | null {
+export function validatePhotos(value: unknown): string | null {
   if (!Array.isArray(value)) return 'photos must be an array'
   if (value.length > MAX_PHOTOS) return `photos must have at most ${MAX_PHOTOS} items`
   if (!value.every(isValidPhotoUrl)) return 'photos must contain valid image URLs'

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import RestaurantPanelCard from '@/components/restaurant-panel-card'
 import { TestWrapper } from '@/tests/helpers'
 import type { RestaurantWithRole } from '@/types'
@@ -70,5 +70,41 @@ describe('RestaurantPanelCard founder/demo badges', () => {
     render(<RestaurantPanelCard restaurant={{ ...base, is_demo: true, founder_rank: 5 }} />, { wrapper: TestWrapper })
     expect(screen.getByText('Fundador')).toBeInTheDocument()
     expect(screen.getByText('Demo')).toBeInTheDocument()
+  })
+})
+
+describe('RestaurantPanelCard photos', () => {
+  const photos = [
+    'https://dimesitio.es/images/restaurants/a/1.webp',
+    'https://dimesitio.es/images/restaurants/a/2.webp',
+    'https://dimesitio.es/images/restaurants/a/3.webp',
+  ]
+
+  it('shows the photo carousel with the restaurant photos', () => {
+    render(<RestaurantPanelCard restaurant={{ ...base, photos }} />, { wrapper: TestWrapper })
+    expect(screen.getByTestId('photo-carousel')).toBeInTheDocument()
+    const img = screen.getByRole('img') as HTMLImageElement
+    expect(img.src).toBe(photos[0])
+    expect(screen.getByRole('button', { name: 'Foto 2' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ver fotos en grande' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Foto 3' }))
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[2])
+  })
+
+  it('falls back to image_url when there are no photos', () => {
+    render(
+      <RestaurantPanelCard restaurant={{ ...base, image_url: 'https://example.com/img.jpg' }} />,
+      { wrapper: TestWrapper }
+    )
+    expect(screen.getByTestId('photo-carousel')).toBeInTheDocument()
+    const img = screen.getByRole('img') as HTMLImageElement
+    expect(img.src).toBe('https://example.com/img.jpg')
+    expect(screen.queryByRole('button', { name: 'Foto 2' })).not.toBeInTheDocument()
+  })
+
+  it('shows the placeholder when there is no photo at all', () => {
+    const { container } = render(<RestaurantPanelCard restaurant={base} />, { wrapper: TestWrapper })
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(container.querySelector('.lucide-utensils-crossed')).toBeInTheDocument()
   })
 })

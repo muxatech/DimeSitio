@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import RestaurantForm from '@/app/[locale]/(panel)/establecimientos/restaurant-form'
 import { TestWrapper } from '@/tests/helpers'
 import type { RestaurantWithRole } from '@/types'
@@ -301,5 +301,63 @@ describe('RestaurantForm Instagram normalization on submit', () => {
     const calledData = onSubmit.mock.calls[0][0]
     expect(calledData).toHaveProperty('plan_type', 'founder')
     expect(calledData).toHaveProperty('payment_method', 'email')
+  })
+})
+
+describe('RestaurantForm photos preview and payload', () => {
+  let onSubmit: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    onSubmit = vi.fn()
+    mockFormValues.photos = []
+    mockFormValues.image_url = ''
+  })
+
+  it('shows the photo carousel in the live preview when photos exist', () => {
+    mockFormValues.photos = ['https://r2.example/restaurants/a/1.webp', 'https://r2.example/restaurants/a/2.webp']
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
+
+    const carousels = screen.getAllByTestId('photo-carousel')
+    expect(carousels).toHaveLength(2)
+    expect(within(carousels[0]).getByRole('img')).toHaveAttribute('src', 'https://r2.example/restaurants/a/1.webp')
+  })
+
+  it('shows placeholder preview cards when there are no photos', () => {
+    const { container } = render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
+
+    expect(screen.queryByTestId('photo-carousel')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('.lucide-utensils-crossed')).toHaveLength(3)
+  })
+
+  it('includes photos in the submit payload when creating', () => {
+    mockFormValues.photos = ['https://r2.example/restaurants/a/1.webp']
+    render(<RestaurantForm onSubmit={onSubmit} isSubmitting={false} />, { wrapper: TestWrapper })
+
+    const checkbox = screen.getByRole('checkbox') as HTMLInputElement
+    fireEvent.click(checkbox)
+    fireEvent.click(screen.getByText('Crear establecimiento'))
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ photos: ['https://r2.example/restaurants/a/1.webp'] })
+    )
+  })
+
+  it('includes photos in the submit payload when editing as staff', () => {
+    mockFormValues.photos = ['https://r2.example/restaurants/a/1.webp']
+    render(
+      <RestaurantForm
+        onSubmit={onSubmit}
+        isSubmitting={false}
+        staffMode
+        defaultValues={{ id: 'r-1', name: 'Existing' } as unknown as RestaurantWithRole}
+      />,
+      { wrapper: TestWrapper }
+    )
+
+    fireEvent.click(screen.getByText('Guardar cambios'))
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ photos: ['https://r2.example/restaurants/a/1.webp'] })
+    )
   })
 })

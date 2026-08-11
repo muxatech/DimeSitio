@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import PhotoCarousel from '@/components/photo-carousel'
 import { TestWrapper } from '@/tests/helpers'
@@ -126,5 +126,50 @@ describe('PhotoCarousel', () => {
     expect(within(dialog).getByRole('img')).toHaveAttribute('src', photos[1])
     fireEvent.click(within(dialog).getByRole('button', { name: 'Foto anterior' }))
     expect(within(dialog).getByRole('img')).toHaveAttribute('src', photos[0])
+  })
+
+  it('wraps around to the first photo when going past the last one', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" showArrows />, { wrapper: TestWrapper })
+    const next = screen.getByRole('button', { name: 'Foto siguiente' })
+    const prev = screen.getByRole('button', { name: 'Foto anterior' })
+    fireEvent.click(next)
+    fireEvent.click(next)
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[2])
+    fireEvent.click(next)
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[0])
+    fireEvent.click(prev)
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[2])
+  })
+
+  it('navigates with dots and swipe inside the fullscreen viewer', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    fireEvent.click(screen.getByRole('button', { name: 'Ver fotos en grande' }))
+    const dialog = screen.getByRole('dialog')
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Foto 3' }))
+    expect(within(dialog).getByRole('img')).toHaveAttribute('src', photos[2])
+
+    fireEvent.pointerDown(dialog, { clientX: 300, pointerId: 1 })
+    fireEvent.pointerMove(dialog, { clientX: 100, pointerId: 1 })
+    fireEvent.pointerUp(dialog, { clientX: 100, pointerId: 1 })
+    expect(within(dialog).getByRole('img')).toHaveAttribute('src', photos[0])
+  })
+
+  it('does not propagate a click that follows a real drag', () => {
+    const onClick = vi.fn()
+    render(
+      <div onClick={onClick}>
+        <PhotoCarousel photos={photos} name="Resto" />
+      </div>,
+      { wrapper: TestWrapper }
+    )
+    const carousel = screen.getByTestId('photo-carousel')
+    fireEvent.pointerDown(carousel, { clientX: 200, pointerId: 1 })
+    fireEvent.pointerMove(carousel, { clientX: 100, pointerId: 1 })
+    fireEvent.pointerUp(carousel, { clientX: 100, pointerId: 1 })
+    fireEvent.click(carousel)
+    expect(onClick).not.toHaveBeenCalled()
+    fireEvent.click(carousel)
+    expect(onClick).toHaveBeenCalled()
   })
 })
