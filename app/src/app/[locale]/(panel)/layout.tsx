@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import DsMonogram from '@/components/ds-monogram'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, Store, LogOut, Menu, X, CreditCard, Tags, UtensilsCrossed } from 'lucide-react'
+import { LayoutDashboard, Store, LogOut, Menu, X, CreditCard, Tags, UtensilsCrossed, BarChart3 } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useFlowStore } from '@/store/flow-store'
 import { checkStaffStatus } from '@/lib/panel/api'
@@ -167,6 +167,19 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
               >
                 <Tags className="h-5 w-5" />
                 {t('categories')}
+              </Link>
+              <Link
+                href="/stats"
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all',
+                  pathname.startsWith('/stats')
+                    ? 'bg-stone-700 text-white'
+                    : 'text-stone-400 hover:bg-stone-800 hover:text-white'
+                )}
+              >
+                <BarChart3 className="h-5 w-5" />
+                {t('stats')}
               </Link>
             </>
           )}

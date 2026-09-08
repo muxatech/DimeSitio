@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { getPriceLabel } from '@/lib/utils'
+import { trackSelection } from '@/lib/tracking'
 import type { Restaurant } from '@/types'
 import { MapPin, Sparkles, Swords, RotateCcw, Crown } from 'lucide-react'
 import PhotoCarousel from '@/components/photo-carousel'
@@ -40,6 +41,7 @@ export default function BattleView() {
 
   function handlePick(winner: Restaurant) {
     if (picking) return
+    trackSelection(winner.id, battleRound)
     setPicking(true)
     setSelectedId(winner.id)
     setTimeout(() => {
@@ -200,7 +202,7 @@ function BattleCard({
               href={restaurant.instagram_url}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); import('@/lib/tracking').then(m=>m.trackCta(restaurant.id,'instagram')) }}
               className="mt-1 inline-flex items-center gap-1.5 rounded-xl bg-pink-50 px-3 py-1.5 text-sm font-medium text-pink-700 shadow-sm transition-all hover:bg-pink-100 hover:text-pink-800 hover:shadow-md"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 fill-current" aria-label="Instagram">

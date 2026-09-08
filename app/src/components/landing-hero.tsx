@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { getSessionId } from '@/lib/utils'
+import { trackFlowStart, trackPageView } from '@/lib/tracking'
 import {
   Clock,
   Target,
@@ -92,9 +93,15 @@ export default function LandingHero() {
     return () => clearInterval(interval)
   }, [words.length])
 
+  useEffect(() => {
+    trackPageView('/', window.location.pathname.startsWith('/en') ? 'en' : 'es')
+  }, [])
+
   function handleStart() {
     startNewFlow()
-    setSessionId(getSessionId())
+    const sid = getSessionId()
+    setSessionId(sid)
+    trackFlowStart()
   }
 
   return (

@@ -17,6 +17,11 @@ vi.mock('next/image', () => ({
   default: ({ alt, ...props }: Record<string, unknown>) => <img alt={alt as string} {...props} />,
 }))
 
+vi.mock('@/lib/tracking', () => ({
+  trackSelection: vi.fn(),
+  trackCta: vi.fn(),
+}))
+
 const champion: Restaurant = {
   id: 'a', owner_id: null, name: 'Champion', description: 'Champion desc',
   phone: null, address: null, city: 'Valencia', lat: null, lng: null,

@@ -17,6 +17,7 @@ import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import { UtensilsCrossed } from 'lucide-react'
 import { getSessionId } from '@/lib/utils'
+import { trackQuestionView, trackImpressions } from '@/lib/tracking'
 import { useTranslations } from 'next-intl'
 
 const QuestionLocation = dynamic(() => import('@/components/question-location'), {
@@ -138,12 +139,14 @@ export default function FlowPage() {
     }
   }, [step])
 
-  // Scroll to top when changing questions
+  // Scroll to top when changing questions + track question view
   useEffect(() => {
     if (step === 'questions') {
       window.scrollTo({ top: 0, behavior: 'smooth' })
+      const key = QUESTIONS[qIndex]?.key as 'categories' | 'price' | 'location' | undefined
+      if (key) trackQuestionView(key, qIndex)
     }
-  }, [qIndex])
+  }, [qIndex, step])
 
   // Back button — restore state from history
   useEffect(() => {
@@ -249,6 +252,7 @@ export default function FlowPage() {
 
     const top = [...founders, ...regulars, ...demos].slice(0, 5)
     setTop5(top)
+    if (top.length) trackImpressions(top.map((r) => r.id))
     if (top.length === 1) {
       setWinner(top[0])
       setStep('winner')

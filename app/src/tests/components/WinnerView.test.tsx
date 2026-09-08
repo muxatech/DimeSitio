@@ -19,6 +19,12 @@ vi.mock('next/image', () => ({
 
 vi.mock('@/lib/tracking', () => ({
   trackCall: vi.fn(),
+  trackCta: vi.fn(),
+  trackPageView: vi.fn(),
+  trackFlowStart: vi.fn(),
+  trackQuestionView: vi.fn(),
+  trackImpressions: vi.fn(),
+  trackSelection: vi.fn(),
 }))
 
 const demoRestaurant: Restaurant = {

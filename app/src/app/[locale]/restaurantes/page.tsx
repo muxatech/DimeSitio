@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { trackPageView } from '@/lib/tracking'
 import { Link } from '@/i18n/navigation'
 import {
   Users,
@@ -28,6 +30,9 @@ function ViewportWrapper({ children, delay = 0 }: { children: React.ReactNode; d
 }
 
 export default function RestaurantesPage() {
+  useEffect(() => {
+    trackPageView('/restaurantes', window.location.pathname.startsWith('/en') ? 'en' : 'es')
+  }, [])
   const t = useTranslations('Restaurantes')
   const tCommon = useTranslations('Common')
 

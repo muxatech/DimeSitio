@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentType } from 'react'
+import { useEffect, type ComponentType } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
@@ -12,6 +12,10 @@ export default function WinnerView() {
   const t = useTranslations('Winner')
   const tCommon = useTranslations('Common')
   const { winner, startNewFlow } = useFlowStore()
+
+  useEffect(() => {
+    if (winner?.id) import('@/lib/tracking').then(m => m.trackCta(winner.id, 'winner'))
+  }, [winner?.id])
 
   if (!winner) {
     return (
@@ -123,6 +127,7 @@ export default function WinnerView() {
                 href={`tel:${winner.phone}`}
                 label={tCommon('call')}
                 icon={Phone}
+                onTrack={() => import('@/lib/tracking').then(m=>m.trackCall(winner.id))}
               />
             )}
 
@@ -131,6 +136,7 @@ export default function WinnerView() {
                 href={winner.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winner.address + ', Valencia')}`}
                 label={tCommon('directions')}
                 icon={Navigation}
+                onTrack={() => import('@/lib/tracking').then(m=>m.trackCta(winner.id,'maps'))}
               />
             )}
 
@@ -139,6 +145,7 @@ export default function WinnerView() {
                 href={winner.menu_url}
                 label={tCommon('viewMenu')}
                 icon={Menu}
+                onTrack={() => import('@/lib/tracking').then(m=>m.trackCta(winner.id,'menu'))}
               />
             )}
 
@@ -147,6 +154,7 @@ export default function WinnerView() {
                 href={winner.reservations_url}
                 label={tCommon('reserve')}
                 icon={Calendar}
+                onTrack={() => import('@/lib/tracking').then(m=>m.trackCta(winner.id,'reservations'))}
               />
             )}
 
@@ -155,6 +163,7 @@ export default function WinnerView() {
                 href={winner.instagram_url}
                 label={tCommon('viewInstagram')}
                 icon={InstagramIcon}
+                onTrack={() => import('@/lib/tracking').then(m=>m.trackCta(winner.id,'instagram'))}
               />
             )}
           </div>

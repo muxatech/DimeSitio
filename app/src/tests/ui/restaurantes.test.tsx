@@ -19,6 +19,10 @@ vi.mock('@/i18n/navigation', () => ({
   Link: ({ children, href, ...props }: Record<string, unknown>) => <a href={href as string} {...props}>{children}</a>,
 }))
 
+vi.mock('@/lib/tracking', () => ({
+  trackPageView: vi.fn(),
+}))
+
 describe('RestaurantesPage founder section', () => {
   it('shows the founder section title', () => {
     render(<RestaurantesPage />, { wrapper: TestWrapper })

@@ -25,6 +25,26 @@ vi.mock('@/components/photo-carousel', () => ({
   ),
 }))
 
+vi.mock('@/lib/tracking', () => ({
+  trackPageView: vi.fn(),
+  trackFlowStart: vi.fn(),
+  trackQuestionView: vi.fn(),
+  trackImpressions: vi.fn(),
+  trackSelection: vi.fn(),
+  trackCall: vi.fn(),
+  trackCta: vi.fn(),
+}))
+
+vi.mock('@/app/[locale]/sitio/[id]/sitio-cta', () => ({
+  default: ({ labels }: { labels: Record<string, string> }) => (
+    <div>
+      {Object.values(labels).map((l: string) => (
+        <span key={l}>{l}</span>
+      ))}
+    </div>
+  ),
+}))
+
 const mockRestaurant = {
   id: '69bb3b50-1df8-4369-b285-d9018496a5a3',
   name: 'MUMA Restaurante',

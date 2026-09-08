@@ -121,3 +121,33 @@ export interface AnalyticsData {
   daily: AnalyticsDaily[]
   recent_events: { type: 'impression'; created_at: string }[]
 }
+
+export interface GlobalTotals {
+  page_views_7d: number
+  page_views_30d: number
+  uniques_7d: number
+  flow_starts_7d: number
+  flow_starts_30d: number
+  q_categories_7d: number
+  q_price_7d: number
+  q_location_7d: number
+  restaurantes_views_7d: number
+  impressions_7d: number
+  impressions_30d: number
+  selections_7d: number
+  selections_30d: number
+  cta_call_7d: number
+  cta_call_30d: number
+  cta_maps_7d: number
+  cta_menu_7d: number
+  cta_reservations_7d: number
+  cta_instagram_7d: number
+  cta_winner_7d: number
+  restaurants_active: number
+}
+
+export interface GlobalMetrics {
+  totals: GlobalTotals
+  daily: { date: string; page_views: number; flow_starts: number; impressions: number; cta: number }[]
+  topRestaurants: { restaurant_id: string; name: string; count: number; type: string }[]
+}

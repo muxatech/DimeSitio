@@ -40,6 +40,12 @@ vi.mock('@/components/landing-hero', () => ({
 
 vi.mock('@/lib/tracking', () => ({
   trackCall: vi.fn(),
+  trackCta: vi.fn(),
+  trackPageView: vi.fn(),
+  trackFlowStart: vi.fn(),
+  trackQuestionView: vi.fn(),
+  trackImpressions: vi.fn(),
+  trackSelection: vi.fn(),
 }))
 
 const mockRestaurants: Restaurant[] = [

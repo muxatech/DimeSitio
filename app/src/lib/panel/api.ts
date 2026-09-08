@@ -116,6 +116,11 @@ export async function getRestaurantAnalytics(id: string): Promise<AnalyticsData>
   return res.data
 }
 
+export async function getGlobalMetrics(): Promise<import('@/types').GlobalMetrics> {
+  const res = await invoke<{ success: boolean; data: import('@/types').GlobalMetrics }>('GET', '/global', undefined, 'analytics')
+  return res.data
+}
+
 // ─── Stripe ─────────────────────────────────────────────────
 
 export async function createCheckoutSession(restaurantId: string, locale: string = 'es'): Promise<string> {

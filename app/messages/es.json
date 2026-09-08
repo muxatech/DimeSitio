@@ -266,6 +266,7 @@
     "subscription": "Suscripción",
     "restaurants": "Restaurantes",
     "categories": "Categorías",
+    "stats": "Stats",
     "logout": "Cerrar sesión"
   },
   "Auth": {
