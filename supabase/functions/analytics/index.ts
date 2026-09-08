@@ -121,7 +121,10 @@ async function handleGetGlobal(
 
   let topRestaurants: { restaurant_id: string; name: string; count: number; type: string }[] = []
   try {
-    const ids = [...new Set([...topCounts(topImp.data ?? []).map(r=>r.restaurant_id), ...topCounts(topWin.data ?? []).map(r=>r.restaurant_id), ...topCounts(topCall.data ?? []).map(r=>r.restaurant_id))].slice(0, 20)
+    const impIds = topCounts(topImp.data ?? []).map((r) => r.restaurant_id)
+    const winIds = topCounts(topWin.data ?? []).map((r) => r.restaurant_id)
+    const callIds = topCounts(topCall.data ?? []).map((r) => r.restaurant_id)
+    const ids = Array.from(new Set([...impIds, ...winIds, ...callIds])).slice(0, 20)
     if (ids.length) {
       const { data: rests } = await supabase.from('restaurants').select('id, name').in('id', ids)
       const nameMap = new Map((rests ?? []).map((r: { id: string; name: string }) => [r.id, r.name]))
