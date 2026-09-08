@@ -63,6 +63,10 @@ async function handleGetGlobal(
   const iso7 = daysAgo(7)
   const iso30 = daysAgo(30)
 
+  const { data: realRows } = await supabase.from('restaurants').select('id').eq('is_demo', false)
+  const realIds: string[] = (realRows ?? []).map((r: { id: string }) => r.id)
+  const realFilter = realIds.length > 0 ? realIds : ['00000000-0000-0000-0000-000000000000']
+
   const [pv7, pv30, uniq7, flow7, flow30, qCat7, qPrice7, qLoc7, pvRest7, imp7, imp30, sel7, sel30, cal7, cal30, ctaMaps7, ctaMenu7, ctaRes7, ctaIg7, ctaWinner7, restCount, dailyPv, dailyFlow, dailyQ, dailyImp, dailyCta, topImp, topWin, topCall] = await Promise.all([
     supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', iso7),
     supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', iso30),
@@ -73,26 +77,26 @@ async function handleGetGlobal(
     supabase.from('question_views').select('*', { count: 'exact', head: true }).eq('question_key', 'price').gte('created_at', iso7),
     supabase.from('question_views').select('*', { count: 'exact', head: true }).eq('question_key', 'location').gte('created_at', iso7),
     supabase.from('page_views').select('*', { count: 'exact', head: true }).like('path', '%/restaurantes%').gte('created_at', iso7),
-    supabase.from('impressions').select('*', { count: 'exact', head: true }).gte('created_at', iso7),
-    supabase.from('impressions').select('*', { count: 'exact', head: true }).gte('created_at', iso30),
-    supabase.from('selections').select('*', { count: 'exact', head: true }).gte('created_at', iso7),
-    supabase.from('selections').select('*', { count: 'exact', head: true }).gte('created_at', iso30),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('cta_type', 'call').gte('created_at', iso7),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('cta_type', 'call').gte('created_at', iso30),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('cta_type', 'maps').gte('created_at', iso7),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('cta_type', 'menu').gte('created_at', iso7),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('cta_type', 'reservations').gte('created_at', iso7),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('cta_type', 'instagram').gte('created_at', iso7),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('cta_type', 'winner').gte('created_at', iso7),
-    supabase.from('restaurants').select('*', { count: 'exact', head: true }).eq('active', true),
+    supabase.from('impressions').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).gte('created_at', iso7),
+    supabase.from('impressions').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).gte('created_at', iso30),
+    supabase.from('selections').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).gte('created_at', iso7),
+    supabase.from('selections').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).gte('created_at', iso30),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'call').gte('created_at', iso7),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'call').gte('created_at', iso30),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'maps').gte('created_at', iso7),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'menu').gte('created_at', iso7),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'reservations').gte('created_at', iso7),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'instagram').gte('created_at', iso7),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'winner').gte('created_at', iso7),
+    supabase.from('restaurants').select('*', { count: 'exact', head: true }).eq('active', true).eq('is_demo', false),
     supabase.from('page_views').select('created_at').gte('created_at', iso30).order('created_at', { ascending: true }),
     supabase.from('flow_starts').select('created_at').gte('created_at', iso30).order('created_at', { ascending: true }),
     supabase.from('question_views').select('created_at, question_key').gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('impressions').select('created_at').gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('cta_clicks').select('created_at, cta_type').gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('impressions').select('restaurant_id').gte('created_at', iso30),
-    supabase.from('cta_clicks').select('restaurant_id').eq('cta_type', 'winner').gte('created_at', iso30),
-    supabase.from('cta_clicks').select('restaurant_id').eq('cta_type', 'call').gte('created_at', iso30),
+    supabase.from('impressions').select('created_at').in('restaurant_id', realFilter).gte('created_at', iso30).order('created_at', { ascending: true }),
+    supabase.from('cta_clicks').select('created_at, cta_type').in('restaurant_id', realFilter).gte('created_at', iso30).order('created_at', { ascending: true }),
+    supabase.from('impressions').select('restaurant_id').in('restaurant_id', realFilter).gte('created_at', iso30),
+    supabase.from('cta_clicks').select('restaurant_id').eq('cta_type', 'winner').in('restaurant_id', realFilter).gte('created_at', iso30),
+    supabase.from('cta_clicks').select('restaurant_id').eq('cta_type', 'call').in('restaurant_id', realFilter).gte('created_at', iso30),
   ])
 
   const uniqCount = new Set((uniq7.data ?? []).map((r: { visitor_id: string }) => r.visitor_id)).size
@@ -125,8 +129,9 @@ async function handleGetGlobal(
     const winIds = topCounts(topWin.data ?? []).map((r) => r.restaurant_id)
     const callIds = topCounts(topCall.data ?? []).map((r) => r.restaurant_id)
     const ids = Array.from(new Set([...impIds, ...winIds, ...callIds])).slice(0, 20)
-    if (ids.length) {
-      const { data: rests } = await supabase.from('restaurants').select('id, name').in('id', ids)
+    const filteredIds = ids.filter((id) => realIds.includes(id))
+    if (filteredIds.length) {
+      const { data: rests } = await supabase.from('restaurants').select('id, name').in('id', filteredIds)
       const nameMap = new Map((rests ?? []).map((r: { id: string; name: string }) => [r.id, r.name]))
       const impTop = topCounts(topImp.data ?? []).slice(0, 5).map(r=>({ ...r, name: nameMap.get(r.restaurant_id) ?? r.restaurant_id, type: 'impressions' as const }))
       const winTop = topCounts(topWin.data ?? []).slice(0, 5).map(r=>({ ...r, name: nameMap.get(r.restaurant_id) ?? r.restaurant_id, type: 'winner' as const }))

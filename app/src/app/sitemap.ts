@@ -29,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     if (url && key) {
-      const res = await fetch(`${url}/rest/v1/restaurants?select=id,created_at&active=eq.true`, {
+      const res = await fetch(`${url}/rest/v1/restaurants?select=id,created_at&active=eq.true&is_demo=eq.false`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` },
         next: { revalidate: 3600 },
       })

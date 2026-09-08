@@ -93,9 +93,11 @@ Ganador final / impresiones.
 - abandono
 
 ## Negocio
-- restaurantes activos
+- restaurantes activos (solo reales: `active=true AND is_demo=false`, excluye 990 demos seed)
 - MRR
 - churn mensual
+
+> Nota: todas las métricas globales (`page_views`, `impressions`, `selections`, `cta_*`, `restaurants_active`, `topRestaurants`, `sitemap`) excluyen demos (`is_demo=true`). Solo se cuentan eventos cuyo `restaurant_id` pertenece a un restaurante real.
 
 ---
 

@@ -24,12 +24,21 @@ Campos:
 - lng (numeric)
 - price_level (int, 1-3)
 - image_url (text)
+- photos (text[] — URLs R2)
 - menu_url (text)
+- reservations_url (text)
+- instagram_url (text)
+- google_maps_url (text)
 - zone (text)
 - active (boolean, default false — se activa vía suscripción Stripe)
+- is_demo (boolean, not null default false — true = restaurante ficticio/demo, false = real; usado para excluir de stats globales y sitemap)
+- founder_rank (integer, unique partial where not null — solo reales con plan_type=founder)
+- plan_type (text: 'standard' | 'founder')
 - created_at (timestamptz)
 
-Indices: active, city, owner_id, zone, price_level
+Indices: active, city, owner_id, zone, price_level, is_demo, founder_rank
+
+> **Métricas globales**: todas las agregaciones (`restaurants_active`, `impressions_7d`, `selections`, `cta_*`, `topRestaurants`, `sitemap`) filtran `is_demo=false` para mostrar solo reales.
 
 ---
 
@@ -152,6 +161,18 @@ Campos:
 - restaurant_id (uuid, ref restaurants)
 - session_id (text)
 - created_at (timestamptz)
+
+---
+
+## page_views / question_views / cta_clicks
+
+Métricas generales (tracking anónimo). Solo reales cuentan en agregados globales.
+
+- **page_views**: id, session_id, visitor_id, path, locale, created_at — visitas totales/únicas
+- **question_views**: id, session_id, question_key ('categories'|'price'|'location'), q_index, created_at
+- **cta_clicks**: id, restaurant_id (fk), cta_type ('call'|'maps'|'menu'|'reservations'|'instagram'|'winner'), session_id, path, created_at
+
+RLS: anon `INSERT true`, staff `SELECT` (cta_clicks también leíble por owner de ese restaurante). Agregados globales filtran `is_demo=false`.
 
 ---
 
