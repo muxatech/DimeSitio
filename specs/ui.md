@@ -67,6 +67,27 @@ Mostrar:
 
 ---
 
+# Ficha de sitio (página pública `/{locale}/sitio/[id]`)
+
+Página indexable por restaurante, accesible sin auth solo si `active = true`.
+
+**Ruta:** `/{locale}/sitio/[id]` donde `id` es UUIDv4. Ejemplo: `/es/sitio/69bb3b50-1df8-4369-b285-d9018496a5a3` (MUMA Restaurante).
+
+**Fetch (Server Component):** `supabase anon` `select *, restaurant_categories(category_id) + join categories` con `eq('id', id).eq('active', true).single()`. Valida UUID con regex `^[0-9a-f]{8}-...$` antes del query (400 → 404). Si no existe o inactivo → `notFound()` 404.
+
+**UI:**
+- `PhotoCarousel` (fotos R2 o `image_url` fallback) con swipe/dots/fullscreen
+- Header: nombre + badges (Fundador/Ciutat Vella/€€/dirección)
+- Descripción en card + categorías como pills
+- Columna CTAs: Llamar (`tel:`), Cómo llegar (`google_maps_url` o `address` fallback), Ver menú, Reservar, Ver Instagram
+- `jsonLd` `@type Restaurant` (address, geo, priceRange, servesCuisine, telephone, image)
+
+**SEO:** `generateMetadata` con `title: ${name} | DimeSitio`, `description` 155 chars, `canonical` + `alternates` es/en, `openGraph` con `images[0]`, `twitter summary_large_image`. Entra en `sitemap.ts` dinámico (`/sitemap.xml`).
+
+**i18n:** namespace `Ficha` (`metaFallback`, `notFoundTitle/Desc`).
+
+---
+
 # Panel restaurante
 
 ## Dashboard

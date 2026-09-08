@@ -532,6 +532,12 @@
         { "title": "10. Contacto", "content": "Para cualquier consulta sobre privacidad o el ejercicio de sus derechos, puede escribirnos a info@muxatech.com o dirigirse a nuestro domicilio social: Duque de Calabria 3, 10, 46005 Valencia, Valencia." }
       ]
     },
+    "Ficha": {
+      "metaFallback": "Descubre este restaurante en Valencia con DimeSitio",
+      "notFoundTitle": "Restaurante no encontrado",
+      "notFoundDesc": "Este restaurante no existe o ya no está disponible.",
+      "backHome": "Volver al inicio"
+    },
     "LegalNotice": {
       "badge": "Legal",
       "title": "Aviso Legal",

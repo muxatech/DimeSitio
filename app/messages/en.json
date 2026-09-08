@@ -532,6 +532,12 @@
         { "title": "10. Contact", "content": "For any questions about privacy or exercising your rights, you can write to us at info@muxatech.com or visit our registered office: Duque de Calabria 3, 10, 46005 Valencia, Valencia." }
       ]
     },
+    "Ficha": {
+      "metaFallback": "Discover this restaurant in Valencia with DimeSitio",
+      "notFoundTitle": "Restaurant not found",
+      "notFoundDesc": "This restaurant doesn't exist or is no longer available.",
+      "backHome": "Back to home"
+    },
     "LegalNotice": {
       "badge": "Legal",
       "title": "Legal Notice",

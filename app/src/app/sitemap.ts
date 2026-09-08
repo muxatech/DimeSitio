@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = 'https://dimesitio.es'
   const locales = ['es', 'en']
 
@@ -24,6 +24,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
       })
     }
   }
+
+  try {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (url && key) {
+      const res = await fetch(`${url}/rest/v1/restaurants?select=id,created_at&active=eq.true`, {
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
+        next: { revalidate: 3600 },
+      })
+      if (res.ok) {
+        const rows = (await res.json()) as { id: string; created_at: string }[]
+        for (const row of rows) {
+          for (const locale of locales) {
+            entries.push({
+              url: `${base}/${locale}/sitio/${row.id}`,
+              lastModified: new Date(row.created_at),
+              changeFrequency: 'weekly',
+              priority: 0.7,
+            })
+          }
+        }
+      }
+    }
+  } catch {}
 
   return entries
 }

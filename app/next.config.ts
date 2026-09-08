@@ -17,6 +17,18 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'scontent.cdninstagram.com',
       },
+      {
+        protocol: 'https',
+        hostname: '**.r2.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.r2.cloudflarestorage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
     ],
   },
 };

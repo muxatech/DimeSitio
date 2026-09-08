@@ -17,6 +17,7 @@ Nunca acceder directamente a lógica sensible.
 ## Supabase queries directas (cliente público)
 
 - `GET /restaurants?select=*,restaurant_categories(category_id)&active=eq.true` — restaurantes activos
+- `GET /restaurants?select=*,restaurant_categories(category_id)&id=eq.:id&active=eq.true` — ficha de sitio por UUID (pública, solo activos, usada por `/{locale}/sitio/[id]`)
 - `GET /categories?select=*` — categorías de comida
 
 ## Event tracking (Edge Functions)
