@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from '@/i18n/navigation'
 import { checkStaffStatus, getGlobalMetrics } from '@/lib/panel/api'
+import { supabase } from '@/lib/supabase'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { motion } from 'framer-motion'
-import { Eye, Users, Play, HelpCircle, Store, Trophy, Phone, MapPin, Menu, Calendar, Crown, Camera, TrendingUp, Layers, MousePointer } from 'lucide-react'
+import { Eye, Users, Play, HelpCircle, Store, Trophy, Phone, MapPin, Menu, Calendar, Crown, Camera, TrendingUp, Layers, MousePointer, Maximize } from 'lucide-react'
 import Link from 'next/link'
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
@@ -50,11 +51,68 @@ export default function StatsPage() {
     })
   }, [router])
 
+  const queryClient = useQueryClient()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [live, setLive] = useState(false)
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['global-metrics'],
     queryFn: getGlobalMetrics,
     enabled: isStaff === true,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
   })
+
+  const scheduleInvalidate = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['global-metrics'] })
+      setLastUpdate(new Date())
+    }, 500)
+  }, [queryClient])
+
+  useEffect(() => {
+    if (isStaff !== true) return
+    const channel = supabase
+      .channel('muro-stats-global-v1')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'page_views' }, scheduleInvalidate)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'question_views' }, scheduleInvalidate)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cta_clicks' }, scheduleInvalidate)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'impressions' }, scheduleInvalidate)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'selections' }, scheduleInvalidate)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flow_starts' }, scheduleInvalidate)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'calls' }, scheduleInvalidate)
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setLive(true)
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') setLive(false)
+      })
+
+    let wakeLock: { release: () => Promise<void> } | null = null
+    if ('wakeLock' in navigator) {
+      ;(navigator as unknown as { wakeLock: { request: (t: string) => Promise<{ release: () => Promise<void> }> } }).wakeLock
+        .request('screen')
+        .then((w) => { wakeLock = w })
+        .catch(() => {})
+    }
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        queryClient.invalidateQueries({ queryKey: ['global-metrics'] })
+        if ('wakeLock' in navigator) {
+          ;(navigator as unknown as { wakeLock: { request: (t: string) => Promise<unknown> } }).wakeLock.request('screen').catch(() => {})
+        }
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      document.removeEventListener('visibilitychange', onVisibility)
+      if (wakeLock) wakeLock.release().catch(() => {})
+      supabase.removeChannel(channel)
+    }
+  }, [isStaff, scheduleInvalidate, queryClient])
 
   if (isStaff === null) {
     return (
@@ -108,9 +166,21 @@ export default function StatsPage() {
 
   return (
     <motion.div initial="hidden" animate="show" variants={container} className="space-y-8">
-      <motion.div variants={item}>
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">Stats</h1>
-        <p className="text-sm text-stone-500">Métricas generales y por sitio — últimos 7 días (30d entre paréntesis)</p>
+      <motion.div variants={item} className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">Stats</h1>
+          <p className="text-sm text-stone-500">Métricas generales y por sitio — últimos 7 días (30d entre paréntesis)</p>
+          <div className="mt-2 flex items-center gap-2 text-xs">
+            <span className={live ? 'font-semibold text-emerald-600' : 'text-stone-400'}>● {live ? 'LIVE' : 'conectando...'}</span>
+            {lastUpdate && <span className="text-stone-400">{lastUpdate.toLocaleTimeString()} · debounce 500ms</span>}
+          </div>
+        </div>
+        <button
+          onClick={() => document.documentElement.requestFullscreen().catch(() => {})}
+          className="inline-flex items-center gap-2 rounded-2xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 shadow-sm hover:bg-stone-50"
+        >
+          <Maximize className="h-4 w-4" /> Pantalla completa
+        </button>
       </motion.div>
 
       <Section title="Tráfico" icon={Eye}>
