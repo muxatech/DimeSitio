@@ -7,30 +7,30 @@ import { checkStaffStatus, getGlobalMetrics } from '@/lib/panel/api'
 import { supabase } from '@/lib/supabase'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { motion } from 'framer-motion'
-import { Nunito } from 'next/font/google'
+import { Cormorant_Garamond } from 'next/font/google'
 import { Eye, Users, Play, HelpCircle, Store, Trophy, Phone, MapPin, Menu, Calendar, Crown, Camera, TrendingUp, Layers, MousePointer, Maximize } from 'lucide-react'
 import Link from 'next/link'
 
-const nunito = Nunito({ subsets: ['latin'], weight: ['600', '700', '800'] })
+const telvaSerif = Cormorant_Garamond({ subsets: ['latin'], weight: ['400', '500', '600', '700'], display: 'swap' })
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
 const item = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }
 
 function StatCard({ label, value, sub, highlight }: { label: string; value: number; sub?: string; highlight?: boolean }) {
   return (
-    <div className="overflow-hidden rounded-[20px] border border-stone-100 bg-stone-50/60 p-6 transition-colors hover:bg-white hover:border-stone-200">
-      <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-400">{label}</div>
-      <div className="mt-2 overflow-hidden">
+    <div className="overflow-hidden rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-stone-400">{label}</div>
+      <div className="mt-3 overflow-hidden">
         <motion.div
           animate={highlight ? { scaleY: [1, 1.35, 1], y: [6, 0, 0] } : { scaleY: 1, y: 0 }}
           style={{ originY: 1 }}
           transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
-          className={`text-5xl font-semibold tracking-tighter sm:text-[42px] ${nunito.className} ${highlight ? 'text-emerald-500' : 'text-stone-800'}`}
+          className={`text-5xl font-light tracking-[-0.03em] sm:text-[46px] ${telvaSerif.className} ${highlight ? 'text-emerald-600' : 'text-stone-800'}`}
         >
           {value.toLocaleString('es-ES')}
         </motion.div>
       </div>
-      {sub && <div className="mt-1 text-[11px] font-medium tracking-wide text-stone-400">{sub}</div>}
+      {sub && <div className="mt-2 text-[11px] font-medium tracking-wide text-stone-400">{sub}</div>}
     </div>
   )
 }
@@ -193,9 +193,9 @@ export default function StatsPage() {
 
   return (
     <motion.div initial="hidden" animate="show" variants={container} className="space-y-10">
-      <motion.div variants={item} className="flex items-start justify-between gap-4 border-b border-stone-100 pb-6">
+      <motion.div variants={item} className="flex items-start justify-between gap-4 border-b border-stone-200 pb-6">
         <div>
-          <h1 className="text-[28px] font-light tracking-[-0.02em] text-stone-800 sm:text-[32px]">Stats</h1>
+          <h1 className={`text-[34px] font-light tracking-[-0.03em] text-stone-800 sm:text-[38px] ${telvaSerif.className}`}>Stats</h1>
           <p className="mt-1 text-[13px] leading-relaxed text-stone-400">Métricas generales y por sitio · últimos 7 días <span className="text-stone-300">· 30d entre paréntesis</span></p>
           <div className="mt-3 flex items-center gap-2">
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide ${live ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
@@ -248,7 +248,7 @@ export default function StatsPage() {
         </motion.div>
       </Section>
 
-      <motion.div variants={item} className="rounded-[20px] border border-stone-100 bg-white p-6 sm:p-7">
+      <motion.div variants={item} className="rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)] sm:p-7">
         <h3 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Evolución diaria · 30d</h3>
         {data!.daily.length === 0 ? (
           <div className="flex h-40 items-center justify-center text-sm text-stone-400">Sin datos aún — completa un flujo para ver el gráfico</div>
@@ -270,7 +270,7 @@ export default function StatsPage() {
         )}
       </motion.div>
 
-      <motion.div variants={item} className="rounded-[20px] border border-stone-100 bg-white p-6 sm:p-7">
+      <motion.div variants={item} className="rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)] sm:p-7">
         <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Restaurantes destacados · 30d</h3>
         {data!.topRestaurants.length === 0 ? (
           <div className="py-6 text-center text-sm text-stone-400">Sin rankings aún — aparecerán tras las primeras impresiones</div>
