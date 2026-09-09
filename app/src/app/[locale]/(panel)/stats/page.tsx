@@ -16,36 +16,31 @@ const nunito = Nunito({ subsets: ['latin'], weight: ['600', '700', '800'] })
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
 const item = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }
 
-function StatCard({ label, value, sub, icon: Icon, highlight }: { label: string; value: number; sub?: string; icon: React.ComponentType<{ className?: string }>; highlight?: boolean }) {
+function StatCard({ label, value, sub, highlight }: { label: string; value: number; sub?: string; highlight?: boolean }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white p-4 shadow-sm hover:shadow-md">
-      <div className="flex items-center gap-2 text-stone-500">
-        <Icon className="h-4 w-4" />
-        <span className="text-xs font-medium">{label}</span>
-      </div>
-      <div className="mt-1 overflow-hidden">
+    <div className="overflow-hidden rounded-[20px] border border-stone-100 bg-stone-50/60 p-6 transition-colors hover:bg-white hover:border-stone-200">
+      <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-400">{label}</div>
+      <div className="mt-2 overflow-hidden">
         <motion.div
-          animate={highlight ? { scaleY: [1, 1.5, 1], y: [8, 0, 0] } : { scaleY: 1, y: 0 }}
+          animate={highlight ? { scaleY: [1, 1.35, 1], y: [6, 0, 0] } : { scaleY: 1, y: 0 }}
           style={{ originY: 1 }}
           transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
-          className={`text-5xl font-bold tracking-tight sm:text-6xl ${nunito.className} ${highlight ? 'text-emerald-500' : 'text-stone-700'}`}
+          className={`text-5xl font-semibold tracking-tighter sm:text-[42px] ${nunito.className} ${highlight ? 'text-emerald-500' : 'text-stone-800'}`}
         >
-          {value}
+          {value.toLocaleString('es-ES')}
         </motion.div>
       </div>
-      {sub && <div className="text-xs text-stone-400">{sub}</div>}
+      {sub && <div className="mt-1 text-[11px] font-medium tracking-wide text-stone-400">{sub}</div>}
     </div>
   )
 }
 
-function Section({ title, icon: Icon, children }: { title: string; icon: React.ComponentType<{ className?: string }>; children: React.ReactNode }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-stone-900 text-white">
-          <Icon className="h-3.5 w-3.5" />
-        </div>
-        <h3 className="text-sm font-bold tracking-tight text-stone-900">{title}</h3>
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">{title}</h3>
+        <div className="h-px flex-1 bg-stone-100" />
       </div>
       {children}
     </div>
@@ -197,62 +192,64 @@ export default function StatsPage() {
   const t = data!.totals
 
   return (
-    <motion.div initial="hidden" animate="show" variants={container} className="space-y-8">
-      <motion.div variants={item} className="flex items-start justify-between gap-4">
+    <motion.div initial="hidden" animate="show" variants={container} className="space-y-10">
+      <motion.div variants={item} className="flex items-start justify-between gap-4 border-b border-stone-100 pb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">Stats</h1>
-          <p className="text-sm text-stone-500">Métricas generales y por sitio — últimos 7 días (30d entre paréntesis)</p>
-          <div className="mt-2 flex items-center gap-2 text-xs">
-            <span className={live ? 'font-semibold text-emerald-600' : 'text-stone-400'}>● {live ? 'LIVE' : 'conectando...'}</span>
-            {lastUpdate && <span className="text-stone-400">{lastUpdate.toLocaleTimeString()} · debounce 500ms</span>}
+          <h1 className="text-[28px] font-light tracking-[-0.02em] text-stone-800 sm:text-[32px]">Stats</h1>
+          <p className="mt-1 text-[13px] leading-relaxed text-stone-400">Métricas generales y por sitio · últimos 7 días <span className="text-stone-300">· 30d entre paréntesis</span></p>
+          <div className="mt-3 flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide ${live ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`} /> {live ? 'LIVE' : 'conectando...'}
+            </span>
+            {lastUpdate && <span className="text-[11px] text-stone-400">{lastUpdate.toLocaleTimeString()}</span>}
           </div>
         </div>
         <button
           onClick={() => document.documentElement.requestFullscreen().catch(() => {})}
-          className="inline-flex items-center gap-2 rounded-2xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 shadow-sm hover:bg-stone-50"
+          className="hidden items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-[11px] font-medium uppercase tracking-wide text-stone-600 hover:bg-stone-50 sm:inline-flex"
         >
-          <Maximize className="h-4 w-4" /> Pantalla completa
+          <Maximize className="h-3.5 w-3.5" /> Pantalla completa
         </button>
       </motion.div>
 
-      <Section title="Tráfico" icon={Eye}>
+      <Section title="Tráfico">
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Visitas" value={t.page_views_7d} sub={`30d: ${t.page_views_30d}`} icon={Eye} highlight={highlighted.has('page_views_7d') || highlighted.has('page_views')} />
-          <StatCard label="Únicas" value={t.uniques_7d} sub="visitantes distintos" icon={Users} highlight={highlighted.has('uniques_7d')} />
-          <StatCard label="/restaurantes" value={t.restaurantes_views_7d} sub="visitas B2B" icon={Store} highlight={highlighted.has('restaurantes_views_7d')} />
-          <StatCard label="Activos" value={t.restaurants_active} sub="restaurantes" icon={Crown} highlight={highlighted.has('restaurants_active')} />
+          <StatCard label="Visitas" value={t.page_views_7d} sub={`30d · ${t.page_views_30d.toLocaleString('es-ES')}`} highlight={highlighted.has('page_views_7d')} />
+          <StatCard label="Únicas" value={t.uniques_7d} sub="visitantes" highlight={highlighted.has('uniques_7d')} />
+          <StatCard label="/restaurantes" value={t.restaurantes_views_7d} sub="visitas B2B" highlight={highlighted.has('restaurantes_views_7d')} />
+          <StatCard label="Activos" value={t.restaurants_active} sub="reales" highlight={highlighted.has('restaurants_active')} />
         </motion.div>
       </Section>
 
-      <Section title="Embudo" icon={Layers}>
+      <Section title="Embudo">
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Flow starts" value={t.flow_starts_7d} sub={`30d: ${t.flow_starts_30d}`} icon={Play} highlight={highlighted.has('flow_starts_7d')} />
-          <StatCard label="Q categorías" value={t.q_categories_7d} sub="llega a paso 1" icon={HelpCircle} highlight={highlighted.has('q_categories_7d')} />
-          <StatCard label="Q precio" value={t.q_price_7d} sub="llega a paso 2" icon={HelpCircle} highlight={highlighted.has('q_price_7d')} />
-          <StatCard label="Q zona" value={t.q_location_7d} sub="llega a paso 3" icon={HelpCircle} highlight={highlighted.has('q_location_7d')} />
+          <StatCard label="Flow starts" value={t.flow_starts_7d} sub={`30d · ${t.flow_starts_30d.toLocaleString('es-ES')}`} highlight={highlighted.has('flow_starts_7d')} />
+          <StatCard label="Q categorías" value={t.q_categories_7d} sub="paso 1" highlight={highlighted.has('q_categories_7d')} />
+          <StatCard label="Q precio" value={t.q_price_7d} sub="paso 2" highlight={highlighted.has('q_price_7d')} />
+          <StatCard label="Q zona" value={t.q_location_7d} sub="paso 3" highlight={highlighted.has('q_location_7d')} />
         </motion.div>
       </Section>
 
-      <Section title="Distribución" icon={TrendingUp}>
+      <Section title="Distribución">
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <StatCard label="Top5 impres." value={t.impressions_7d} sub={`30d: ${t.impressions_30d}`} icon={Eye} highlight={highlighted.has('impressions_7d')} />
-          <StatCard label="Selecciones" value={t.selections_7d} sub={`30d: ${t.selections_30d}`} icon={Layers} highlight={highlighted.has('selections_7d')} />
-          <StatCard label="Winners" value={t.cta_winner_7d} sub="ganador final" icon={Trophy} highlight={highlighted.has('cta_winner_7d')} />
+          <StatCard label="Top5 impres." value={t.impressions_7d} sub={`30d · ${t.impressions_30d.toLocaleString('es-ES')}`} highlight={highlighted.has('impressions_7d')} />
+          <StatCard label="Selecciones" value={t.selections_7d} sub={`30d · ${t.selections_30d.toLocaleString('es-ES')}`} highlight={highlighted.has('selections_7d')} />
+          <StatCard label="Winners" value={t.cta_winner_7d} sub="ganador final" highlight={highlighted.has('cta_winner_7d')} />
         </motion.div>
       </Section>
 
-      <Section title="Conversión por sitio" icon={MousePointer}>
+      <Section title="Conversión por sitio">
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <StatCard label="Calls" value={t.cta_call_7d} sub={`30d: ${t.cta_call_30d}`} icon={Phone} highlight={highlighted.has('cta_call_7d')} />
-          <StatCard label="Maps" value={t.cta_maps_7d} sub="cómo llegar" icon={MapPin} highlight={highlighted.has('cta_maps_7d')} />
-          <StatCard label="Menú" value={t.cta_menu_7d} sub="ver carta" icon={Menu} highlight={highlighted.has('cta_menu_7d')} />
-          <StatCard label="Reservas" value={t.cta_reservations_7d} sub="url reservas" icon={Calendar} highlight={highlighted.has('cta_reservations_7d')} />
-          <StatCard label="Instagram" value={t.cta_instagram_7d} sub="ver IG" icon={Camera} highlight={highlighted.has('cta_instagram_7d')} />
+          <StatCard label="Calls" value={t.cta_call_7d} sub={`30d · ${t.cta_call_30d.toLocaleString('es-ES')}`} highlight={highlighted.has('cta_call_7d')} />
+          <StatCard label="Maps" value={t.cta_maps_7d} highlight={highlighted.has('cta_maps_7d')} />
+          <StatCard label="Menú" value={t.cta_menu_7d} highlight={highlighted.has('cta_menu_7d')} />
+          <StatCard label="Reservas" value={t.cta_reservations_7d} highlight={highlighted.has('cta_reservations_7d')} />
+          <StatCard label="Instagram" value={t.cta_instagram_7d} highlight={highlighted.has('cta_instagram_7d')} />
         </motion.div>
       </Section>
 
-      <motion.div variants={item} className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
-        <h3 className="mb-4 text-sm font-semibold text-stone-700">Evolución diaria (30d)</h3>
+      <motion.div variants={item} className="rounded-[20px] border border-stone-100 bg-white p-6 sm:p-7">
+        <h3 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Evolución diaria · 30d</h3>
         {data!.daily.length === 0 ? (
           <div className="flex h-40 items-center justify-center text-sm text-stone-400">Sin datos aún — completa un flujo para ver el gráfico</div>
         ) : (
@@ -273,8 +270,8 @@ export default function StatsPage() {
         )}
       </motion.div>
 
-      <motion.div variants={item} className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
-        <h3 className="mb-3 text-sm font-semibold text-stone-700">Restaurantes destacados (30d)</h3>
+      <motion.div variants={item} className="rounded-[20px] border border-stone-100 bg-white p-6 sm:p-7">
+        <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Restaurantes destacados · 30d</h3>
         {data!.topRestaurants.length === 0 ? (
           <div className="py-6 text-center text-sm text-stone-400">Sin rankings aún — aparecerán tras las primeras impresiones</div>
         ) : (
