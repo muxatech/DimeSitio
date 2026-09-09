@@ -25,7 +25,7 @@ function StatCard({ label, value, sub, icon: Icon, highlight }: { label: string;
           animate={highlight ? { scaleY: [1, 1.5, 1], y: [8, 0, 0] } : { scaleY: 1, y: 0 }}
           style={{ originY: 1 }}
           transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
-          className={`text-2xl font-extrabold tracking-tight ${highlight ? 'text-emerald-600' : 'text-stone-900'}`}
+          className={`text-4xl font-black tracking-tight sm:text-5xl ${highlight ? 'text-emerald-600' : 'text-stone-900'}`}
         >
           {value}
         </motion.div>
