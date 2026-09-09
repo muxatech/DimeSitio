@@ -15,27 +15,20 @@ const item = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }
 
 function StatCard({ label, value, sub, icon: Icon, highlight }: { label: string; value: number; sub?: string; icon: React.ComponentType<{ className?: string }>; highlight?: boolean }) {
   return (
-    <motion.div
-      variants={item}
-      animate={highlight ? { scale: [1, 1.03, 1], transition: { duration: 0.35 } } : undefined}
-      className={`rounded-2xl border p-4 shadow-sm transition-all hover:shadow-md ${highlight ? 'border-emerald-300 bg-emerald-50 ring-2 ring-emerald-200' : 'border-stone-200 bg-white'}`}
-    >
-      <div className={`flex items-center gap-2 ${highlight ? 'text-emerald-600' : 'text-stone-500'}`}>
+    <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm hover:shadow-md">
+      <div className="flex items-center gap-2 text-stone-500">
         <Icon className="h-4 w-4" />
         <span className="text-xs font-medium">{label}</span>
-        {highlight && <span className="ml-auto h-2 w-2 animate-pulse rounded-full bg-emerald-500" />}
       </div>
       <motion.div
-        key={value}
-        initial={highlight ? { scale: 1.15, color: '#059669' } : false}
-        animate={{ scale: 1, color: '#1c1917' }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="mt-1 text-2xl font-extrabold tracking-tight"
+        animate={highlight ? { scale: [1, 1.18, 1] } : { scale: 1 }}
+        transition={{ duration: 0.45, ease: 'easeOut' }}
+        className={`mt-1 text-2xl font-extrabold tracking-tight ${highlight ? 'text-emerald-600' : 'text-stone-900'}`}
       >
         {value}
       </motion.div>
-      {sub && <div className={`text-xs ${highlight ? 'text-emerald-600' : 'text-stone-400'}`}>{sub}</div>}
-    </motion.div>
+      {sub && <div className="text-xs text-stone-400">{sub}</div>}
+    </div>
   )
 }
 
@@ -82,26 +75,19 @@ export default function StatsPage() {
 
   useEffect(() => {
     if (!data?.totals) return
-    const prev = prevTotalsRef.current
     const curr = data.totals as unknown as Record<string, number>
-    if (prev) {
-      const changed = new Set<string>()
-      for (const k of Object.keys(curr)) {
-        if (curr[k] !== prev[k]) changed.add(k)
-      }
-      for (const [k, v] of Object.entries(curr)) {
-        if (k.endsWith('_7d') && v !== prev[k]) {
-          const base = k.replace('_7d', '')
-          changed.add(base)
-        }
-      }
-      if (changed.size) {
-        setHighlighted(changed)
-        const t = setTimeout(() => setHighlighted(new Set()), 1600)
-        return () => clearTimeout(t)
-      }
-    }
+    const prev = prevTotalsRef.current
     prevTotalsRef.current = { ...curr }
+    if (!prev) return
+    const changed = new Set<string>()
+    for (const k of Object.keys(curr)) {
+      if (curr[k] !== prev[k]) changed.add(k)
+    }
+    if (changed.size) {
+      setHighlighted(changed)
+      const t = setTimeout(() => setHighlighted(new Set()), 1200)
+      return () => clearTimeout(t)
+    }
   }, [data])
 
   const scheduleInvalidate = useCallback(() => {
