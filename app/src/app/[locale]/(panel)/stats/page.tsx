@@ -15,18 +15,21 @@ const item = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }
 
 function StatCard({ label, value, sub, icon: Icon, highlight }: { label: string; value: number; sub?: string; icon: React.ComponentType<{ className?: string }>; highlight?: boolean }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm hover:shadow-md">
+    <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white p-4 shadow-sm hover:shadow-md">
       <div className="flex items-center gap-2 text-stone-500">
         <Icon className="h-4 w-4" />
         <span className="text-xs font-medium">{label}</span>
       </div>
-      <motion.div
-        animate={highlight ? { scale: [1, 1.18, 1] } : { scale: 1 }}
-        transition={{ duration: 0.45, ease: 'easeOut' }}
-        className={`mt-1 text-2xl font-extrabold tracking-tight ${highlight ? 'text-emerald-600' : 'text-stone-900'}`}
-      >
-        {value}
-      </motion.div>
+      <div className="mt-1 overflow-hidden">
+        <motion.div
+          animate={highlight ? { scaleY: [1, 1.5, 1], y: [8, 0, 0] } : { scaleY: 1, y: 0 }}
+          style={{ originY: 1 }}
+          transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
+          className={`text-2xl font-extrabold tracking-tight ${highlight ? 'text-emerald-600' : 'text-stone-900'}`}
+        >
+          {value}
+        </motion.div>
+      </div>
       {sub && <div className="text-xs text-stone-400">{sub}</div>}
     </div>
   )
