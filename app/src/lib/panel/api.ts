@@ -116,8 +116,17 @@ export async function getRestaurantAnalytics(id: string): Promise<AnalyticsData>
   return res.data
 }
 
-export async function getGlobalMetrics(): Promise<import('@/types').GlobalMetrics> {
-  const res = await invoke<{ success: boolean; data: import('@/types').GlobalMetrics }>('GET', '/global', undefined, 'analytics')
+export type StatsRange = import('@/types').StatsRange
+
+export async function getGlobalMetrics(range?: StatsRange): Promise<import('@/types').GlobalMetrics> {
+  const qs = new URLSearchParams()
+  if (range) {
+    qs.set('preset', range.preset)
+    if (range.from) qs.set('from', range.from)
+    if (range.to) qs.set('to', range.to)
+  }
+  const suffix = qs.toString() ? `?${qs.toString()}` : ''
+  const res = await invoke<{ success: boolean; data: import('@/types').GlobalMetrics }>('GET', `/global${suffix}`, undefined, 'analytics')
   return res.data
 }
 

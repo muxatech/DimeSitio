@@ -57,49 +57,81 @@ function daysAgo(days: number): string {
   return new Date(Date.now() - days * 86400000).toISOString()
 }
 
+type RangePreset = 'today' | 'yesterday' | '7d' | '30d' | 'custom'
+
+function parseRange(url: URL): { fromISO: string; toISO: string; preset: RangePreset; label: string } {
+  const preset = (url.searchParams.get('preset') as RangePreset) || '7d'
+  const fromParam = url.searchParams.get('from')
+  const toParam = url.searchParams.get('to')
+  const now = new Date()
+  const startOfDay = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())).toISOString()
+  const endOfDay = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999)).toISOString()
+  let fromISO: string, toISO: string, label: string
+  if (preset === 'today') { fromISO = startOfDay(now); toISO = endOfDay(now); label = 'Hoy' }
+  else if (preset === 'yesterday') { const y = new Date(now); y.setUTCDate(y.getUTCDate() - 1); fromISO = startOfDay(y); toISO = endOfDay(y); label = 'Ayer' }
+  else if (preset === '30d') { fromISO = daysAgo(30); toISO = now.toISOString(); label = 'Últimos 30 días' }
+  else if (preset === 'custom') {
+    if (!fromParam || !toParam) throw new Error('from/to required for custom')
+    const from = new Date(fromParam); const to = new Date(toParam)
+    if (isNaN(from.getTime()) || isNaN(to.getTime())) throw new Error('Invalid date')
+    if (from > to) throw new Error('from > to')
+    if ((to.getTime() - from.getTime()) / 86400000 > 90) throw new Error('Range max 90d')
+    fromISO = startOfDay(from); toISO = endOfDay(to); label = `${fromParam} → ${toParam}`
+  } else { fromISO = daysAgo(7); toISO = now.toISOString(); label = 'Últimos 7 días' }
+  return { fromISO, toISO, preset, label }
+}
+
+function fillMissingDates(dateMap: Map<string, { page_views: number; flow_starts: number; impressions: number; cta: number }>, fromISO: string, toISO: string): { date: string; page_views: number; flow_starts: number; impressions: number; cta: number }[] {
+  const from = new Date(fromISO.slice(0, 10))
+  const to = new Date(toISO.slice(0, 10))
+  const out: { date: string; page_views: number; flow_starts: number; impressions: number; cta: number }[] = []
+  for (let d = new Date(from); d <= to; d.setUTCDate(d.getUTCDate() + 1)) {
+    const key = d.toISOString().slice(0, 10)
+    const v = dateMap.get(key) ?? { page_views: 0, flow_starts: 0, impressions: 0, cta: 0 }
+    out.push({ date: key, ...v })
+  }
+  return out
+}
+
 async function handleGetGlobal(
-  supabase: ReturnType<typeof createClient>
+  supabase: ReturnType<typeof createClient>,
+  url: URL
 ) {
-  const iso7 = daysAgo(7)
-  const iso30 = daysAgo(30)
+
+  const { fromISO, toISO, preset, label } = parseRange(url)
 
   const { data: realRows } = await supabase.from('restaurants').select('id').eq('is_demo', false)
   const realIds: string[] = (realRows ?? []).map((r: { id: string }) => r.id)
   const realFilter = realIds.length > 0 ? realIds : ['00000000-0000-0000-0000-000000000000']
 
-  const [pv7, pv30, uniq7, flow7, flow30, qCat7, qPrice7, qLoc7, pvRest7, imp7, imp30, sel7, sel30, cal7, cal30, ctaMaps7, ctaMenu7, ctaRes7, ctaIg7, ctaWinner7, restCount, dailyPv, dailyFlow, dailyQ, dailyImp, dailyCta, topImp, topWin, topCall] = await Promise.all([
-    supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', iso7),
-    supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', iso30),
-    supabase.from('page_views').select('visitor_id').gte('created_at', iso7),
-    supabase.from('flow_starts').select('*', { count: 'exact', head: true }).gte('created_at', iso7),
-    supabase.from('flow_starts').select('*', { count: 'exact', head: true }).gte('created_at', iso30),
-    supabase.from('question_views').select('*', { count: 'exact', head: true }).eq('question_key', 'categories').gte('created_at', iso7),
-    supabase.from('question_views').select('*', { count: 'exact', head: true }).eq('question_key', 'price').gte('created_at', iso7),
-    supabase.from('question_views').select('*', { count: 'exact', head: true }).eq('question_key', 'location').gte('created_at', iso7),
-    supabase.from('page_views').select('*', { count: 'exact', head: true }).like('path', '%/restaurantes%').gte('created_at', iso7),
-    supabase.from('impressions').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).gte('created_at', iso7),
-    supabase.from('impressions').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).gte('created_at', iso30),
-    supabase.from('selections').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).gte('created_at', iso7),
-    supabase.from('selections').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).gte('created_at', iso30),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'call').gte('created_at', iso7),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'call').gte('created_at', iso30),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'maps').gte('created_at', iso7),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'menu').gte('created_at', iso7),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'reservations').gte('created_at', iso7),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'instagram').gte('created_at', iso7),
-    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'winner').gte('created_at', iso7),
+  const [pv, uniq, flow, qCat, qPrice, qLoc, pvRest, imp, sel, cal, ctaMaps, ctaMenu, ctaRes, ctaIg, ctaWinner, restCount, dailyPv, dailyFlow, dailyQ, dailyImp, dailyCta, topImp, topWin, topCall] = await Promise.all([
+    supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('page_views').select('visitor_id').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('flow_starts').select('*', { count: 'exact', head: true }).gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('question_views').select('*', { count: 'exact', head: true }).eq('question_key', 'categories').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('question_views').select('*', { count: 'exact', head: true }).eq('question_key', 'price').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('question_views').select('*', { count: 'exact', head: true }).eq('question_key', 'location').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('page_views').select('*', { count: 'exact', head: true }).like('path', '%/restaurantes%').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('impressions').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('selections').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'call').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'maps').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'menu').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'reservations').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'instagram').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).in('restaurant_id', realFilter).eq('cta_type', 'winner').gte('created_at', fromISO).lte('created_at', toISO),
     supabase.from('restaurants').select('*', { count: 'exact', head: true }).eq('active', true).eq('is_demo', false),
-    supabase.from('page_views').select('created_at').gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('flow_starts').select('created_at').gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('question_views').select('created_at, question_key').gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('impressions').select('created_at').in('restaurant_id', realFilter).gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('cta_clicks').select('created_at, cta_type').in('restaurant_id', realFilter).gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('impressions').select('restaurant_id').in('restaurant_id', realFilter).gte('created_at', iso30),
-    supabase.from('cta_clicks').select('restaurant_id').eq('cta_type', 'winner').in('restaurant_id', realFilter).gte('created_at', iso30),
-    supabase.from('cta_clicks').select('restaurant_id').eq('cta_type', 'call').in('restaurant_id', realFilter).gte('created_at', iso30),
+    supabase.from('page_views').select('created_at').gte('created_at', fromISO).lte('created_at', toISO).order('created_at', { ascending: true }),
+    supabase.from('flow_starts').select('created_at').gte('created_at', fromISO).lte('created_at', toISO).order('created_at', { ascending: true }),
+    supabase.from('question_views').select('created_at, question_key').gte('created_at', fromISO).lte('created_at', toISO).order('created_at', { ascending: true }),
+    supabase.from('impressions').select('created_at').in('restaurant_id', realFilter).gte('created_at', fromISO).lte('created_at', toISO).order('created_at', { ascending: true }),
+    supabase.from('cta_clicks').select('created_at, cta_type').in('restaurant_id', realFilter).gte('created_at', fromISO).lte('created_at', toISO).order('created_at', { ascending: true }),
+    supabase.from('impressions').select('restaurant_id').in('restaurant_id', realFilter).gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('restaurant_id').eq('cta_type', 'winner').in('restaurant_id', realFilter).gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('restaurant_id').eq('cta_type', 'call').in('restaurant_id', realFilter).gte('created_at', fromISO).lte('created_at', toISO),
   ])
 
-  const uniqCount = new Set((uniq7.data ?? []).map((r: { visitor_id: string }) => r.visitor_id)).size
+  const uniqCount = new Set((uniq.data ?? []).map((r: { visitor_id: string }) => r.visitor_id)).size
 
   const dateMap = new Map<string, { page_views: number; flow_starts: number; impressions: number; cta: number }>()
   function addDate(rows: { created_at: string }[], field: 'page_views' | 'flow_starts' | 'impressions' | 'cta') {
@@ -115,7 +147,7 @@ async function handleGetGlobal(
   addDate(dailyImp.data ?? [], 'impressions')
   addDate((dailyCta.data ?? []) as { created_at: string }[], 'cta')
 
-  const daily = Array.from(dateMap.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([date, v]) => ({ date, ...v }))
+  const daily = fillMissingDates(dateMap, fromISO, toISO)
 
   function topCounts(rows: { restaurant_id: string }[]) {
     const m = new Map<string, number>()
@@ -140,32 +172,53 @@ async function handleGetGlobal(
     }
   } catch {}
 
+  const generic = {
+    page_views: pv.count ?? 0,
+    uniques: uniqCount,
+    flow_starts: flow.count ?? 0,
+    q_categories: qCat.count ?? 0,
+    q_price: qPrice.count ?? 0,
+    q_location: qLoc.count ?? 0,
+    restaurantes_views: pvRest.count ?? 0,
+    impressions: imp.count ?? 0,
+    selections: sel.count ?? 0,
+    cta_call: cal.count ?? 0,
+    cta_maps: ctaMaps.count ?? 0,
+    cta_menu: ctaMenu.count ?? 0,
+    cta_reservations: ctaRes.count ?? 0,
+    cta_instagram: ctaIg.count ?? 0,
+    cta_winner: ctaWinner.count ?? 0,
+    restaurants_active: restCount.count ?? 0,
+  }
+
   return ok({
     totals: {
-      page_views_7d: pv7.count ?? 0,
-      page_views_30d: pv30.count ?? 0,
-      uniques_7d: uniqCount,
-      flow_starts_7d: flow7.count ?? 0,
-      flow_starts_30d: flow30.count ?? 0,
-      q_categories_7d: qCat7.count ?? 0,
-      q_price_7d: qPrice7.count ?? 0,
-      q_location_7d: qLoc7.count ?? 0,
-      restaurantes_views_7d: pvRest7.count ?? 0,
-      impressions_7d: imp7.count ?? 0,
-      impressions_30d: imp30.count ?? 0,
-      selections_7d: sel7.count ?? 0,
-      selections_30d: sel30.count ?? 0,
-      cta_call_7d: cal7.count ?? 0,
-      cta_call_30d: cal30.count ?? 0,
-      cta_maps_7d: ctaMaps7.count ?? 0,
-      cta_menu_7d: ctaMenu7.count ?? 0,
-      cta_reservations_7d: ctaRes7.count ?? 0,
-      cta_instagram_7d: ctaIg7.count ?? 0,
-      cta_winner_7d: ctaWinner7.count ?? 0,
-      restaurants_active: restCount.count ?? 0,
+      ...generic,
+      page_views_7d: generic.page_views,
+      page_views_30d: generic.page_views,
+      uniques_7d: generic.uniques,
+      flow_starts_7d: generic.flow_starts,
+      flow_starts_30d: generic.flow_starts,
+      q_categories_7d: generic.q_categories,
+      q_price_7d: generic.q_price,
+      q_location_7d: generic.q_location,
+      restaurantes_views_7d: generic.restaurantes_views,
+      impressions_7d: generic.impressions,
+      impressions_30d: generic.impressions,
+      selections_7d: generic.selections,
+      selections_30d: generic.selections,
+      cta_call_7d: generic.cta_call,
+      cta_call_30d: generic.cta_call,
+      cta_maps_7d: generic.cta_maps,
+      cta_menu_7d: generic.cta_menu,
+      cta_reservations_7d: generic.cta_reservations,
+      cta_instagram_7d: generic.cta_instagram,
+      cta_winner_7d: generic.cta_winner,
+      restaurants_active: generic.restaurants_active,
     },
     daily,
     topRestaurants,
+    range: { from: fromISO, to: toISO, preset, label },
   })
 }
 
@@ -259,7 +312,7 @@ serve(async (req) => {
       if (!user) return fail('Unauthorized', 401)
       const { data: staff } = await supabase.from('staff_users').select('user_id').eq('user_id', user.id).maybeSingle()
       if (!staff) return fail('Forbidden', 403)
-      return await handleGetGlobal(supabase)
+      return await handleGetGlobal(supabase, url)
     }
 
     const m = path.match(/^\/([^/]+)$/)

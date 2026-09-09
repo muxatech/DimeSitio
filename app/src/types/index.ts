@@ -122,26 +122,48 @@ export interface AnalyticsData {
   recent_events: { type: 'impression'; created_at: string }[]
 }
 
+export type StatsPreset = 'today' | 'yesterday' | '7d' | '30d' | 'custom'
+export interface StatsRange {
+  preset: StatsPreset
+  from?: string
+  to?: string
+}
+
 export interface GlobalTotals {
+  page_views: number
   page_views_7d: number
   page_views_30d: number
+  uniques: number
   uniques_7d: number
+  flow_starts: number
   flow_starts_7d: number
   flow_starts_30d: number
+  q_categories: number
   q_categories_7d: number
+  q_price: number
   q_price_7d: number
+  q_location: number
   q_location_7d: number
+  restaurantes_views: number
   restaurantes_views_7d: number
+  impressions: number
   impressions_7d: number
   impressions_30d: number
+  selections: number
   selections_7d: number
   selections_30d: number
+  cta_call: number
   cta_call_7d: number
   cta_call_30d: number
+  cta_maps: number
   cta_maps_7d: number
+  cta_menu: number
   cta_menu_7d: number
+  cta_reservations: number
   cta_reservations_7d: number
+  cta_instagram: number
   cta_instagram_7d: number
+  cta_winner: number
   cta_winner_7d: number
   restaurants_active: number
 }
@@ -150,4 +172,5 @@ export interface GlobalMetrics {
   totals: GlobalTotals
   daily: { date: string; page_views: number; flow_starts: number; impressions: number; cta: number }[]
   topRestaurants: { restaurant_id: string; name: string; count: number; type: string }[]
+  range: { from: string; to: string; preset: string; label: string }
 }

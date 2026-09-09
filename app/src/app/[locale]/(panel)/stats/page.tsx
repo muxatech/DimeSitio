@@ -63,13 +63,19 @@ export default function StatsPage() {
   const [live, setLive] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
+  const [preset, setPreset] = useState<import('@/types').StatsPreset>('7d')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
+
+  const range = preset === 'custom' ? { preset, from: customFrom || undefined, to: customTo || undefined } : { preset }
+
   const prevTotalsRef = useRef<Record<string, number> | null>(null)
   const [highlighted, setHighlighted] = useState<Set<string>>(new Set())
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['global-metrics'],
-    queryFn: getGlobalMetrics,
-    enabled: isStaff === true,
+    queryKey: ['global-metrics', preset, customFrom, customTo],
+    queryFn: () => getGlobalMetrics(range as import('@/types').StatsRange),
+    enabled: isStaff === true && (preset !== 'custom' || (!!customFrom && !!customTo && customFrom <= customTo)),
     staleTime: 30_000,
     refetchOnWindowFocus: false,
   })
@@ -98,6 +104,8 @@ export default function StatsPage() {
       setLastUpdate(new Date())
     }, 500)
   }, [queryClient])
+
+  const todayStr = new Date().toISOString().slice(0, 10)
 
   useEffect(() => {
     if (isStaff !== true) return
@@ -191,12 +199,14 @@ export default function StatsPage() {
 
   const t = data!.totals
 
+  const presetLabel = data?.range?.label ?? (preset === '7d' ? 'Últimos 7 días' : preset === '30d' ? 'Últimos 30 días' : preset === 'today' ? 'Hoy' : preset === 'yesterday' ? 'Ayer' : `${customFrom} → ${customTo}`)
+
   return (
     <motion.div initial="hidden" animate="show" variants={container} className="space-y-10">
       <motion.div variants={item} className="flex items-start justify-between gap-4 border-b border-stone-200 pb-6">
         <div>
           <h1 className="text-[30px] font-extrabold tracking-tight text-stone-900 sm:text-[34px]">Stats</h1>
-          <p className="mt-1 text-[13px] leading-relaxed text-stone-400">Métricas generales y por sitio · últimos 7 días <span className="text-stone-300">· 30d entre paréntesis</span></p>
+          <p className="mt-1 text-[13px] leading-relaxed text-stone-400">Métricas generales y por sitio · {presetLabel}</p>
           <div className="mt-3 flex items-center gap-2">
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide ${live ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`} /> {live ? 'LIVE' : 'conectando...'}
@@ -212,44 +222,72 @@ export default function StatsPage() {
         </button>
       </motion.div>
 
+      <motion.div variants={item} className="flex flex-wrap items-center gap-2 rounded-2xl border border-stone-200 bg-white p-1.5 shadow-sm">
+        <div className="flex gap-1 rounded-xl bg-stone-100 p-0.5">
+          {(['today', 'yesterday', '7d', '30d'] as const).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPreset(p)}
+              className={preset === p ? 'rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-stone-900 shadow-sm' : 'rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 hover:text-stone-700'}
+            >
+              {p === 'today' ? 'Hoy' : p === 'yesterday' ? 'Ayer' : p === '7d' ? '7 días' : '30 días'}
+            </button>
+          ))}
+          <button
+            onClick={() => setPreset('custom')}
+            className={preset === 'custom' ? 'rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm' : 'rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 hover:text-stone-700'}
+          >
+            <Calendar className="mr-1 inline h-3.5 w-3.5" /> Personalizado
+          </button>
+        </div>
+        {preset === 'custom' && (
+          <div className="flex items-center gap-2">
+            <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} max={customTo || undefined} className="rounded-2xl border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-900 shadow-sm focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200" />
+            <span className="text-stone-400">—</span>
+            <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} min={customFrom || undefined} max={todayStr} className="rounded-2xl border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-900 shadow-sm focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200" />
+          </div>
+        )}
+        <span className="ml-auto text-xs text-stone-400">{presetLabel}</span>
+      </motion.div>
+
       <Section title="Tráfico">
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Visitas" value={t.page_views_7d} sub={`30d · ${t.page_views_30d.toLocaleString('es-ES')}`} highlight={highlighted.has('page_views_7d')} />
-          <StatCard label="Únicas" value={t.uniques_7d} sub="visitantes" highlight={highlighted.has('uniques_7d')} />
-          <StatCard label="/restaurantes" value={t.restaurantes_views_7d} sub="visitas B2B" highlight={highlighted.has('restaurantes_views_7d')} />
+          <StatCard label="Visitas" value={t.page_views} sub={preset !== 'today' && preset !== 'yesterday' ? `rango · ${presetLabel}` : undefined} highlight={highlighted.has('page_views')} />
+          <StatCard label="Únicas" value={t.uniques} highlight={highlighted.has('uniques')} />
+          <StatCard label="/restaurantes" value={t.restaurantes_views} highlight={highlighted.has('restaurantes_views')} />
           <StatCard label="Activos" value={t.restaurants_active} sub="reales" highlight={highlighted.has('restaurants_active')} />
         </motion.div>
       </Section>
 
       <Section title="Embudo">
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Flow starts" value={t.flow_starts_7d} sub={`30d · ${t.flow_starts_30d.toLocaleString('es-ES')}`} highlight={highlighted.has('flow_starts_7d')} />
-          <StatCard label="Q categorías" value={t.q_categories_7d} sub="paso 1" highlight={highlighted.has('q_categories_7d')} />
-          <StatCard label="Q precio" value={t.q_price_7d} sub="paso 2" highlight={highlighted.has('q_price_7d')} />
-          <StatCard label="Q zona" value={t.q_location_7d} sub="paso 3" highlight={highlighted.has('q_location_7d')} />
+          <StatCard label="Flow starts" value={t.flow_starts} highlight={highlighted.has('flow_starts')} />
+          <StatCard label="Q categorías" value={t.q_categories} sub="paso 1" highlight={highlighted.has('q_categories')} />
+          <StatCard label="Q precio" value={t.q_price} sub="paso 2" highlight={highlighted.has('q_price')} />
+          <StatCard label="Q zona" value={t.q_location} sub="paso 3" highlight={highlighted.has('q_location')} />
         </motion.div>
       </Section>
 
       <Section title="Distribución">
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <StatCard label="Top5 impres." value={t.impressions_7d} sub={`30d · ${t.impressions_30d.toLocaleString('es-ES')}`} highlight={highlighted.has('impressions_7d')} />
-          <StatCard label="Selecciones" value={t.selections_7d} sub={`30d · ${t.selections_30d.toLocaleString('es-ES')}`} highlight={highlighted.has('selections_7d')} />
-          <StatCard label="Winners" value={t.cta_winner_7d} sub="ganador final" highlight={highlighted.has('cta_winner_7d')} />
+          <StatCard label="Top5 impres." value={t.impressions} highlight={highlighted.has('impressions')} />
+          <StatCard label="Selecciones" value={t.selections} highlight={highlighted.has('selections')} />
+          <StatCard label="Winners" value={t.cta_winner} sub="ganador final" highlight={highlighted.has('cta_winner')} />
         </motion.div>
       </Section>
 
       <Section title="Conversión por sitio">
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <StatCard label="Calls" value={t.cta_call_7d} sub={`30d · ${t.cta_call_30d.toLocaleString('es-ES')}`} highlight={highlighted.has('cta_call_7d')} />
-          <StatCard label="Maps" value={t.cta_maps_7d} highlight={highlighted.has('cta_maps_7d')} />
-          <StatCard label="Menú" value={t.cta_menu_7d} highlight={highlighted.has('cta_menu_7d')} />
-          <StatCard label="Reservas" value={t.cta_reservations_7d} highlight={highlighted.has('cta_reservations_7d')} />
-          <StatCard label="Instagram" value={t.cta_instagram_7d} highlight={highlighted.has('cta_instagram_7d')} />
+          <StatCard label="Calls" value={t.cta_call} highlight={highlighted.has('cta_call')} />
+          <StatCard label="Maps" value={t.cta_maps} highlight={highlighted.has('cta_maps')} />
+          <StatCard label="Menú" value={t.cta_menu} highlight={highlighted.has('cta_menu')} />
+          <StatCard label="Reservas" value={t.cta_reservations} highlight={highlighted.has('cta_reservations')} />
+          <StatCard label="Instagram" value={t.cta_instagram} highlight={highlighted.has('cta_instagram')} />
         </motion.div>
       </Section>
 
       <motion.div variants={item} className="rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)] sm:p-7">
-        <h3 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Evolución diaria · 30d</h3>
+        <h3 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Evolución diaria · {presetLabel}</h3>
         {data!.daily.length === 0 ? (
           <div className="flex h-40 items-center justify-center text-sm text-stone-400">Sin datos aún — completa un flujo para ver el gráfico</div>
         ) : (
@@ -271,7 +309,7 @@ export default function StatsPage() {
       </motion.div>
 
       <motion.div variants={item} className="rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)] sm:p-7">
-        <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Restaurantes destacados · 30d</h3>
+        <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Restaurantes destacados · {presetLabel}</h3>
         {data!.topRestaurants.length === 0 ? (
           <div className="py-6 text-center text-sm text-stone-400">Sin rankings aún — aparecerán tras las primeras impresiones</div>
         ) : (
