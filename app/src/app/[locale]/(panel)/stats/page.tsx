@@ -13,15 +13,28 @@ import Link from 'next/link'
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
 const item = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }
 
-function StatCard({ label, value, sub, icon: Icon }: { label: string; value: number; sub?: string; icon: React.ComponentType<{ className?: string }> }) {
+function StatCard({ label, value, sub, icon: Icon, highlight }: { label: string; value: number; sub?: string; icon: React.ComponentType<{ className?: string }>; highlight?: boolean }) {
   return (
-    <motion.div variants={item} className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-      <div className="flex items-center gap-2 text-stone-500">
+    <motion.div
+      variants={item}
+      animate={highlight ? { scale: [1, 1.03, 1], transition: { duration: 0.35 } } : undefined}
+      className={`rounded-2xl border p-4 shadow-sm transition-all hover:shadow-md ${highlight ? 'border-emerald-300 bg-emerald-50 ring-2 ring-emerald-200' : 'border-stone-200 bg-white'}`}
+    >
+      <div className={`flex items-center gap-2 ${highlight ? 'text-emerald-600' : 'text-stone-500'}`}>
         <Icon className="h-4 w-4" />
         <span className="text-xs font-medium">{label}</span>
+        {highlight && <span className="ml-auto h-2 w-2 animate-pulse rounded-full bg-emerald-500" />}
       </div>
-      <div className="mt-1 text-2xl font-extrabold tracking-tight text-stone-900">{value}</div>
-      {sub && <div className="text-xs text-stone-400">{sub}</div>}
+      <motion.div
+        key={value}
+        initial={highlight ? { scale: 1.15, color: '#059669' } : false}
+        animate={{ scale: 1, color: '#1c1917' }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="mt-1 text-2xl font-extrabold tracking-tight"
+      >
+        {value}
+      </motion.div>
+      {sub && <div className={`text-xs ${highlight ? 'text-emerald-600' : 'text-stone-400'}`}>{sub}</div>}
     </motion.div>
   )
 }
@@ -56,6 +69,9 @@ export default function StatsPage() {
   const [live, setLive] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
+  const prevTotalsRef = useRef<Record<string, number> | null>(null)
+  const [highlighted, setHighlighted] = useState<Set<string>>(new Set())
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['global-metrics'],
     queryFn: getGlobalMetrics,
@@ -63,6 +79,30 @@ export default function StatsPage() {
     staleTime: 30_000,
     refetchOnWindowFocus: false,
   })
+
+  useEffect(() => {
+    if (!data?.totals) return
+    const prev = prevTotalsRef.current
+    const curr = data.totals as unknown as Record<string, number>
+    if (prev) {
+      const changed = new Set<string>()
+      for (const k of Object.keys(curr)) {
+        if (curr[k] !== prev[k]) changed.add(k)
+      }
+      for (const [k, v] of Object.entries(curr)) {
+        if (k.endsWith('_7d') && v !== prev[k]) {
+          const base = k.replace('_7d', '')
+          changed.add(base)
+        }
+      }
+      if (changed.size) {
+        setHighlighted(changed)
+        const t = setTimeout(() => setHighlighted(new Set()), 1600)
+        return () => clearTimeout(t)
+      }
+    }
+    prevTotalsRef.current = { ...curr }
+  }, [data])
 
   const scheduleInvalidate = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -185,37 +225,37 @@ export default function StatsPage() {
 
       <Section title="Tráfico" icon={Eye}>
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Visitas" value={t.page_views_7d} sub={`30d: ${t.page_views_30d}`} icon={Eye} />
-          <StatCard label="Únicas" value={t.uniques_7d} sub="visitantes distintos" icon={Users} />
-          <StatCard label="/restaurantes" value={t.restaurantes_views_7d} sub="visitas B2B" icon={Store} />
-          <StatCard label="Activos" value={t.restaurants_active} sub="restaurantes" icon={Crown} />
+          <StatCard label="Visitas" value={t.page_views_7d} sub={`30d: ${t.page_views_30d}`} icon={Eye} highlight={highlighted.has('page_views_7d') || highlighted.has('page_views')} />
+          <StatCard label="Únicas" value={t.uniques_7d} sub="visitantes distintos" icon={Users} highlight={highlighted.has('uniques_7d')} />
+          <StatCard label="/restaurantes" value={t.restaurantes_views_7d} sub="visitas B2B" icon={Store} highlight={highlighted.has('restaurantes_views_7d')} />
+          <StatCard label="Activos" value={t.restaurants_active} sub="restaurantes" icon={Crown} highlight={highlighted.has('restaurants_active')} />
         </motion.div>
       </Section>
 
       <Section title="Embudo" icon={Layers}>
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Flow starts" value={t.flow_starts_7d} sub={`30d: ${t.flow_starts_30d}`} icon={Play} />
-          <StatCard label="Q categorías" value={t.q_categories_7d} sub="llega a paso 1" icon={HelpCircle} />
-          <StatCard label="Q precio" value={t.q_price_7d} sub="llega a paso 2" icon={HelpCircle} />
-          <StatCard label="Q zona" value={t.q_location_7d} sub="llega a paso 3" icon={HelpCircle} />
+          <StatCard label="Flow starts" value={t.flow_starts_7d} sub={`30d: ${t.flow_starts_30d}`} icon={Play} highlight={highlighted.has('flow_starts_7d')} />
+          <StatCard label="Q categorías" value={t.q_categories_7d} sub="llega a paso 1" icon={HelpCircle} highlight={highlighted.has('q_categories_7d')} />
+          <StatCard label="Q precio" value={t.q_price_7d} sub="llega a paso 2" icon={HelpCircle} highlight={highlighted.has('q_price_7d')} />
+          <StatCard label="Q zona" value={t.q_location_7d} sub="llega a paso 3" icon={HelpCircle} highlight={highlighted.has('q_location_7d')} />
         </motion.div>
       </Section>
 
       <Section title="Distribución" icon={TrendingUp}>
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <StatCard label="Top5 impres." value={t.impressions_7d} sub={`30d: ${t.impressions_30d}`} icon={Eye} />
-          <StatCard label="Selecciones" value={t.selections_7d} sub={`30d: ${t.selections_30d}`} icon={Layers} />
-          <StatCard label="Winners" value={t.cta_winner_7d} sub="ganador final" icon={Trophy} />
+          <StatCard label="Top5 impres." value={t.impressions_7d} sub={`30d: ${t.impressions_30d}`} icon={Eye} highlight={highlighted.has('impressions_7d')} />
+          <StatCard label="Selecciones" value={t.selections_7d} sub={`30d: ${t.selections_30d}`} icon={Layers} highlight={highlighted.has('selections_7d')} />
+          <StatCard label="Winners" value={t.cta_winner_7d} sub="ganador final" icon={Trophy} highlight={highlighted.has('cta_winner_7d')} />
         </motion.div>
       </Section>
 
       <Section title="Conversión por sitio" icon={MousePointer}>
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <StatCard label="Calls" value={t.cta_call_7d} sub={`30d: ${t.cta_call_30d}`} icon={Phone} />
-          <StatCard label="Maps" value={t.cta_maps_7d} sub="cómo llegar" icon={MapPin} />
-          <StatCard label="Menú" value={t.cta_menu_7d} sub="ver carta" icon={Menu} />
-          <StatCard label="Reservas" value={t.cta_reservations_7d} sub="url reservas" icon={Calendar} />
-          <StatCard label="Instagram" value={t.cta_instagram_7d} sub="ver IG" icon={Camera} />
+          <StatCard label="Calls" value={t.cta_call_7d} sub={`30d: ${t.cta_call_30d}`} icon={Phone} highlight={highlighted.has('cta_call_7d')} />
+          <StatCard label="Maps" value={t.cta_maps_7d} sub="cómo llegar" icon={MapPin} highlight={highlighted.has('cta_maps_7d')} />
+          <StatCard label="Menú" value={t.cta_menu_7d} sub="ver carta" icon={Menu} highlight={highlighted.has('cta_menu_7d')} />
+          <StatCard label="Reservas" value={t.cta_reservations_7d} sub="url reservas" icon={Calendar} highlight={highlighted.has('cta_reservations_7d')} />
+          <StatCard label="Instagram" value={t.cta_instagram_7d} sub="ver IG" icon={Camera} highlight={highlighted.has('cta_instagram_7d')} />
         </motion.div>
       </Section>
 
