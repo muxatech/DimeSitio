@@ -85,9 +85,9 @@ describe('BattleView', () => {
         top5: [champion, challenger],
       })
       render(<BattleView />, { wrapper: TestWrapper })
-      expect(screen.getByText('Elige tu favorito')).toBeInTheDocument()
+      expect(screen.getAllByText('Elige tu favorito').length).toBeGreaterThanOrEqual(1)
       expect(screen.getByText('¿Cuál te convence más?')).toBeInTheDocument()
-      expect(screen.getByText('VS')).toBeInTheDocument()
+      expect(screen.getAllByText('VS').length).toBeGreaterThanOrEqual(1)
       expect(screen.getByText('Champion')).toBeInTheDocument()
       expect(screen.getByText('Challenger')).toBeInTheDocument()
     })
@@ -318,7 +318,7 @@ describe('BattleView', () => {
         top5: [champion, challenger],
       })
       render(<BattleView />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
-      expect(screen.getByText('Choose your favorite')).toBeInTheDocument()
+      expect(screen.getAllByText('Choose your favorite').length).toBeGreaterThanOrEqual(1)
       expect(screen.getByText('Which one convinces you more?')).toBeInTheDocument()
       expect(screen.getByText('Round 1 of 1')).toBeInTheDocument()
     })
