@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useRouter } from '@/i18n/navigation'
 import { checkStaffStatus, getGlobalMetrics } from '@/lib/panel/api'
 import { supabase } from '@/lib/supabase'
@@ -72,12 +72,13 @@ export default function StatsPage() {
   const prevTotalsRef = useRef<Record<string, number> | null>(null)
   const [highlighted, setHighlighted] = useState<Set<string>>(new Set())
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ['global-metrics', preset, customFrom, customTo],
     queryFn: () => getGlobalMetrics(range as import('@/types').StatsRange),
     enabled: isStaff === true && (preset !== 'custom' || (!!customFrom && !!customTo && customFrom <= customTo)),
     staleTime: 30_000,
     refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
   })
 
   useEffect(() => {
@@ -149,28 +150,12 @@ export default function StatsPage() {
     }
   }, [isStaff, scheduleInvalidate, queryClient])
 
+  const presetLabel = data?.range?.label ?? (preset === '7d' ? 'Últimos 7 días' : preset === '30d' ? 'Últimos 30 días' : preset === 'today' ? 'Hoy' : preset === 'yesterday' ? 'Ayer' : `${customFrom} → ${customTo}`)
+
   if (isStaff === null) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-stone-200 border-t-stone-900" />
-      </div>
-    )
-  }
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded-xl bg-stone-100" />
-        {Array.from({ length: 4 }).map((_, s) => (
-          <div key={s} className="space-y-3">
-            <div className="h-5 w-32 animate-pulse rounded-lg bg-stone-100" />
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-24 animate-pulse rounded-2xl bg-stone-100" />
-              ))}
-            </div>
-          </div>
-        ))}
       </div>
     )
   }
@@ -197,13 +182,13 @@ export default function StatsPage() {
     )
   }
 
-  const t = data!.totals
+  const t = data?.totals
 
-  const presetLabel = data?.range?.label ?? (preset === '7d' ? 'Últimos 7 días' : preset === '30d' ? 'Últimos 30 días' : preset === 'today' ? 'Hoy' : preset === 'yesterday' ? 'Ayer' : `${customFrom} → ${customTo}`)
+  const showSkeleton = isLoading && !data
 
   return (
-    <motion.div initial="hidden" animate="show" variants={container} className="space-y-10">
-      <motion.div variants={item} className="flex items-start justify-between gap-4 border-b border-stone-200 pb-6">
+    <div className="space-y-10">
+      <div className="flex items-start justify-between gap-4 border-b border-stone-200 pb-6">
         <div>
           <h1 className="text-[30px] font-extrabold tracking-tight text-stone-900 sm:text-[34px]">Stats</h1>
           <p className="mt-1 text-[13px] leading-relaxed text-stone-400">Métricas generales y por sitio · {presetLabel}</p>
@@ -212,6 +197,7 @@ export default function StatsPage() {
               <span className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`} /> {live ? 'LIVE' : 'conectando...'}
             </span>
             {lastUpdate && <span className="text-[11px] text-stone-400">{lastUpdate.toLocaleTimeString()}</span>}
+            {isFetching && <span className="h-3 w-3 animate-spin rounded-full border-2 border-stone-200 border-t-stone-500" />}
           </div>
         </div>
         <button
@@ -220,9 +206,9 @@ export default function StatsPage() {
         >
           <Maximize className="h-3.5 w-3.5" /> Pantalla completa
         </button>
-      </motion.div>
+      </div>
 
-      <motion.div variants={item} className="flex flex-wrap items-center gap-2 rounded-2xl border border-stone-200 bg-white p-1.5 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-stone-200 bg-white p-1.5 shadow-sm">
         <div className="flex gap-1 rounded-xl bg-stone-100 p-0.5">
           {(['today', 'yesterday', '7d', '30d'] as const).map((p) => (
             <button
@@ -248,84 +234,109 @@ export default function StatsPage() {
           </div>
         )}
         <span className="ml-auto text-xs text-stone-400">{presetLabel}</span>
-      </motion.div>
+      </div>
 
-      <Section title="Tráfico">
-        <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Visitas" value={t.page_views} sub={preset !== 'today' && preset !== 'yesterday' ? `rango · ${presetLabel}` : undefined} highlight={highlighted.has('page_views')} />
-          <StatCard label="Únicas" value={t.uniques} highlight={highlighted.has('uniques')} />
-          <StatCard label="/restaurantes" value={t.restaurantes_views} highlight={highlighted.has('restaurantes_views')} />
-          <StatCard label="Activos" value={t.restaurants_active} sub="reales" highlight={highlighted.has('restaurants_active')} />
-        </motion.div>
-      </Section>
-
-      <Section title="Embudo">
-        <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Flow starts" value={t.flow_starts} highlight={highlighted.has('flow_starts')} />
-          <StatCard label="Q categorías" value={t.q_categories} sub="paso 1" highlight={highlighted.has('q_categories')} />
-          <StatCard label="Q precio" value={t.q_price} sub="paso 2" highlight={highlighted.has('q_price')} />
-          <StatCard label="Q zona" value={t.q_location} sub="paso 3" highlight={highlighted.has('q_location')} />
-        </motion.div>
-      </Section>
-
-      <Section title="Distribución">
-        <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <StatCard label="Top5 impres." value={t.impressions} highlight={highlighted.has('impressions')} />
-          <StatCard label="Selecciones" value={t.selections} highlight={highlighted.has('selections')} />
-          <StatCard label="Winners" value={t.cta_winner} sub="ganador final" highlight={highlighted.has('cta_winner')} />
-        </motion.div>
-      </Section>
-
-      <Section title="Conversión por sitio">
-        <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <StatCard label="Calls" value={t.cta_call} highlight={highlighted.has('cta_call')} />
-          <StatCard label="Maps" value={t.cta_maps} highlight={highlighted.has('cta_maps')} />
-          <StatCard label="Menú" value={t.cta_menu} highlight={highlighted.has('cta_menu')} />
-          <StatCard label="Reservas" value={t.cta_reservations} highlight={highlighted.has('cta_reservations')} />
-          <StatCard label="Instagram" value={t.cta_instagram} highlight={highlighted.has('cta_instagram')} />
-        </motion.div>
-      </Section>
-
-      <motion.div variants={item} className="rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)] sm:p-7">
-        <h3 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Evolución diaria · {presetLabel}</h3>
-        {data!.daily.length === 0 ? (
-          <div className="flex h-40 items-center justify-center text-sm text-stone-400">Sin datos aún — completa un flujo para ver el gráfico</div>
-        ) : (
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data!.daily}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(v: string) => v.slice(5)} />
-                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e7e5e4' }} />
-                <Bar dataKey="page_views" fill="#1c1917" name="Visitas" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="flow_starts" fill="#57534e" name="Flow" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="impressions" fill="#78716c" name="Top5" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="cta" fill="#a8a29e" name="CTA" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+      {showSkeleton ? (
+        <div className="space-y-6">
+          {Array.from({ length: 4 }).map((_, s) => (
+            <div key={s} className="space-y-3">
+              <div className="h-5 w-32 animate-pulse rounded-lg bg-stone-100" />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-24 animate-pulse rounded-2xl bg-stone-100" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          <div className={isFetching ? 'opacity-60 transition-opacity' : ''}>
+            <Section title="Tráfico">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <StatCard label="Visitas" value={t!.page_views} highlight={highlighted.has('page_views')} />
+                <StatCard label="Únicas" value={t!.uniques} highlight={highlighted.has('uniques')} />
+                <StatCard label="/restaurantes" value={t!.restaurantes_views} highlight={highlighted.has('restaurantes_views')} />
+                <StatCard label="Activos" value={t!.restaurants_active} sub="reales" highlight={highlighted.has('restaurants_active')} />
+              </div>
+            </Section>
           </div>
-        )}
-      </motion.div>
 
-      <motion.div variants={item} className="rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)] sm:p-7">
-        <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Restaurantes destacados · {presetLabel}</h3>
-        {data!.topRestaurants.length === 0 ? (
-          <div className="py-6 text-center text-sm text-stone-400">Sin rankings aún — aparecerán tras las primeras impresiones</div>
-        ) : (
-          <div className="divide-y divide-stone-100">
-            {data!.topRestaurants.map((r) => (
-              <Link key={`${r.type}-${r.restaurant_id}`} href={`/sitio/${r.restaurant_id}`} className="flex items-center justify-between rounded-2xl px-2 py-2.5 hover:bg-stone-50">
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">{r.type === 'impressions' ? 'Top5' : r.type === 'winner' ? 'Winner' : 'Call'}</span>
-                  <span className="text-sm font-medium text-stone-800">{r.name}</span>
-                </div>
-                <span className="text-sm font-bold text-stone-900">{r.count}</span>
-              </Link>
-            ))}
+          <Section title="Embudo">
+            <div className={isFetching ? 'opacity-60 transition-opacity' : ''}>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <StatCard label="Flow starts" value={t!.flow_starts} highlight={highlighted.has('flow_starts')} />
+                <StatCard label="Q categorías" value={t!.q_categories} sub="paso 1" highlight={highlighted.has('q_categories')} />
+                <StatCard label="Q precio" value={t!.q_price} sub="paso 2" highlight={highlighted.has('q_price')} />
+                <StatCard label="Q zona" value={t!.q_location} sub="paso 3" highlight={highlighted.has('q_location')} />
+              </div>
+            </div>
+          </Section>
+
+          <Section title="Distribución">
+            <div className={isFetching ? 'opacity-60 transition-opacity' : ''}>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <StatCard label="Top5 impres." value={t!.impressions} highlight={highlighted.has('impressions')} />
+                <StatCard label="Selecciones" value={t!.selections} highlight={highlighted.has('selections')} />
+                <StatCard label="Winners" value={t!.cta_winner} sub="ganador final" highlight={highlighted.has('cta_winner')} />
+              </div>
+            </div>
+          </Section>
+
+          <Section title="Conversión por sitio">
+            <div className={isFetching ? 'opacity-60 transition-opacity' : ''}>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                <StatCard label="Calls" value={t!.cta_call} highlight={highlighted.has('cta_call')} />
+                <StatCard label="Maps" value={t!.cta_maps} highlight={highlighted.has('cta_maps')} />
+                <StatCard label="Menú" value={t!.cta_menu} highlight={highlighted.has('cta_menu')} />
+                <StatCard label="Reservas" value={t!.cta_reservations} highlight={highlighted.has('cta_reservations')} />
+                <StatCard label="Instagram" value={t!.cta_instagram} highlight={highlighted.has('cta_instagram')} />
+              </div>
+            </div>
+          </Section>
+
+          <div className={`rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)] sm:p-7 ${isFetching ? 'opacity-60' : ''}`}>
+            <h3 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Evolución diaria · {presetLabel}</h3>
+            {data!.daily.length === 0 ? (
+              <div className="flex h-40 items-center justify-center text-sm text-stone-400">Sin datos aún — completa un flujo para ver el gráfico</div>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data!.daily}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(v: string) => v.slice(5)} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e7e5e4' }} />
+                    <Bar dataKey="page_views" fill="#1c1917" name="Visitas" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="flow_starts" fill="#57534e" name="Flow" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="impressions" fill="#78716c" name="Top5" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="cta" fill="#a8a29e" name="CTA" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
-        )}
-      </motion.div>
-    </motion.div>
+
+          <div className={`rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)] sm:p-7 ${isFetching ? 'opacity-60' : ''}`}>
+            <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Restaurantes destacados · {presetLabel}</h3>
+            {data!.topRestaurants.length === 0 ? (
+              <div className="py-6 text-center text-sm text-stone-400">Sin rankings aún — aparecerán tras las primeras impresiones</div>
+            ) : (
+              <div className="divide-y divide-stone-100">
+                {data!.topRestaurants.map((r) => (
+                  <Link key={`${r.type}-${r.restaurant_id}`} href={`/sitio/${r.restaurant_id}`} className="flex items-center justify-between rounded-2xl px-2 py-2.5 hover:bg-stone-50">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">{r.type === 'impressions' ? 'Top5' : r.type === 'winner' ? 'Winner' : 'Call'}</span>
+                      <span className="text-sm font-medium text-stone-800">{r.name}</span>
+                    </div>
+                    <span className="text-sm font-bold text-stone-900">{r.count}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   )
 }
