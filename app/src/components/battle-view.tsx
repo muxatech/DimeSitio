@@ -188,22 +188,13 @@ function BattleCard({
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          if (!isCenter && onCenterTap) onCenterTap()
-          else if (isCenter) handlePickWrapper()
-        }
-      }}
-      onClick={() => {
-        if (!isCenter && onCenterTap) onCenterTap()
-        else if (isCenter) handlePickWrapper()
-      }}
+      role={!isCenter ? 'button' : undefined}
+      tabIndex={!isCenter ? 0 : undefined}
+      onKeyDown={!isCenter ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCenterTap?.() } } : undefined}
+      onClick={!isCenter ? () => onCenterTap?.() : undefined}
       className={`relative flex flex-col overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition-all ${
-        isSelected ? 'border-stone-900 ring-2 ring-stone-900/10 ring-offset-2' : isCenter ? 'border-stone-200' : 'border-stone-200'
-      } ${!isCenter ? 'cursor-pointer' : 'cursor-pointer'} ${disabled && isCenter ? 'pointer-events-none opacity-80' : ''}`}
+        isSelected ? 'border-stone-900 ring-2 ring-stone-900/10 ring-offset-2' : 'border-stone-200'
+      } ${!isCenter ? 'cursor-pointer' : ''} ${disabled && isCenter ? 'opacity-80' : ''}`}
     >
       <div className="relative h-52 shrink-0 bg-stone-100 sm:h-56">
         <PhotoCarousel

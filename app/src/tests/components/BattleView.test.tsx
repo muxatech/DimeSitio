@@ -173,8 +173,8 @@ describe('BattleView', () => {
         battlePool: [],
       })
       render(<BattleView />, { wrapper: TestWrapper })
-      const card = screen.getAllByText('Champion')[0]
-      fireEvent.click(card.closest('[role="button"]')!)
+      const btn = screen.getAllByRole('button', { name: 'Elegir' })[0]
+      fireEvent.click(btn)
       vi.advanceTimersByTime(400)
       const state = useFlowStore.getState()
       expect(state.step).toBe('winner')
@@ -191,8 +191,8 @@ describe('BattleView', () => {
         battlePool: [third],
       })
       render(<BattleView />, { wrapper: TestWrapper })
-      const card = screen.getAllByText('Champion')[0]
-      fireEvent.click(card.closest('[role="button"]')!)
+      const btn = screen.getAllByRole('button', { name: 'Elegir' })[0]
+      fireEvent.click(btn)
       vi.advanceTimersByTime(400)
       const state = useFlowStore.getState()
       expect(state.step).toBe('battle')
@@ -211,10 +211,9 @@ describe('BattleView', () => {
         battlePool: [third],
       })
       render(<BattleView />, { wrapper: TestWrapper })
-      const cardA = screen.getAllByText('Champion')[0]
-      const cardB = screen.getAllByText('Challenger')[0]
-      fireEvent.click(cardA.closest('[role="button"]')!)
-      fireEvent.click(cardB.closest('[role="button"]')!)
+      const btns = screen.getAllByRole('button', { name: 'Elegir' })
+      fireEvent.click(btns[0])
+      if (btns[1]) fireEvent.click(btns[1])
       vi.advanceTimersByTime(400)
       const state = useFlowStore.getState()
       expect(state.battleChampion?.id).toBe('a')
