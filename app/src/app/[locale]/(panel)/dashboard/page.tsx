@@ -7,7 +7,7 @@ import { getMyRestaurants, getRestaurantAnalytics, checkStaffStatus } from '@/li
 import { NO_SESSION_ERROR } from '@/lib/constants'
 import { motion } from 'framer-motion'
 import { Link } from '@/i18n/navigation'
-import { Store, Eye, CheckCircle2, Phone, Plus, Frown, RefreshCw, UserPlus } from 'lucide-react'
+import { Plus, Frown, RefreshCw, UserPlus } from 'lucide-react'
 import RestaurantPanelCard from '@/components/restaurant-panel-card'
 import { AnalyticsSection } from '@/components/analytics-section'
 import { useTranslations } from 'next-intl'
@@ -47,9 +47,6 @@ export default function DashboardPage() {
     staleTime: 60000,
   })
 
-  const totalImpressions = restaurants?.reduce((sum, r) => sum + (r.stats?.impressions ?? 0), 0) ?? 0
-  const totalSelections = restaurants?.reduce((sum, r) => sum + (r.stats?.selections ?? 0), 0) ?? 0
-  const totalCalls = restaurants?.reduce((sum, r) => sum + (r.stats?.calls ?? 0), 0) ?? 0
   const totalRestaurants = restaurants?.length ?? 0
 
   if (isLoading) {
@@ -91,13 +88,6 @@ export default function DashboardPage() {
     )
   }
 
-  const metrics = [
-    { label: t('totalRestaurants'), value: totalRestaurants, icon: Store },
-    { label: t('totalImpressions'), value: totalImpressions, icon: Eye },
-    { label: t('totalSelections'), value: totalSelections, icon: CheckCircle2 },
-    { label: t('totalCalls'), value: totalCalls, icon: Phone },
-  ]
-
   return (
     <motion.div
       variants={containerVariants}
@@ -106,8 +96,13 @@ export default function DashboardPage() {
       className="flex flex-col gap-8 sm:gap-10"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl lg:text-4xl">
+        <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl lg:text-4xl">
           {t('title')}
+          {totalRestaurants > 0 && (
+            <span className="inline-flex items-center rounded-full bg-stone-900 px-3 py-1 text-sm font-semibold text-white">
+              {totalRestaurants}
+            </span>
+          )}
         </h1>
         <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
           {isStaff && (
@@ -127,27 +122,6 @@ export default function DashboardPage() {
             {t('addEstablishment')}
           </Link>
         </div>
-      </div>
-
-      <h2 className="text-lg font-bold text-stone-900 sm:text-xl">{t('overallStats')}</h2>
-
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6">
-        {metrics.map((metric) => {
-          const Icon = metric.icon
-          return (
-            <motion.div
-              key={metric.label}
-              variants={itemVariants}
-              className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 sm:h-12 sm:w-12">
-                <Icon className="h-5 w-5 text-stone-600 sm:h-6 sm:w-6" />
-              </div>
-              <p className="text-2xl font-bold text-stone-900 sm:text-3xl">{metric.value}</p>
-              <p className="text-sm text-stone-400 sm:text-base">{metric.label}</p>
-            </motion.div>
-          )
-        })}
       </div>
 
       {restaurants && restaurants.length > 0 && (
