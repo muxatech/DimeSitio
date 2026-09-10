@@ -5,47 +5,10 @@ import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-quer
 import { useRouter } from '@/i18n/navigation'
 import { checkStaffStatus, getGlobalMetrics } from '@/lib/panel/api'
 import { supabase } from '@/lib/supabase'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { motion } from 'framer-motion'
-import { JetBrains_Mono } from 'next/font/google'
-import { Eye, Users, Play, HelpCircle, Store, Trophy, Phone, MapPin, Menu, Calendar, Crown, Camera, TrendingUp, Layers, MousePointer, Maximize } from 'lucide-react'
-import Link from 'next/link'
-
-const panelMono = JetBrains_Mono({ subsets: ['latin'], weight: ['600', '700', '800'], display: 'swap' })
-
-const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
-const item = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }
-
-function StatCard({ label, value, sub, highlight }: { label: string; value: number; sub?: string; highlight?: boolean }) {
-  return (
-    <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-400">{label}</div>
-      <div className="mt-2 overflow-hidden">
-        <motion.div
-          animate={highlight ? { scaleY: [1, 1.35, 1], y: [6, 0, 0] } : { scaleY: 1, y: 0 }}
-          style={{ originY: 1 }}
-          transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
-          className={`tabular-nums text-4xl font-extrabold tracking-tight sm:text-5xl ${panelMono.className} ${highlight ? 'text-emerald-600' : 'text-stone-900'}`}
-        >
-          {value.toLocaleString('es-ES')}
-        </motion.div>
-      </div>
-      {sub && <div className="mt-1 text-xs font-medium tabular-nums text-stone-500">{sub}</div>}
-    </div>
-  )
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">{title}</h3>
-        <div className="h-px flex-1 bg-stone-100" />
-      </div>
-      {children}
-    </div>
-  )
-}
+import { StatCard } from '@/components/stats/stat-card'
+import { Section } from '@/components/stats/section'
+import { PresetSelector } from '@/components/stats/preset-selector'
+import { DailyChart } from '@/components/stats/daily-chart'
 
 export default function StatsPage() {
   const router = useRouter()
@@ -204,37 +167,11 @@ export default function StatsPage() {
           onClick={() => document.documentElement.requestFullscreen().catch(() => {})}
           className="hidden items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-[11px] font-medium uppercase tracking-wide text-stone-600 hover:bg-stone-50 sm:inline-flex"
         >
-          <Maximize className="h-3.5 w-3.5" /> Pantalla completa
+          Pantalla completa
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-stone-200 bg-white p-1.5 shadow-sm">
-        <div className="flex gap-1 rounded-xl bg-stone-100 p-0.5">
-          {(['today', 'yesterday', '7d', '30d'] as const).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPreset(p)}
-              className={preset === p ? 'rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-stone-900 shadow-sm' : 'rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 hover:text-stone-700'}
-            >
-              {p === 'today' ? 'Hoy' : p === 'yesterday' ? 'Ayer' : p === '7d' ? '7 días' : '30 días'}
-            </button>
-          ))}
-          <button
-            onClick={() => setPreset('custom')}
-            className={preset === 'custom' ? 'rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm' : 'rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 hover:text-stone-700'}
-          >
-            <Calendar className="mr-1 inline h-3.5 w-3.5" /> Personalizado
-          </button>
-        </div>
-        {preset === 'custom' && (
-          <div className="flex items-center gap-2">
-            <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} max={customTo || undefined} className="rounded-2xl border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-900 shadow-sm focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200" />
-            <span className="text-stone-400">—</span>
-            <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} min={customFrom || undefined} max={todayStr} className="rounded-2xl border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-900 shadow-sm focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200" />
-          </div>
-        )}
-        <span className="ml-auto text-xs text-stone-400">{presetLabel}</span>
-      </div>
+      <PresetSelector preset={preset} setPreset={setPreset} customFrom={customFrom} setCustomFrom={setCustomFrom} customTo={customTo} setCustomTo={setCustomTo} label={presetLabel} todayStr={todayStr} />
 
       {showSkeleton ? (
         <div className="space-y-6">
@@ -295,27 +232,7 @@ export default function StatsPage() {
             </div>
           </Section>
 
-          <div className={`rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)] sm:p-7 ${isFetching ? 'opacity-60' : ''}`}>
-            <h3 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Evolución diaria · {presetLabel}</h3>
-            {data!.daily.length === 0 ? (
-              <div className="flex h-40 items-center justify-center text-sm text-stone-400">Sin datos aún — completa un flujo para ver el gráfico</div>
-            ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data!.daily}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-                    <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(v: string) => v.slice(5)} />
-                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                    <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e7e5e4' }} />
-                    <Bar dataKey="page_views" fill="#1c1917" name="Visitas" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="flow_starts" fill="#57534e" name="Flow" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="impressions" fill="#78716c" name="Top5" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="cta" fill="#a8a29e" name="CTA" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
+      <DailyChart data={data!.daily} label={presetLabel} isFetching={isFetching} />
 
           <div className={`rounded-[22px] border border-stone-200 bg-white p-6 shadow-[0_1px_12px_rgba(0,0,0,0.04)] sm:p-7 ${isFetching ? 'opacity-60' : ''}`}>
             <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Restaurantes destacados · {presetLabel}</h3>
@@ -324,13 +241,13 @@ export default function StatsPage() {
             ) : (
               <div className="divide-y divide-stone-100">
                 {data!.topRestaurants.map((r) => (
-                  <Link key={`${r.type}-${r.restaurant_id}`} href={`/sitio/${r.restaurant_id}`} className="flex items-center justify-between rounded-2xl px-2 py-2.5 hover:bg-stone-50">
+                  <a key={`${r.type}-${r.restaurant_id}`} href={`/sitio/${r.restaurant_id}`} className="flex items-center justify-between rounded-2xl px-2 py-2.5 hover:bg-stone-50">
                     <div className="flex items-center gap-2">
                       <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600">{r.type === 'impressions' ? 'Top5' : r.type === 'winner' ? 'Winner' : 'Call'}</span>
                       <span className="text-sm font-medium text-stone-800">{r.name}</span>
                     </div>
                     <span className="text-sm font-bold text-stone-900">{r.count}</span>
-                  </Link>
+                  </a>
                 ))}
               </div>
             )}

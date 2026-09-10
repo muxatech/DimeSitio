@@ -222,78 +222,100 @@ async function handleGetGlobal(
   })
 }
 
+function fillMissingDatesAnalytics(dateMap: Map<string, { impressions: number; selections: number; calls: number; cta: number; winner: number }>, fromISO: string, toISO: string): { date: string; impressions: number; selections: number; calls: number; cta: number; winner: number }[] {
+  const from = new Date(fromISO.slice(0, 10))
+  const to = new Date(toISO.slice(0, 10))
+  const out: { date: string; impressions: number; selections: number; calls: number; cta: number; winner: number }[] = []
+  for (let d = new Date(from); d <= to; d.setUTCDate(d.getUTCDate() + 1)) {
+    const key = d.toISOString().slice(0, 10)
+    const v = dateMap.get(key) ?? { impressions: 0, selections: 0, calls: 0, cta: 0, winner: 0 }
+    out.push({ date: key, ...v })
+  }
+  return out
+}
+
 async function handleGetAnalytics(
   supabase: ReturnType<typeof createClient>,
-  restaurantId: string
+  restaurantId: string,
+  url: URL
 ) {
-  console.log('analytics: get', restaurantId)
+  const { fromISO, toISO, preset, label } = parseRange(url)
 
-  const now = new Date()
-  const iso7 = daysAgo(7)
-  const iso30 = daysAgo(30)
-
-  const [imp7, imp30, sel7, sel30, cal7, cal30, dailyImp, dailySel, dailyCal, recentEvents] = await Promise.all([
-    supabase.from('impressions').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).gte('created_at', iso7),
-    supabase.from('impressions').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).gte('created_at', iso30),
-    supabase.from('selections').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).gte('created_at', iso7),
-    supabase.from('selections').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).gte('created_at', iso30),
-    supabase.from('calls').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).gte('created_at', iso7),
-    supabase.from('calls').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).gte('created_at', iso30),
-    supabase.from('impressions').select('created_at').eq('restaurant_id', restaurantId).gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('selections').select('created_at').eq('restaurant_id', restaurantId).gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('calls').select('created_at').eq('restaurant_id', restaurantId).gte('created_at', iso30).order('created_at', { ascending: true }),
-    supabase.from('impressions').select('created_at').eq('restaurant_id', restaurantId).order('created_at', { ascending: false }).limit(20),
+  const [imp, sel, cal, ctaCall, ctaMaps, ctaMenu, ctaRes, ctaIg, ctaWinner, dailyImp, dailySel, dailyCal, dailyCtaAll, dailyWinner, recentImp, recentCta] = await Promise.all([
+    supabase.from('impressions').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('selections').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('calls').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).eq('cta_type', 'call').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).eq('cta_type', 'maps').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).eq('cta_type', 'menu').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).eq('cta_type', 'reservations').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).eq('cta_type', 'instagram').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('cta_clicks').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurantId).eq('cta_type', 'winner').gte('created_at', fromISO).lte('created_at', toISO),
+    supabase.from('impressions').select('created_at').eq('restaurant_id', restaurantId).gte('created_at', fromISO).lte('created_at', toISO).order('created_at', { ascending: true }),
+    supabase.from('selections').select('created_at').eq('restaurant_id', restaurantId).gte('created_at', fromISO).lte('created_at', toISO).order('created_at', { ascending: true }),
+    supabase.from('calls').select('created_at').eq('restaurant_id', restaurantId).gte('created_at', fromISO).lte('created_at', toISO).order('created_at', { ascending: true }),
+    supabase.from('cta_clicks').select('created_at,cta_type').eq('restaurant_id', restaurantId).gte('created_at', fromISO).lte('created_at', toISO).order('created_at', { ascending: true }),
+    supabase.from('cta_clicks').select('created_at').eq('restaurant_id', restaurantId).eq('cta_type', 'winner').gte('created_at', fromISO).lte('created_at', toISO).order('created_at', { ascending: true }),
+    supabase.from('impressions').select('created_at').eq('restaurant_id', restaurantId).order('created_at', { ascending: false }).limit(10),
+    supabase.from('cta_clicks').select('created_at,cta_type').eq('restaurant_id', restaurantId).order('created_at', { ascending: false }).limit(10),
   ])
 
-  const i7 = imp7.count ?? 0
-  const i30 = imp30.count ?? 0
-  const s7 = sel7.count ?? 0
-  const s30 = sel30.count ?? 0
-  const c7 = cal7.count ?? 0
-  const c30 = cal30.count ?? 0
+  const impCount = imp.count ?? 0
+  const selCount = sel.count ?? 0
+  const callCount = cal.count ?? 0
+  const wCount = ctaWinner.count ?? 0
 
-  // Build daily aggregates
-  const dateMap = new Map<string, { impressions: number; selections: number; calls: number }>()
-
-  function countDate(items: { created_at: string }[], field: 'impressions' | 'selections' | 'calls') {
+  const dateMap = new Map<string, { impressions: number; selections: number; calls: number; cta: number; winner: number }>()
+  function countDate(items: { created_at: string }[], field: 'impressions' | 'selections' | 'calls' | 'cta' | 'winner') {
     for (const item of items) {
       const d = item.created_at.slice(0, 10)
-      const entry = dateMap.get(d) ?? { impressions: 0, selections: 0, calls: 0 }
+      const entry = dateMap.get(d) ?? { impressions: 0, selections: 0, calls: 0, cta: 0, winner: 0 }
       entry[field]++
       dateMap.set(d, entry)
     }
   }
-
   countDate(dailyImp.data ?? [], 'impressions')
   countDate(dailySel.data ?? [], 'selections')
   countDate(dailyCal.data ?? [], 'calls')
+  countDate((dailyCtaAll.data ?? []) as { created_at: string }[], 'cta')
+  countDate(dailyWinner.data ?? [], 'winner')
 
-  const daily = Array.from(dateMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, counts]) => ({ date, ...counts }))
+  const daily = fillMissingDatesAnalytics(dateMap, fromISO, toISO)
 
-  const conversionRate = i30 > 0 ? +(c30 / i30).toFixed(4) : 0
-  const selectionRate = i30 > 0 ? +(s30 / i30).toFixed(4) : 0
+  const conversionRate = impCount > 0 ? +((ctaCall.count ?? callCount) / impCount).toFixed(4) : 0
+  const selectionRate = impCount > 0 ? +(selCount / impCount).toFixed(4) : 0
 
-  const recent = (recentEvents.data ?? []).slice(0, 20).map((e) => ({
-    type: 'impression' as const,
-    created_at: e.created_at,
-  }))
+  const recent: { type: 'impression' | 'cta'; cta_type?: string; created_at: string }[] = [
+    ...((recentImp.data ?? []) as { created_at: string }[]).map((e) => ({ type: 'impression' as const, created_at: e.created_at })),
+    ...((recentCta.data ?? []) as { created_at: string; cta_type: string }[]).map((e) => ({ type: 'cta' as const, cta_type: e.cta_type, created_at: e.created_at })),
+  ].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 10)
+
+  const totals = {
+    impressions: impCount,
+    impressions_7d: impCount,
+    impressions_30d: impCount,
+    selections: selCount,
+    selections_7d: selCount,
+    selections_30d: selCount,
+    calls: callCount,
+    calls_7d: callCount,
+    calls_30d: callCount,
+    winner: wCount,
+    cta_call: ctaCall.count ?? 0,
+    cta_maps: ctaMaps.count ?? 0,
+    cta_menu: ctaMenu.count ?? 0,
+    cta_reservations: ctaRes.count ?? 0,
+    cta_instagram: ctaIg.count ?? 0,
+    conversion_rate: conversionRate,
+    selection_rate: selectionRate,
+  }
 
   return ok({
     restaurant_id: restaurantId,
-    totals: {
-      impressions_7d: i7,
-      impressions_30d: i30,
-      selections_7d: s7,
-      selections_30d: s30,
-      calls_7d: c7,
-      calls_30d: c30,
-      conversion_rate: conversionRate,
-      selection_rate: selectionRate,
-    },
+    totals,
     daily,
-    recent_events: recent.slice(0, 10),
+    recent_events: recent,
+    range: { from: fromISO, to: toISO, preset, label },
   })
 }
 
@@ -337,7 +359,7 @@ serve(async (req) => {
       return fail('Not found or no permission', 404)
     }
 
-    return await handleGetAnalytics(supabase, restaurantId)
+    return await handleGetAnalytics(supabase, restaurantId, url)
   } catch (err) {
     console.error('analytics: unhandled error', err instanceof Error ? err.message : String(err))
     return json({ success: false, data: null, error: err instanceof Error ? err.message : 'Internal server error' }, 500)

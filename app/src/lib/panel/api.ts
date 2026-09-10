@@ -111,8 +111,15 @@ export async function getDeleteUrls(keys: string[]): Promise<DeleteItem[]> {
 
 // ─── Analytics ───────────────────────────────────────────────
 
-export async function getRestaurantAnalytics(id: string): Promise<AnalyticsData> {
-  const res = await invoke<{ success: boolean; data: AnalyticsData }>('GET', `/${id}`, undefined, 'analytics')
+export async function getRestaurantAnalytics(id: string, range?: StatsRange): Promise<AnalyticsData> {
+  const qs = new URLSearchParams()
+  if (range) {
+    qs.set('preset', range.preset)
+    if (range.from) qs.set('from', range.from)
+    if (range.to) qs.set('to', range.to)
+  }
+  const suffix = qs.toString() ? `?${qs.toString()}` : ''
+  const res = await invoke<{ success: boolean; data: AnalyticsData }>('GET', `/${id}${suffix}`, undefined, 'analytics')
   return res.data
 }
 

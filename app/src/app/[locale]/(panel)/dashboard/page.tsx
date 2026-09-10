@@ -5,11 +5,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from '@/i18n/navigation'
 import { getMyRestaurants, getRestaurantAnalytics, checkStaffStatus } from '@/lib/panel/api'
 import { NO_SESSION_ERROR } from '@/lib/constants'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 import { motion } from 'framer-motion'
 import { Link } from '@/i18n/navigation'
-import { Store, Eye, CheckCircle2, Phone, Plus, Frown, RefreshCw, TrendingUp, Target, UserPlus } from 'lucide-react'
+import { Store, Eye, CheckCircle2, Phone, Plus, Frown, RefreshCw, UserPlus } from 'lucide-react'
 import RestaurantPanelCard from '@/components/restaurant-panel-card'
+import { AnalyticsSection } from '@/components/analytics-section'
 import { useTranslations } from 'next-intl'
 
 
@@ -23,139 +23,7 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 }
 
-function ChartSkeleton() {
-  return (
-    <div className="flex h-64 items-center justify-center rounded-2xl border border-stone-200 bg-white">
-      <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-stone-200 border-t-stone-900" />
-    </div>
-  )
-}
 
-interface AnalyticsSectionProps {
-  restaurantId: string
-  restaurantName: string
-}
-
-function AnalyticsSection({ restaurantId, restaurantName }: AnalyticsSectionProps) {
-  const [chartRange, setChartRange] = useState<'7d' | '30d'>('30d')
-  const t = useTranslations('Dashboard')
-
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['analytics', restaurantId],
-    queryFn: () => getRestaurantAnalytics(restaurantId),
-  })
-
-  if (isLoading) return <ChartSkeleton />
-
-  if (isError) {
-    return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white p-8 text-center">
-        <RefreshCw className="h-6 w-6 text-red-400" />
-        <p className="text-sm text-stone-500">{t('analyticsLoadError')}</p>
-        <button onClick={() => refetch()} className="rounded-xl bg-stone-800 px-4 py-2 text-xs font-semibold text-white">
-          {t('retry')}
-        </button>
-      </div>
-    )
-  }
-
-  if (!data) return null
-
-  const { totals, daily } = data
-
-  const metrics = [
-    { label: t('impressions7d'), value: totals.impressions_7d, icon: Eye, color: 'text-blue-500' },
-    { label: t('selections7d'), value: totals.selections_7d, icon: CheckCircle2, color: 'text-green-500' },
-    { label: t('calls7d'), value: totals.calls_7d, icon: Phone, color: 'text-amber-500' },
-    { label: t('conversion'), value: `${(totals.conversion_rate * 100).toFixed(1)}%`, icon: Target, color: 'text-violet-500' },
-    { label: t('selectionRate'), value: `${(totals.selection_rate * 100).toFixed(1)}%`, icon: TrendingUp, color: 'text-stone-600' },
-  ]
-
-  const chartData = daily.length > 0 ? daily : [{ date: t('noData'), impressions: 0, selections: 0, calls: 0 }]
-  const slicedChartData = chartRange === '7d' ? chartData.slice(-7) : chartData
-
-  return (
-    <motion.div variants={itemVariants} className="flex flex-col gap-6">
-      <h3 className="text-base font-bold text-stone-900 sm:text-lg">
-        {restaurantName}
-      </h3>
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
-        {metrics.map((m) => {
-          const Icon = m.icon
-          return (
-            <div key={m.label} className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-              <Icon className={`mb-2 h-5 w-5 ${m.color}`} />
-              <p className="text-xl font-bold text-stone-900 sm:text-2xl">{m.value}</p>
-              <p className="text-xs text-stone-400 sm:text-sm">{m.label}</p>
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h4 className="text-sm font-semibold text-stone-700">{t('dailyEvolution')}</h4>
-          <div className="flex gap-1 rounded-xl bg-stone-100 p-0.5">
-            <button
-              type="button"
-              onClick={() => setChartRange('7d')}
-              className={
-                chartRange === '7d'
-                  ? 'rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-stone-900 shadow-sm'
-                  : 'rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:text-stone-700'
-              }
-            >
-              {t('days7')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setChartRange('30d')}
-              className={
-                chartRange === '30d'
-                  ? 'rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-stone-900 shadow-sm'
-                  : 'rounded-lg px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:text-stone-700'
-              }
-            >
-              {t('days30')}
-            </button>
-          </div>
-        </div>
-        <div className="h-64 sm:h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={slicedChartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 11, fill: '#a8a29e' }}
-                tickFormatter={(v: string) => v.slice(5)}
-                axisLine={{ stroke: '#e7e5e4' }}
-                tickLine={false}
-              />
-              <YAxis tick={{ fontSize: 11, fill: '#a8a29e' }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: 12,
-                  border: '1px solid #e7e5e4',
-                  fontSize: 13,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-                }}
-              />
-              <Legend
-                wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-                iconType="circle"
-                iconSize={8}
-              />
-              <Bar dataKey="impressions" name={t('chartImpressions')} fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={20} />
-              <Bar dataKey="selections" name={t('chartSelections')} fill="#f97316" radius={[4, 4, 0, 0]} maxBarSize={20} />
-              <Bar dataKey="calls" name={t('chartCalls')} fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={20} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
 
 export default function DashboardPage() {
   const router = useRouter()

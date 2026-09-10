@@ -98,12 +98,21 @@ export interface StaffCreateData extends RestaurantFormData {
 }
 
 export interface AnalyticsTotals {
+  impressions: number
   impressions_7d: number
   impressions_30d: number
+  selections: number
   selections_7d: number
   selections_30d: number
+  calls: number
   calls_7d: number
   calls_30d: number
+  winner: number
+  cta_call: number
+  cta_maps: number
+  cta_menu: number
+  cta_reservations: number
+  cta_instagram: number
   conversion_rate: number
   selection_rate: number
 }
@@ -113,13 +122,16 @@ export interface AnalyticsDaily {
   impressions: number
   selections: number
   calls: number
+  cta: number
+  winner: number
 }
 
 export interface AnalyticsData {
   restaurant_id: string
   totals: AnalyticsTotals
   daily: AnalyticsDaily[]
-  recent_events: { type: 'impression'; created_at: string }[]
+  recent_events: { type: 'impression' | 'cta'; cta_type?: string; created_at: string }[]
+  range: { from: string; to: string; preset: string; label: string }
 }
 
 export type StatsPreset = 'today' | 'yesterday' | '7d' | '30d' | 'custom'
