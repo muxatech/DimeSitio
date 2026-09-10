@@ -238,6 +238,7 @@
   "Battle": {
     "errorDesc": "We couldn't load the matchup. Start over.",
     "chooseFavorite": "Choose your favorite",
+    "choose": "Choose",
     "question": "Which one convinces you more?",
     "round": "Round {current} of {total}"
   },

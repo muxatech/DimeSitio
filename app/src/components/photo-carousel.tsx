@@ -10,12 +10,13 @@ interface PhotoCarouselProps {
   name: string
   className?: string
   showArrows?: boolean
+  disableDrag?: boolean
 }
 
 const SWIPE_THRESHOLD = 50
 const MAX_DRAG_OFFSET = 120
 
-export default function PhotoCarousel({ photos, name, className = '', showArrows = false }: PhotoCarouselProps) {
+export default function PhotoCarousel({ photos, name, className = '', showArrows = false, disableDrag = false }: PhotoCarouselProps) {
   const t = useTranslations('PhotoCarousel')
   const list = (photos ?? []).filter(Boolean)
   const count = list.length
@@ -84,7 +85,7 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
   }
 
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (!showControls) return
+    if (disableDrag || !showControls) return
     dragStartX.current = e.clientX
     wasDragged.current = false
     setDragging(true)

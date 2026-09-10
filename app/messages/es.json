@@ -238,6 +238,7 @@
   "Battle": {
     "errorDesc": "No pudimos cargar la comparación. Vuelve a empezar.",
     "chooseFavorite": "Elige tu favorito",
+    "choose": "Elegir",
     "question": "¿Cuál te convence más?",
     "round": "Ronda {current} de {total}"
   },

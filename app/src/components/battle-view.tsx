@@ -209,6 +209,7 @@ function BattleCard({
         <PhotoCarousel
           photos={restaurant.photos?.length ? restaurant.photos : restaurant.image_url ? [restaurant.image_url] : []}
           name={restaurant.name}
+          disableDrag
         />
         {!isCenter && <div className="pointer-events-none absolute inset-0 bg-black/20" />}
         {isSelected && isCenter && (
@@ -247,7 +248,7 @@ function BattleCard({
           disabled={disabled || !isCenter}
           className={`mt-4 inline-flex w-full items-center justify-center rounded-2xl px-4 py-3.5 text-[15px] font-semibold shadow-md transition-all ${isCenter ? 'bg-stone-900 text-white hover:bg-stone-800 active:scale-[0.98]' : 'bg-stone-100 text-stone-400 cursor-not-allowed'} disabled:opacity-60`}
         >
-          {isSelected && isCenter ? '¡Elegido!' : isCenter ? t('chooseFavorite') : 'Desliza para ver'}
+          {isSelected && isCenter ? '¡Elegido!' : isCenter ? t('choose') : 'Desliza para ver'}
         </button>
       </div>
     </div>
