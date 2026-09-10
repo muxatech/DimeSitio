@@ -86,6 +86,7 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
 
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (!showControls) return
+    e.stopPropagation()
     dragStartX.current = e.clientX
     wasDragged.current = false
     setDragging(true)
@@ -94,6 +95,7 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (dragStartX.current == null) return
+    e.stopPropagation()
     const dx = e.clientX - dragStartX.current
     if (Math.abs(dx) > 8) wasDragged.current = true
     const clamped = Math.max(-MAX_DRAG_OFFSET, Math.min(MAX_DRAG_OFFSET, dx))
@@ -102,6 +104,7 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
 
   function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
     if (dragStartX.current == null) return
+    e.stopPropagation()
     const dx = e.clientX - dragStartX.current
     dragStartX.current = null
     setDragging(false)
