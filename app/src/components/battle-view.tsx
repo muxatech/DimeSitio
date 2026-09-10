@@ -17,7 +17,6 @@ export default function BattleView() {
   const [picking, setPicking] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [centerIndex, setCenterIndex] = useState(0)
-  const [photoDragging, setPhotoDragging] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
   const totalRounds = useFlowStore((s) => s.top5.length) - 1
@@ -109,7 +108,7 @@ export default function BattleView() {
         <div
           ref={scrollRef}
           onScroll={onScroll}
-          className={`flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-[7%] pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${photoDragging ? '[overflow-x:hidden]' : ''}`}
+          className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-[7%] pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {restaurants.map((r, idx) => {
             const isCenter = centerIndex === idx
@@ -128,7 +127,6 @@ export default function BattleView() {
                     isCenter={isCenter}
                     disabled={picking}
                     onCenterTap={() => scrollTo(idx)}
-                    onPhotoDrag={setPhotoDragging}
                   />
                 </div>
               </div>
@@ -177,7 +175,6 @@ function BattleCard({
   isCenter = true,
   disabled,
   onCenterTap,
-  onPhotoDrag,
 }: {
   restaurant: Restaurant
   onPick: (r: Restaurant) => void
@@ -185,7 +182,6 @@ function BattleCard({
   isCenter?: boolean
   disabled?: boolean
   onCenterTap?: () => void
-  onPhotoDrag?: (dragging: boolean) => void
 }) {
   const tCommon = useTranslations('Common')
   const t = useTranslations('Battle')
@@ -213,7 +209,6 @@ function BattleCard({
         <PhotoCarousel
           photos={restaurant.photos?.length ? restaurant.photos : restaurant.image_url ? [restaurant.image_url] : []}
           name={restaurant.name}
-          onDragStateChange={onPhotoDrag}
         />
         {!isCenter && <div className="pointer-events-none absolute inset-0 bg-black/20" />}
         {isSelected && isCenter && (

@@ -10,13 +10,12 @@ interface PhotoCarouselProps {
   name: string
   className?: string
   showArrows?: boolean
-  onDragStateChange?: (dragging: boolean) => void
 }
 
 const SWIPE_THRESHOLD = 50
 const MAX_DRAG_OFFSET = 120
 
-export default function PhotoCarousel({ photos, name, className = '', showArrows = false, onDragStateChange }: PhotoCarouselProps) {
+export default function PhotoCarousel({ photos, name, className = '', showArrows = false }: PhotoCarouselProps) {
   const t = useTranslations('PhotoCarousel')
   const list = (photos ?? []).filter(Boolean)
   const count = list.length
@@ -90,7 +89,6 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
     dragStartX.current = e.clientX
     wasDragged.current = false
     setDragging(true)
-    onDragStateChange?.(true)
   }
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
@@ -108,7 +106,6 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
     const dx = e.clientX - dragStartX.current
     dragStartX.current = null
     setDragging(false)
-    onDragStateChange?.(false)
     if (Math.abs(dx) > SWIPE_THRESHOLD) {
       paginate(dx < 0 ? 1 : -1)
     } else {
@@ -120,7 +117,6 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
     if (dragStartX.current == null) return
     dragStartX.current = null
     setDragging(false)
-    onDragStateChange?.(false)
     setDragOffset(0)
     wasDragged.current = false
   }
@@ -129,7 +125,6 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
     if (dragStartX.current == null) return
     dragStartX.current = null
     setDragging(false)
-    onDragStateChange?.(false)
     setDragOffset(0)
   }
 
