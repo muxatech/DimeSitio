@@ -108,7 +108,7 @@ export default function BattleView() {
         <div
           ref={scrollRef}
           onScroll={onScroll}
-          className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-[7%] pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-[7%] pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [overscroll-behavior-x:contain] touch-pan-x"
         >
           {restaurants.map((r, idx) => {
             const isCenter = centerIndex === idx

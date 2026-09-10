@@ -27,7 +27,9 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
   const [fullscreen, setFullscreen] = useState(false)
 
   const dragStartX = useRef<number | null>(null)
+  const dragStartY = useRef<number | null>(null)
   const wasDragged = useRef(false)
+  const lockedDir = useRef<'h' | 'v' | null>(null)
 
   const showControls = count > 1
 
@@ -86,15 +88,28 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (!showControls) return
     e.stopPropagation()
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch {}
     dragStartX.current = e.clientX
+    dragStartY.current = e.clientY
     wasDragged.current = false
+    lockedDir.current = null
     setDragging(true)
   }
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (dragStartX.current == null) return
-    e.stopPropagation()
+    if (dragStartX.current == null || dragStartY.current == null) return
     const dx = e.clientX - dragStartX.current
+    const dy = e.clientY - dragStartY.current
+    if (lockedDir.current == null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return
+      lockedDir.current = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
+      if (lockedDir.current === 'h') {
+        ;(e.currentTarget as HTMLElement).style.touchAction = 'none'
+        try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch {}
+      }
+    }
+    if (lockedDir.current === 'v') return
+    e.stopPropagation()
     if (Math.abs(dx) > 8) wasDragged.current = true
     const clamped = Math.max(-MAX_DRAG_OFFSET, Math.min(MAX_DRAG_OFFSET, dx))
     setDragOffset(clamped)
@@ -103,8 +118,12 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
   function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
     if (dragStartX.current == null) return
     e.stopPropagation()
+    try { (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId) } catch {}
+    ;(e.currentTarget as HTMLElement).style.touchAction = ''
     const dx = e.clientX - dragStartX.current
     dragStartX.current = null
+    dragStartY.current = null
+    lockedDir.current = null
     setDragging(false)
     if (Math.abs(dx) > SWIPE_THRESHOLD) {
       paginate(dx < 0 ? 1 : -1)
@@ -113,17 +132,25 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
     }
   }
 
-  function onPointerCancel() {
+  function onPointerCancel(e: React.PointerEvent<HTMLDivElement>) {
     if (dragStartX.current == null) return
+    try { (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId) } catch {}
+    ;(e.currentTarget as HTMLElement).style.touchAction = ''
     dragStartX.current = null
+    dragStartY.current = null
+    lockedDir.current = null
     setDragging(false)
     setDragOffset(0)
     wasDragged.current = false
   }
 
-  function onPointerLeave() {
+  function onPointerLeave(e: React.PointerEvent<HTMLDivElement>) {
     if (dragStartX.current == null) return
+    try { (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId) } catch {}
+    ;(e.currentTarget as HTMLElement).style.touchAction = ''
     dragStartX.current = null
+    dragStartY.current = null
+    lockedDir.current = null
     setDragging(false)
     setDragOffset(0)
   }
@@ -139,7 +166,7 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
   return (
     <div
       data-testid="photo-carousel"
-      className={`relative h-full w-full touch-pan-y select-none overflow-hidden bg-stone-100 ${className}`}
+      className={`relative h-full w-full touch-pan-y select-none overflow-hidden bg-stone-100 [overscroll-behavior-inline:contain] ${className}`}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
