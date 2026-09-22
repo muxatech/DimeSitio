@@ -81,7 +81,7 @@ export default function BattleView() {
 
   return (
     <div className="flex flex-col gap-5 sm:gap-8">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-700">
             <Swords className="h-3.5 w-3.5" />
@@ -90,21 +90,21 @@ export default function BattleView() {
           <h2 className="text-xl font-bold tracking-tight text-stone-900 sm:text-2xl">
             {t('question')}
           </h2>
-          <p className="text-sm text-stone-500 sm:hidden">Desliza para ver la otra opción — la centrada se elige</p>
+          <p className="text-sm text-stone-500 lg:hidden">Desliza para ver la otra opción — la centrada se elige</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white sm:self-auto sm:px-4 sm:py-1.5 sm:text-sm">
+        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white lg:self-auto lg:px-4 lg:py-1.5 lg:text-sm">
           <Sparkles className="h-3 w-3" />
           {t('round', { current: battleRound, total: totalRounds })}
         </span>
       </div>
 
-      <div className="flex gap-2 sm:gap-3">
+      <div className="flex gap-2 lg:gap-3">
         {Array.from({ length: totalRounds }).map((_, i) => (
-          <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 sm:h-2 ${i < battleRound ? 'bg-stone-900' : i === battleRound - 1 ? 'bg-stone-400' : 'bg-stone-200'}`} />
+          <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 lg:h-2 ${i < battleRound ? 'bg-stone-900' : i === battleRound - 1 ? 'bg-stone-400' : 'bg-stone-200'}`} />
         ))}
       </div>
 
-      <div className="sm:hidden">
+      <div className="lg:hidden">
         <div
           ref={scrollRef}
           onScroll={onScroll}
@@ -153,7 +153,7 @@ export default function BattleView() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.25 }}
-          className="hidden sm:flex sm:items-stretch sm:gap-6"
+          className="hidden lg:flex lg:items-stretch lg:gap-6"
         >
           <BattleCard restaurant={champion} onPick={handlePick} isSelected={selectedId === champion.id} isCenter disabled={picking} />
           <div className="flex flex-col items-center justify-center">
