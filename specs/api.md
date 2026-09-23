@@ -181,7 +181,7 @@ Input:
 - image_url
 - menu_url
 - category_ids (array de category_id)
-- plan_type (required: 'standard' | 'founder' | 'founder_39' | 'founder_69' — founder_39=39€, founder_69=69€ pago único)
+- plan_type (required: 'standard' | 'founder' | 'founder_39' | 'founder_69' — founder_39=39€, founder_69=69€ pago único; añadir nuevo requiere actualizar `db.md` check + `backend.md` `VALID_PLAN_TYPES`/`getStripeKeys` + `tech.md` runbook)
 - payment_method ('redirect' | 'email')
 - locale (es|en)
 

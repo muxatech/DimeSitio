@@ -37,6 +37,8 @@ El frontend nunca accede directamente a lógica sensible.
 - `getStripeKeys(plan)` mapea `founder_39→STRIPE_PRICE_FOUNDER_SETUP` (39€), `founder_69→STRIPE_PRICE_FOUNDER_69_SETUP` (69€), `standard→STRIPE_PRICE_ID`
 - Webhook `checkout.session.completed`: lee `metadata.plan` (`founder_39|founder_69` pago único hasta 2026-12-31 + `founder_rank`, `standard` suscripción), invita al dueño, asigna owner, activa restaurante
 
+> **Anti-regresión precios:** `VALID_PLAN_TYPES` (`staff/index.ts:37` y `stripe:getFounderPriceId`) DEBE espejar `restaurants_plan_type_check` (`db.md`) y `types/index.ts:PlanType`. Single source of truth ideal: generar ambos desde `types/PlanType`. `git push` NO despliega Edge Functions — requiere `supabase functions deploy staff && supabase functions deploy stripe`.
+
 ---
 
 # Sistema recomendación MVP

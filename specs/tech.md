@@ -207,3 +207,15 @@ Variables:
 - **RESEND_FROM** (opcional)
 
 Nunca hardcodear secretos.
+
+## Runbook: añadir nuevo precio/plan
+
+> `git push` NO despliega `Edge Functions` ni `DB`. Para no repetir el fallo `plan_type must be standard or founder`:
+> 1. Stripe Dashboard → crear Price (one-time o subscription) → copiar `price_xxx`
+> 2. `supabase secrets set STRIPE_PRICE_XXX=price_xxx --project-ref $PROJECT_REF` + Netlify envs + `.env.example`
+> 3. Migración `supabase/migrations/XXXX_add_new_plan.sql` → `alter table restaurants drop/add constraint check (plan_type in (...nuevo...))` + backfill si renombra
+> 4. `app/src/types/index.ts:PlanType` + `staff/index.ts:VALID_PLAN_TYPES` + `stripe:getFounderPriceId` + `founderLabel` (single source ideal: generar desde `PlanType`)
+> 5. `supabase/functions/stripe` webhook `isFounderVariant` y emails dinámicos
+> 6. `app/messages/es|en.json` + `RestaurantForm` + `Crear para cliente` interstitial
+> 7. `supabase db push --linked && supabase functions deploy staff && supabase functions deploy stripe --project-ref $PROJECT_REF` + `npm run build && npm test`
+> 8. Verificar en iPad `crear-para-cliente?founder=nuevo` crea `paymentLink` con nuevo Price
