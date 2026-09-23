@@ -1,77 +1,473 @@
 'use client'
 
-import { useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
 import { getSessionId } from '@/lib/utils'
 import { trackFlowStart, trackPageView } from '@/lib/tracking'
+import {
+  Clock,
+  Target,
+  CheckCircle2,
+  Sparkles,
+  ArrowRight,
+  Star,
+} from 'lucide-react'
+import { FOOD_PHOTOS } from '@/lib/constants'
+
+const FOOD_TYPE_KEYS = [
+  'foodItaliano', 'foodBrunch', 'foodSpecialtyCoffee', 'foodMediterranean', 'foodAsian',
+  'foodSpanish', 'foodArgentinian', 'foodIndian', 'foodTurkish', 'foodMoroccan',
+  'foodPeruvian', 'foodThai', 'foodGreek', 'foodFrench', 'foodAmerican',
+]
+
+const problemIcons = [Clock, Target, CheckCircle2]
+
+function Carousel({ images }: { images: string[] }) {
+  const [idx, setIdx] = useState(0)
+
+  useEffect(() => {
+    if (images.length === 0) return
+    let cancelled = false
+
+    const timeout = setTimeout(() => {
+      const nextIdx = (idx + 1) % images.length
+      const img = document.createElement('img')
+      img.onload = () => { if (!cancelled) setIdx(nextIdx) }
+      img.onerror = () => { if (!cancelled) setIdx(nextIdx) }
+      img.src = `https://images.unsplash.com/photo-${images[nextIdx]}?w=1600&h=1000&fit=crop&auto=format&q=75`
+    }, 4500)
+
+    return () => { cancelled = true; clearTimeout(timeout) }
+  }, [images.length, idx])
+
+  if (images.length === 0) return null
+
+  return (
+    <div className="pointer-events-none absolute inset-0 select-none">
+      <AnimatePresence initial={false} custom={idx}>
+        <motion.img
+          key={idx}
+          src={`https://images.unsplash.com/photo-${images[idx]}?w=1600&h=1000&fit=crop&auto=format&q=75`}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-40"
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '-100%' }}
+          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+        />
+      </AnimatePresence>
+
+      {/* Overlay for contrast */}
+      <div className="absolute inset-0 bg-black/45" />
+
+      {/* Dots indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        {images.map((_, i) => (
+          <div
+            key={i}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === idx ? 'w-6 bg-stone-600' : 'w-1.5 bg-stone-300'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function LandingHero() {
   const t = useTranslations('Landing')
-  const { startNewFlow, setSessionId } = useFlowStore()
+  const { setStep, setSessionId, startNewFlow } = useFlowStore()
+
+  const [wordIdx, setWordIdx] = useState(0)
+  const words = t.raw('words') as string[]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWordIdx((prev) => (prev + 1) % words.length)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [words.length])
 
   useEffect(() => {
     trackPageView('/', window.location.pathname.startsWith('/en') ? 'en' : 'es')
   }, [])
 
-  function handlePrimary() {
+  function handleStart() {
     startNewFlow()
     const sid = getSessionId()
     setSessionId(sid)
     trackFlowStart()
-    document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  function handleSecondary() {
-    document.getElementById('repertorio')?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
-    <div className="min-h-dvh bg-white">
-      <section className="relative flex min-h-[86dvh] items-center justify-center overflow-hidden bg-stone-900 px-6 py-20 sm:px-8 lg:px-12">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
-        <div className="absolute inset-0 bg-stone-900" />
-        <div className="relative mx-auto flex w-full max-w-3xl flex-col items-center gap-8 text-center sm:gap-10">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-balance text-4xl font-extrabold leading-[0.95] tracking-tight text-white sm:text-5xl lg:text-6xl"
-          >
-            {t('heroTitle')}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="max-w-2xl text-pretty text-lg leading-relaxed text-white/80 sm:text-xl"
-          >
-            {t('heroSubtitle')}
-          </motion.p>
+    <div className="min-h-dvh">
+      {/* ===== HERO SECTION ===== */}
+      <section className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-stone-900">
+        {/* Dynamic image carousel */}
+        <Carousel images={FOOD_PHOTOS} />
+
+          <div className="relative mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 py-20 sm:px-8 sm:py-24 lg:gap-10 lg:py-28 xl:px-12">
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="inline-flex items-center justify-center gap-2 text-center rounded-full bg-white/25 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm"
+            >
+              <Sparkles className="h-4 w-4 text-white/80" />
+              {t('badge')}
+            </motion.div>
+
+            {/* Heading */}
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-center text-5xl font-extrabold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
+              style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}
+            >
+              {t('heroTitle')}
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.35 }}
+              className="max-w-xl text-balance text-center text-lg leading-relaxed text-white/85 sm:text-xl md:text-2xl"
+              style={{ textShadow: '0 1px 12px rgba(0,0,0,0.25)' }}
+            >
+              {t('heroSubtitle')}
+            </motion.p>
+
+            {/* Big CTA button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleStart}
+                className="group inline-flex items-center gap-3 rounded-2xl border border-white/40 bg-white/20 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:bg-white/30 sm:px-10 sm:py-5 sm:text-xl lg:px-12 lg:py-6 lg:text-2xl"
+              >
+                <span className="inline-flex items-center gap-1">
+                  {t('ctaFindWhere')}{' '}
+                  <span className="relative inline-flex items-center overflow-hidden" style={{ height: '1.25em' }}>
+                    <span className="invisible">{words.reduce((a, b) => a.length >= b.length ? a : b)}</span>
+                    <span className="absolute inset-0 inline-flex items-center justify-center">
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={words[wordIdx]}
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: -20, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {words[wordIdx]}
+                        </motion.span>
+                      </AnimatePresence>
+                    </span>
+                  </span>
+                </span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/25 text-white transition-transform group-hover:translate-x-0.5">
+                  <ArrowRight className="h-5 w-5" />
+                </span>
+              </motion.button>
+              <p className="mt-4 text-center text-sm text-white/70 sm:text-base">
+                {t('ctaSubtext')}
+              </p>
+            </motion.div>
+
+            {/* Food-type tags */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="flex w-full flex-wrap items-center justify-center gap-2 lg:gap-2.5"
+            >
+              {FOOD_TYPE_KEYS.slice(0, 8).map((key) => (
+                <span
+                  key={key}
+                  className="rounded-lg bg-white/25 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm"
+                >
+                  {t(key)}
+                </span>
+              ))}
+              <span className="rounded-lg bg-white/20 px-3 py-1.5 text-xs font-medium text-white/50 backdrop-blur-sm">
+                {t('moreTypes', { count: FOOD_TYPE_KEYS.length - 8 })}
+              </span>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1 }}
+              className="flex items-center justify-center gap-5 sm:gap-8"
+            >
+              <div className="flex items-center gap-1.5">
+                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                <span className="text-xs font-semibold text-white/80">{FOOD_TYPE_KEYS.length} {t('cuisineTypes')}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                <span className="text-xs font-semibold text-white/80">18+ {t('establishments')}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                <span className="text-xs font-semibold text-white/80">22 {t('zones')}</span>
+              </div>
+            </motion.div>
+          </div>
+      </section>
+
+      {/* ===== PHOTO GALLERY ===== */}
+      <section className="overflow-hidden bg-white px-6 py-20 sm:px-8 sm:py-28 lg:px-12 lg:py-32">
+        <div className="mx-auto max-w-6xl">
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5 }}
+            className="mb-10 text-center sm:mb-14"
           >
-            <button
-              onClick={handlePrimary}
-              className="inline-flex w-full items-center justify-center rounded-2xl bg-white px-8 py-4 text-base font-bold text-stone-900 shadow-xl transition hover:bg-stone-100 sm:w-auto sm:text-lg"
-            >
-              {t('ctaPrimary')}
-            </button>
-            <button
-              onClick={handleSecondary}
-              className="inline-flex w-full items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-8 py-4 text-base font-semibold text-white backdrop-blur transition hover:bg-white/20 sm:w-auto sm:text-lg"
-            >
-              {t('ctaSecondary')}
-            </button>
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-1.5 text-sm font-medium text-stone-900">
+              <Sparkles className="h-4 w-4" />
+              {t('galleryBadge')}
+            </span>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
+              {t('galleryTitle', { count: FOOD_TYPE_KEYS.length })}
+            </h2>
           </motion.div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+            {FOOD_PHOTOS.map((id, i) => (
+              <motion.div
+                key={id}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.4, delay: (i % 8) * 0.06 }}
+                className={i >= 8 ? 'hidden sm:block' : ''}
+              >
+                <div className="group relative h-48 overflow-hidden rounded-2xl bg-stone-100 shadow-sm transition-shadow hover:shadow-lg sm:h-56 lg:h-64">
+                  <div className="absolute inset-0 flex items-center justify-center text-stone-200">
+                    <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                    </svg>
+                  </div>
+                  <Image
+                    src={`https://images.unsplash.com/photo-${id}?w=600&h=500&fit=crop&auto=format&q=75`}
+                    alt=""
+                    width={600}
+                    height={500}
+                    className="relative h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0' }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
-      <section id="repertorio" className="scroll-mt-16" />
-      <section id="contacto" className="scroll-mt-16" />
+
+      {/* ===== CAFÉ & BRUNCH SECTION ===== */}
+      <section className="bg-stone-50 px-6 py-20 sm:px-8 sm:py-28 lg:px-12 lg:py-32">
+        <div className="mx-auto max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5 }}
+            className="mb-14 text-center sm:mb-20"
+          >
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-1.5 text-sm font-medium text-amber-800">
+              <Sparkles className="h-4 w-4" />
+              {t('cafeBadge')}
+            </span>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
+              {t('cafeTitle')}
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-stone-500 sm:text-lg">
+              {t('cafeDesc')}
+            </p>
+          </motion.div>
+
+          {/* Cafe & brunch photos */}
+          <div className="mb-14 grid grid-cols-3 gap-3 sm:gap-4">
+            {[
+              '1566746287471-d88bf58961fd',
+              '1490645935967-10de6ba17061',
+              '1453614512568-c4024d13c247',
+            ].map((id, i) => (
+              <motion.div
+                key={id}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.4, delay: i * 0.08 }}
+              >
+                <div className="group relative h-44 overflow-hidden rounded-2xl bg-stone-100 shadow-sm sm:h-52 lg:h-60">
+                  <div className="absolute inset-0 flex items-center justify-center text-stone-200">
+                    <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                  </div>
+                  <Image
+                    src={`https://images.unsplash.com/photo-${id}?w=600&h=500&fit=crop&auto=format&q=75`}
+                    alt=""
+                    width={600}
+                    height={500}
+                    className="relative h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0' }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-3 sm:gap-8">
+            {[
+              { title: t('cafe1Title'), desc: t('cafe1Desc') },
+              { title: t('cafe2Title'), desc: t('cafe2Desc') },
+              { title: t('cafe3Title'), desc: t('cafe3Desc') },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.5, delay: i * 0.12 }}
+                className="rounded-2xl bg-white p-6 shadow-sm sm:p-8"
+              >
+                <h3 className="text-xl font-bold text-stone-900">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-stone-500">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== PROBLEMS WE SOLVE ===== */}
+      <section className="relative bg-white px-6 py-20 sm:px-8 sm:py-28 lg:px-12 lg:py-32">
+        <div className="mx-auto max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5 }}
+            className="mb-14 text-center sm:mb-20"
+          >
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-stone-100 px-4 py-1.5 text-sm font-medium text-stone-700">
+              <Sparkles className="h-4 w-4" />
+              {t('problemsBadge')}
+            </span>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
+              {t('problemsTitle')}
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-stone-500 sm:text-lg">
+              {t('problemsQuote')}
+            </p>
+          </motion.div>
+
+          <div className="grid gap-6 sm:grid-cols-3 sm:gap-8 lg:gap-12">
+            {[0, 1, 2].map((i) => {
+              const Icon = problemIcons[i]
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.5, delay: i * 0.12 }}
+                  className="group relative"
+                >
+                  <div className="relative flex flex-col items-center gap-5 rounded-3xl border border-stone-100 bg-white p-8 text-center shadow-sm transition-all hover:shadow-lg sm:p-10">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900 shadow-lg sm:h-20 sm:w-20">
+                      <Icon className="h-7 w-7 text-white sm:h-8 sm:w-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-stone-900 sm:text-2xl">
+                        {t(`problem${i}Title`)}
+                      </h3>
+                      <p className="mt-2 text-sm leading-relaxed text-stone-500 sm:text-base">
+                        {t(`problem${i}Desc`)}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== STATS BANNER ===== */}
+      <section className="border-y border-stone-100 bg-stone-50">
+        <div className="mx-auto flex max-w-5xl flex-wrap justify-center gap-8 px-6 py-12 sm:gap-12 sm:py-16 lg:gap-16 lg:px-12">
+          {[
+            { value: '18+', label: t('statEstablishments') },
+            { value: '15', label: t('statCuisines') },
+            { value: '22', label: t('statZones') },
+            { value: '0€', label: t('statFree') },
+          ].map((stat) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-col items-center gap-1"
+            >
+              <span className="text-3xl font-extrabold text-stone-900 sm:text-4xl lg:text-5xl">
+                {stat.value}
+              </span>
+              <span className="text-xs font-medium text-stone-400 sm:text-sm">
+                {stat.label}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== BOTTOM CTA ===== */}
+      <section className="relative bg-white px-6 py-20 sm:px-8 sm:py-28 lg:px-12 lg:py-32">
+        <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 text-center sm:gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
+              {t('bottomTitle')}
+            </h2>
+            <p className="mt-3 text-stone-500 sm:text-lg">
+              {t('bottomDesc')}
+            </p>
+          </motion.div>
+
+          <motion.button
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handleStart}
+            className="inline-flex items-center gap-3 rounded-2xl bg-stone-800 px-8 py-4 text-lg font-semibold text-white shadow-xl shadow-stone-200/50 transition-all hover:bg-stone-700 sm:px-10 sm:py-4 sm:text-xl"
+          >
+            {t('startNow')}
+            <ArrowRight className="h-5 w-5" />
+          </motion.button>
+        </div>
+      </section>
     </div>
   )
 }

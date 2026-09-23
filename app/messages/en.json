@@ -112,12 +112,9 @@
     "bottomDesc": "Register your establishment and start appearing before Valencia's indecisive diners."
   },
   "Landing": {
-    "heroTitle": "Live music to say goodbye to someone you love.",
-    "heroSubtitle": "We help you choose the music and coordinate professional musicians so you don't have to worry about a thing.",
-    "ctaPrimary": "Check availability",
-    "ctaSecondary": "Listen to the repertoire",
     "badge": "Find the perfect spot in Valencia in under a minute",
-    "heroSubtitleOld": "Stop wasting 40 minutes choosing a restaurant.",
+    "heroTitle": "DimeSitio",
+    "heroSubtitle": "Stop wasting 40 minutes choosing a restaurant.",
     "ctaFindWhere": "Find where to",
     "ctaSubtext": "Fast, free, and no signup required.",
     "startNow": "Start now",
@@ -151,7 +148,12 @@
     "statFree": "Always free",
     "bottomTitle": "Your next restaurant is less than a minute away",
     "bottomDesc": "Answer 3 questions and decide without overthinking.",
-    "words": ["eat", "dine", "snack", "mingle"],
+    "words": [
+      "eat",
+      "dine",
+      "snack",
+      "mingle"
+    ],
     "foodItaliano": "Italian",
     "foodBrunch": "Brunch",
     "foodSpecialtyCoffee": "Specialty coffee",
@@ -166,7 +168,8 @@
     "foodThai": "Thai",
     "foodGreek": "Greek",
     "foodFrench": "French",
-    "foodAmerican": "American"
+    "foodAmerican": "American",
+    "heroSubtitleOld": "Deja de perder 40 minutos eligiendo restaurante."
   },
   "Questions": {
     "cuisine": "What do you feel like?",
@@ -336,8 +339,6 @@
     "verifyingPayment": "Verifying payment...",
     "takingLonger": "Taking longer than usual —",
     "founderPlan": "Founder plan — €39 (one-time payment)",
-    "founder_39Plan": "Founder plan — €39 (one-time payment)",
-    "founder_69Plan": "Founder plan — €69 (one-time payment)",
     "standardPlan": "€29/month",
     "active": "Active",
     "inactive": "Inactive",
@@ -348,7 +349,9 @@
     "successDesc": "Your establishment can now be found on DimeSitio.",
     "understood": "Understood",
     "checkoutError": "Error starting payment",
-    "portalError": "Error opening portal"
+    "portalError": "Error opening portal",
+    "founder_39Plan": "Founder plan — €39 (one-time payment)",
+    "founder_69Plan": "Founder plan — €69 (one-time payment)"
   },
   "Categories": {
     "title": "Categories",
@@ -372,8 +375,8 @@
     "qrAlt": "Payment QR",
     "sendLinkByEmail": "Send link by email",
     "founderPlanLabel": "Founder Plan — €39 (one-time payment)",
-    "founder69PlanLabel": "Founder Plan — €69 (one-time payment)",
     "standardPlanLabel": "Standard Plan — €29/month",
+    "founder69PlanLabel": "Founder Plan — €69 (one-time payment)",
     "founderChoiceTitle": "Which founder will you offer?",
     "founderChoiceDesc": "Choose the rate before filling the form. The client will only see the selected option.",
     "founderChoiceHint": "You can change it by going back to this screen."
@@ -450,10 +453,6 @@
     "standardPlanDesc": "Monthly subscription, no commitment",
     "founderPlan": "Founder — €39 (one-time payment)",
     "founderPlanDesc": "One-time payment until December 31, 2026. Then monthly subscription (price to be confirmed).",
-    "founder_39": "Founder — €39 (one-time payment)",
-    "founder_39Desc": "One-time payment of €39 until December 31, 2026. Then monthly subscription (price to be confirmed).",
-    "founder_69": "Founder — €69 (one-time payment)",
-    "founder_69Desc": "One-time payment of €69 until December 31, 2026. Then monthly subscription (price to be confirmed).",
     "paymentMethod": "Payment method",
     "payNow": "Pay now",
     "payNowDesc": "Show payment link for the customer to pay immediately",
@@ -493,13 +492,17 @@
     "saveChanges": "Save changes",
     "createAndSendEmail": "Create and send email",
     "createAndCharge39": "Create and charge €39",
-    "createAndCharge69": "Create and charge €69",
     "createAndSendPayment": "Create and send to payment",
     "createEstablishment": "Create establishment",
     "preview": "Preview",
     "errorSaving": "Error saving",
-    "productNotConfigured": "Product not configured",
-    "newCategoryNamePlaceholder": "e.g. Kebab"
+    "newCategoryNamePlaceholder": "e.g. Kebab",
+    "founder_39": "Founder — €39 (one-time payment)",
+    "founder_39Desc": "One-time payment of €39 until December 31, 2026. Then monthly subscription (price to be confirmed).",
+    "founder_69": "Founder — €69 (one-time payment)",
+    "founder_69Desc": "One-time payment of €69 until December 31, 2026. Then monthly subscription (price to be confirmed).",
+    "createAndCharge69": "Create and charge €69",
+    "productNotConfigured": "Product not configured"
   },
   "StaffRestaurants": {
     "title": "Restaurants",
@@ -521,15 +524,42 @@
       "lastUpdated": "Last updated: June 2026",
       "intro": "Welcome to DimeSitio. The following terms govern the use of the platform and the relationship between DimeSitio and its users. We recommend that you read them carefully before using our services.",
       "sections": [
-        { "title": "1. Acceptance of terms", "content": "By accessing and using DimeSitio (hereinafter, \"the Platform\"), you agree to be bound by these Terms and Conditions. If you do not agree with any of them, you must not use the Platform. These terms apply to all users, both those browsing anonymously and registered restaurant owners." },
-        { "title": "2. Description of the service", "content": "DimeSitio is a platform that allows users to discover restaurants in Valencia through a quick questions system, and restaurant owners to promote their establishments and receive inquiries from potential customers. The service is provided \"as is\" and \"as available\", without warranties of continuous availability or error-free operation." },
-        { "title": "3. Restaurant registration", "content": "To create and manage an establishment on DimeSitio, the user must register and provide truthful and updated information. The user is responsible for maintaining the confidentiality of their access credentials and all activities that occur under their account. DimeSitio reserves the right to reject or cancel any registration without the need for justification." },
-        { "title": "4. Subscriptions and payments", "content": "The registration and maintenance of an establishment on the Platform requires a paid subscription. The applicable price will be the one published on the website at the time of contracting, with different rates possibly existing depending on the type of subscription or current promotions. Payment is processed through Stripe, and by contracting you accept its terms of service. Subscriptions are automatically renewed and can be canceled at any time from the management panel. DimeSitio reserves the right to modify prices with prior notice to subscribed users with at least 30 days' notice." },
-        { "title": "5. Cancellations", "content": "The user may cancel their subscription at any time from the control panel. The cancellation will be effective at the end of the current billing period. No partial refunds will be made for unused periods. DimeSitio reserves the right to suspend or cancel access to the Platform if these terms are violated." },
-        { "title": "6. Intellectual property", "content": "All content on the Platform (logos, texts, images, design) is the property of Studio Muxa Tech, S.L. or is used under license. Content provided by restaurant owners is their responsibility and they guarantee they have the right to publish it." },
-        { "title": "7. Limitation of liability", "content": "DimeSitio acts solely as an intermediary between users and restaurants. We are not responsible for the quality of service, accuracy of information published by restaurants, or relationships established between users and establishments. The Platform is provided without warranties of any kind, express or implied." },
-        { "title": "8. Applicable legislation", "content": "These Terms and Conditions are governed by Spanish legislation. For any controversy arising from the use of the Platform, the parties submit to the courts and tribunals of Valencia, expressly renouncing any other jurisdiction that may correspond to them." },
-        { "title": "9. Contact", "content": "For any questions about these terms, you can write to us at info@muxatech.com or visit our registered office: Duque de Calabria 3, 10, 46005 Valencia, Valencia." }
+        {
+          "title": "1. Acceptance of terms",
+          "content": "By accessing and using DimeSitio (hereinafter, \"the Platform\"), you agree to be bound by these Terms and Conditions. If you do not agree with any of them, you must not use the Platform. These terms apply to all users, both those browsing anonymously and registered restaurant owners."
+        },
+        {
+          "title": "2. Description of the service",
+          "content": "DimeSitio is a platform that allows users to discover restaurants in Valencia through a quick questions system, and restaurant owners to promote their establishments and receive inquiries from potential customers. The service is provided \"as is\" and \"as available\", without warranties of continuous availability or error-free operation."
+        },
+        {
+          "title": "3. Restaurant registration",
+          "content": "To create and manage an establishment on DimeSitio, the user must register and provide truthful and updated information. The user is responsible for maintaining the confidentiality of their access credentials and all activities that occur under their account. DimeSitio reserves the right to reject or cancel any registration without the need for justification."
+        },
+        {
+          "title": "4. Subscriptions and payments",
+          "content": "The registration and maintenance of an establishment on the Platform requires a paid subscription. The applicable price will be the one published on the website at the time of contracting, with different rates possibly existing depending on the type of subscription or current promotions. Payment is processed through Stripe, and by contracting you accept its terms of service. Subscriptions are automatically renewed and can be canceled at any time from the management panel. DimeSitio reserves the right to modify prices with prior notice to subscribed users with at least 30 days' notice."
+        },
+        {
+          "title": "5. Cancellations",
+          "content": "The user may cancel their subscription at any time from the control panel. The cancellation will be effective at the end of the current billing period. No partial refunds will be made for unused periods. DimeSitio reserves the right to suspend or cancel access to the Platform if these terms are violated."
+        },
+        {
+          "title": "6. Intellectual property",
+          "content": "All content on the Platform (logos, texts, images, design) is the property of Studio Muxa Tech, S.L. or is used under license. Content provided by restaurant owners is their responsibility and they guarantee they have the right to publish it."
+        },
+        {
+          "title": "7. Limitation of liability",
+          "content": "DimeSitio acts solely as an intermediary between users and restaurants. We are not responsible for the quality of service, accuracy of information published by restaurants, or relationships established between users and establishments. The Platform is provided without warranties of any kind, express or implied."
+        },
+        {
+          "title": "8. Applicable legislation",
+          "content": "These Terms and Conditions are governed by Spanish legislation. For any controversy arising from the use of the Platform, the parties submit to the courts and tribunals of Valencia, expressly renouncing any other jurisdiction that may correspond to them."
+        },
+        {
+          "title": "9. Contact",
+          "content": "For any questions about these terms, you can write to us at info@muxatech.com or visit our registered office: Duque de Calabria 3, 10, 46005 Valencia, Valencia."
+        }
       ]
     },
     "Privacy": {
@@ -537,16 +567,46 @@
       "title": "Privacy Policy",
       "lastUpdated": "Last updated: June 2026",
       "sections": [
-        { "title": "1. Data controller", "content": "The data controller for your personal data is Studio Muxa Tech, S.L. (CIF B16378309), located at Duque de Calabria 3, 10, 46005 Valencia, Valencia. You can contact us at info@muxatech.com." },
-        { "title": "2. Data we collect", "content": "We collect the following data depending on the type of user:\n\n• Anonymous users: a unique session identifier randomly generated (does not allow identifying the person). No name, email, or personal data is collected.\n• Restaurant owners: name, email, phone, establishment address, and billing data managed through Stripe (we do not directly store credit card data).\n• Browsing data: pages visited, platform interactions, device type, and browser." },
-        { "title": "3. Purpose of processing", "content": "Your data is processed for the following purposes:\n\n• Providing the restaurant discovery and promotion service.\n• Managing subscriptions, billing, and payments through Stripe.\n• Sending service-related communications (call alerts, activity notifications).\n• Improving the platform through aggregated usage analysis.\n• Complying with legal obligations." },
-        { "title": "4. Legal basis", "content": "The processing of your data is based on:\n\n• Execution of the service contract (GDPR art. 6.1.b) for account and subscription management.\n• User consent (GDPR art. 6.1.a) for marketing communications and browsing analysis.\n• Legitimate interest (GDPR art. 6.1.f) for service improvement and fraud prevention.\n• Legal obligations (GDPR art. 6.1.c) for regulatory compliance." },
-        { "title": "5. Third-party data sharing", "content": "Your data may be shared with:\n\n• Stripe (Stripe Payments Europe, Ltd.) — for payment processing. Stripe operates under strict security measures and complies with PCI DSS. More information at stripe.com/privacy.\n• Resend (Resend Inc.) — for sending transactional emails. More information at resend.com/legal/privacy-policy.\n• Supabase (Supabase Inc.) — as database infrastructure and authentication provider. More information at supabase.com/privacy.\n\nWe do not share data with third parties for advertising purposes or sell personal data under any circumstances." },
-        { "title": "6. User rights", "content": "In accordance with the GDPR and LOPDGDD, you have the right to:\n\n• Access your personal data.\n• Rectify inaccurate data.\n• Request deletion of your data when no longer needed.\n• Limit processing in certain circumstances.\n• Port your data to another controller.\n• Object to processing based on legitimate interest.\n\nTo exercise your rights, send an email to info@muxatech.com indicating the right you wish to exercise. We will respond within a maximum of 30 days." },
-        { "title": "7. Data retention", "content": "We retain your personal data while you maintain an active account on the platform. After account cancellation, data will be retained for the legally required period for compliance with fiscal and accounting obligations (generally 5 years), and subsequently will be securely deleted." },
-        { "title": "8. Cookies", "content": "DimeSitio uses technical cookies necessary for platform operation (session storage). We do not use behavioral advertising cookies or third-party tracking cookies. You can configure your browser to reject cookies, although some platform functionalities may be affected." },
-        { "title": "9. Modifications", "content": "We reserve the right to modify this Privacy Policy. Changes will be notified through the platform or by email to registered users. We recommend periodically reviewing this page." },
-        { "title": "10. Contact", "content": "For any questions about privacy or exercising your rights, you can write to us at info@muxatech.com or visit our registered office: Duque de Calabria 3, 10, 46005 Valencia, Valencia." }
+        {
+          "title": "1. Data controller",
+          "content": "The data controller for your personal data is Studio Muxa Tech, S.L. (CIF B16378309), located at Duque de Calabria 3, 10, 46005 Valencia, Valencia. You can contact us at info@muxatech.com."
+        },
+        {
+          "title": "2. Data we collect",
+          "content": "We collect the following data depending on the type of user:\n\n• Anonymous users: a unique session identifier randomly generated (does not allow identifying the person). No name, email, or personal data is collected.\n• Restaurant owners: name, email, phone, establishment address, and billing data managed through Stripe (we do not directly store credit card data).\n• Browsing data: pages visited, platform interactions, device type, and browser."
+        },
+        {
+          "title": "3. Purpose of processing",
+          "content": "Your data is processed for the following purposes:\n\n• Providing the restaurant discovery and promotion service.\n• Managing subscriptions, billing, and payments through Stripe.\n• Sending service-related communications (call alerts, activity notifications).\n• Improving the platform through aggregated usage analysis.\n• Complying with legal obligations."
+        },
+        {
+          "title": "4. Legal basis",
+          "content": "The processing of your data is based on:\n\n• Execution of the service contract (GDPR art. 6.1.b) for account and subscription management.\n• User consent (GDPR art. 6.1.a) for marketing communications and browsing analysis.\n• Legitimate interest (GDPR art. 6.1.f) for service improvement and fraud prevention.\n• Legal obligations (GDPR art. 6.1.c) for regulatory compliance."
+        },
+        {
+          "title": "5. Third-party data sharing",
+          "content": "Your data may be shared with:\n\n• Stripe (Stripe Payments Europe, Ltd.) — for payment processing. Stripe operates under strict security measures and complies with PCI DSS. More information at stripe.com/privacy.\n• Resend (Resend Inc.) — for sending transactional emails. More information at resend.com/legal/privacy-policy.\n• Supabase (Supabase Inc.) — as database infrastructure and authentication provider. More information at supabase.com/privacy.\n\nWe do not share data with third parties for advertising purposes or sell personal data under any circumstances."
+        },
+        {
+          "title": "6. User rights",
+          "content": "In accordance with the GDPR and LOPDGDD, you have the right to:\n\n• Access your personal data.\n• Rectify inaccurate data.\n• Request deletion of your data when no longer needed.\n• Limit processing in certain circumstances.\n• Port your data to another controller.\n• Object to processing based on legitimate interest.\n\nTo exercise your rights, send an email to info@muxatech.com indicating the right you wish to exercise. We will respond within a maximum of 30 days."
+        },
+        {
+          "title": "7. Data retention",
+          "content": "We retain your personal data while you maintain an active account on the platform. After account cancellation, data will be retained for the legally required period for compliance with fiscal and accounting obligations (generally 5 years), and subsequently will be securely deleted."
+        },
+        {
+          "title": "8. Cookies",
+          "content": "DimeSitio uses technical cookies necessary for platform operation (session storage). We do not use behavioral advertising cookies or third-party tracking cookies. You can configure your browser to reject cookies, although some platform functionalities may be affected."
+        },
+        {
+          "title": "9. Modifications",
+          "content": "We reserve the right to modify this Privacy Policy. Changes will be notified through the platform or by email to registered users. We recommend periodically reviewing this page."
+        },
+        {
+          "title": "10. Contact",
+          "content": "For any questions about privacy or exercising your rights, you can write to us at info@muxatech.com or visit our registered office: Duque de Calabria 3, 10, 46005 Valencia, Valencia."
+        }
       ]
     },
     "Ficha": {
@@ -560,11 +620,39 @@
       "title": "Legal Notice",
       "subtitle": "In compliance with the Information Society Services Act (LSSI)",
       "sections": [
-        { "title": "Holder information", "content": ["Holder: Studio Muxa Tech, S.L.", "CIF: B16378309", "Registered office: Duque de Calabria 3, 10, 46005 Valencia, Valencia", "Email: info@dimesitio.es"] },
-        { "title": "Intellectual property", "content": ["All intellectual property rights over the content, design, logos, images, and source code of DimeSitio belong to Studio Muxa Tech, S.L. Reproduction, distribution, or modification without express authorization is prohibited."] },
-        { "title": "Terms of use", "content": ["The user is required to make lawful and diligent use of the platform, refraining from any action that may damage, overload, or deteriorate the services. Failure to comply with these conditions may result in suspension of access without prior notice."] },
-        { "title": "Disclaimer", "content": ["Studio Muxa Tech, S.L. is not responsible for damages arising from the use of the platform, nor for the accuracy of information provided by third parties. The user assumes all responsibility for their use of the service."] },
-        { "title": "Legislation and jurisdiction", "content": ["These conditions are governed by Spanish legislation. For any dispute, the parties submit to the courts and tribunals of Valencia."] }
+        {
+          "title": "Holder information",
+          "content": [
+            "Holder: Studio Muxa Tech, S.L.",
+            "CIF: B16378309",
+            "Registered office: Duque de Calabria 3, 10, 46005 Valencia, Valencia",
+            "Email: info@dimesitio.es"
+          ]
+        },
+        {
+          "title": "Intellectual property",
+          "content": [
+            "All intellectual property rights over the content, design, logos, images, and source code of DimeSitio belong to Studio Muxa Tech, S.L. Reproduction, distribution, or modification without express authorization is prohibited."
+          ]
+        },
+        {
+          "title": "Terms of use",
+          "content": [
+            "The user is required to make lawful and diligent use of the platform, refraining from any action that may damage, overload, or deteriorate the services. Failure to comply with these conditions may result in suspension of access without prior notice."
+          ]
+        },
+        {
+          "title": "Disclaimer",
+          "content": [
+            "Studio Muxa Tech, S.L. is not responsible for damages arising from the use of the platform, nor for the accuracy of information provided by third parties. The user assumes all responsibility for their use of the service."
+          ]
+        },
+        {
+          "title": "Legislation and jurisdiction",
+          "content": [
+            "These conditions are governed by Spanish legislation. For any dispute, the parties submit to the courts and tribunals of Valencia."
+          ]
+        }
       ]
     }
   }
