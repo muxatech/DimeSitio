@@ -4,18 +4,22 @@ import { useState, useEffect } from 'react'
 import QRCode from 'qrcode'
 import RestaurantForm from '@/app/[locale]/(panel)/establecimientos/restaurant-form'
 import { createForClient, sendPaymentEmail } from '@/lib/panel/api'
-import type { RestaurantFormData, StaffCreateData } from '@/types'
+import type { RestaurantFormData, StaffCreateData, PlanType } from '@/types'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { useTranslations, useLocale } from 'next-intl'
+import { useSearchParams } from 'next/navigation'
 
 export default function CrearParaClientePage() {
   const t = useTranslations('CreateForClient')
   const tCommon = useTranslations('Common')
   const locale = useLocale()
+  const searchParams = useSearchParams()
+  const founderParam = searchParams.get('founder')
+  const initialFounderVariant: PlanType | null = founderParam === '69' ? 'founder_69' : founderParam === '39' ? 'founder_39' : null
   const [result, setResult] = useState<{ restaurant_id: string; checkout_url: string | null; sent: boolean } | null>(null)
   const [ownerEmail, setOwnerEmail] = useState('')
-  const [planType, setPlanType] = useState<string>('standard')
+  const [planType, setPlanType] = useState<string>(initialFounderVariant ?? 'standard')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
   const [emailSent, setEmailSent] = useState(false)
@@ -60,7 +64,7 @@ export default function CrearParaClientePage() {
   }
 
   if (result) {
-    const planLabel = planType === 'founder' ? t('founderPlanLabel') : t('standardPlanLabel')
+    const planLabel = planType === 'founder_69' ? t('founder69PlanLabel') : planType === 'founder_39' || planType === 'founder' ? t('founderPlanLabel') : t('standardPlanLabel')
     const isEmail = result.sent
     return (
       <div className="flex flex-col items-center gap-6 py-16 text-center">
@@ -128,6 +132,7 @@ export default function CrearParaClientePage() {
         isSubmitting={isSubmitting}
         staffMode
         hideBackButton
+        initialFounderVariant={initialFounderVariant}
       />
     </>
   )

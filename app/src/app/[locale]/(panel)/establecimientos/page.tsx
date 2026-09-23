@@ -1,12 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getMyRestaurants, deleteRestaurant, checkStaffStatus } from '@/lib/panel/api'
 import { NO_SESSION_ERROR } from '@/lib/constants'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from '@/i18n/navigation'
 import { useRouter } from '@/i18n/navigation'
-import { Plus, Frown, UserPlus } from 'lucide-react'
+import { Plus, Frown, UserPlus, X } from 'lucide-react'
 import RestaurantPanelCard from '@/components/restaurant-panel-card'
 import { useTranslations } from 'next-intl'
 
@@ -19,8 +20,11 @@ export default function EstablecimientosPage() {
   const t = useTranslations('Establishments')
   const tCommon = useTranslations('Common')
   const tDashboard = useTranslations('Dashboard')
+  const tCreateForClient = useTranslations('CreateForClient')
+  const tForm = useTranslations('RestaurantForm')
   const router = useRouter()
   const queryClient = useQueryClient()
+  const [showFounderChoice, setShowFounderChoice] = useState(false)
 
   const { data: restaurants, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['my-restaurants'],
@@ -100,13 +104,13 @@ export default function EstablecimientosPage() {
         </h1>
         <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
           {isStaff && (
-            <Link
-              href="/establecimientos/crear-para-cliente"
+            <button
+              onClick={() => setShowFounderChoice(true)}
               className="inline-flex items-center justify-center gap-2 rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-700 shadow-sm transition-all hover:bg-stone-50 sm:px-6 sm:py-3.5 sm:text-base"
             >
               <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
               {tDashboard('createForClient')}
-            </Link>
+            </button>
           )}
           <Link
             href="/establecimientos/nuevo"
@@ -117,6 +121,54 @@ export default function EstablecimientosPage() {
           </Link>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showFounderChoice && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-5"
+            onClick={() => setShowFounderChoice(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="flex w-full max-w-md flex-col gap-6 rounded-2xl bg-white p-6 shadow-xl"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-stone-900">{tCreateForClient('founderChoiceTitle')}</h2>
+                  <p className="mt-1 text-sm text-stone-400">{tCreateForClient('founderChoiceDesc')}</p>
+                </div>
+                <button onClick={() => setShowFounderChoice(false)} className="rounded-xl p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-600">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => router.push('/establecimientos/crear-para-cliente?founder=39')}
+                  className="flex flex-col rounded-2xl border-2 border-stone-200 bg-white p-4 text-left shadow-sm transition-all hover:border-stone-900 hover:bg-stone-50"
+                >
+                  <span className="text-sm font-bold text-stone-900">{tForm('founder_39')}</span>
+                  <span className="mt-0.5 text-sm text-stone-400">{tForm('founder_39Desc')}</span>
+                </button>
+                <button
+                  onClick={() => router.push('/establecimientos/crear-para-cliente?founder=69')}
+                  className="flex flex-col rounded-2xl border-2 border-amber-200 bg-amber-50/50 p-4 text-left shadow-sm transition-all hover:border-amber-400 hover:bg-amber-50"
+                >
+                  <span className="text-sm font-bold text-stone-900">{tForm('founder_69')}</span>
+                  <span className="mt-0.5 text-sm text-stone-400">{tForm('founder_69Desc')}</span>
+                </button>
+              </div>
+              <p className="text-xs text-stone-400">{tCreateForClient('founderChoiceHint')}</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {restaurants && restaurants.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">

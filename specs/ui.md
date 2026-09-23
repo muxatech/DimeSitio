@@ -108,17 +108,20 @@ Página indexable por restaurante, accesible sin auth solo si `active = true`.
 ### Botones en listado
 - Usuario staff ve botón extra: "Crear para un cliente" (además del "Añadir establecimiento" normal)
 - Si no está en `staff_users`, solo ve "Añadir establecimiento"
+- Click `Crear para un cliente` no va directo al formulario → interstitial `¿Qué founder vas a ofrecer?` con 2 opciones `Founder 39€ (founder_39)` / `Founder 69€ (founder_69)` — staff decide antes de girar el iPad, cliente solo verá una founder después
 
 ### Formulario extendido
 - Mismos campos que el formulario normal
-- Campo extra al final: "Email del propietario" (input texto, visible siempre)
-- Botón submit: "Crear y enviar a pago" (texto diferente al normal "Crear establecimiento")
+- Campo extra: "Email del propietario" (input texto, visible siempre)
+- Sección Plan: `Standard 29€/mes` + **una sola** `Founder — 39€` *o* `Founder — 69€` según interstitial (`?founder=39|69` → `plan_type=founder_39|founder_69`), la otra founder no se renderiza para que el cliente no vea la alternativa
+- Sección `Método de pago`: `Pagar ahora` (QR) / `Enviar enlace por email`
+- Botón submit dinámico: `Crear y enviar a pago` (standard), `Crear y cobrar 39€` / `Crear y cobrar 69€` (founder), `Crear y enviar email`
 
 ### Pantalla post-creación
-- Mensaje: ✅ Datos guardados
+- Mensaje: ✅ Datos guardados + planLabel (`Plan Founder — 39€` / `69€` / `Plan Normal — 29€/mes`)
+- QR si `redirect`, email confirmación si `email`
 - Texto: "Ahora el propietario debe pagar para activar el establecimiento."
-- Botón grande: "Ir a pago →" (abre Stripe Checkout en nueva pestaña/mismo navegador)
-- El dueño gira el iPad y pulsa el botón → Stripe → pone su tarjeta
+- El dueño gira el iPad → escanea QR → Stripe Payment Link (39 o 69) → pone tarjeta
 
 ### Página /pago-exitoso
 - Mensaje: "Te hemos enviado un email a [email] para acceder a tu panel."

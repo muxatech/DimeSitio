@@ -157,19 +157,19 @@ Staff de DimeSitio puede crear establecimientos para clientes en visitas presenc
 - [x] Indicador visual de estado (activo/suspendido/vencido)
 
 ### Frontend (flujo staff — "Crear para un cliente")
-- [x] En `establecimientos/page.tsx`, botón extra "Crear para un cliente" (visible solo para usuarios en `staff_users`)
-- [x] Formulario de creación con mismo contenido que el actual + campo extra "Email del propietario"
-- [x] Botón "Crear y enviar a pago" en lugar de "Crear establecimiento"
-- [x] Pantalla post-creación: "Datos guardados. El propietario debe pagar para activar." + botón "Ir a pago →" (redirige a Stripe Checkout)
+- [x] En `establecimientos/page.tsx`, botón extra "Crear para un cliente" (visible solo para usuarios en `staff_users`) → interstitial previo `¿Qué founder vas a ofrecer?` `Founder 39€ (founder_39)` / `Founder 69€ (founder_69)` — staff decide antes, cliente solo ve una founder al girar el iPad
+- [x] Formulario de creación con mismo contenido que el actual + campo extra "Email del propietario" + sección Plan con `Standard 29€` + una sola `Founder 39€` *o* `69€` según `?founder=39|69` (`plan_type` `founder_39|founder_69`)
+- [x] Botón dinámico "Crear y enviar a pago" / "Crear y cobrar 39€" / "Crear y cobrar 69€" / "Crear y enviar email"
+- [x] Pantalla post-creación: "Datos guardados" + `planLabel` (`Founder — 39€/69€` / `Plan Normal — 29€/mes`) + QR si `redirect` o email si `email` — "El propietario debe pagar para activar."
 - [x] Página `/pago-exitoso` tras completar Stripe: "Te hemos enviado un email a [email] para acceder a tu panel"
 
 ### Backend / DB
-- [x] EDGE FUNCTION: `POST /staff/create-for-client` — crea restaurante (sin owner), genera Stripe Checkout Session con `metadata.owner_email` + `metadata.restaurant_id`, devuelve URL de pago
+- [x] EDGE FUNCTION: `POST /staff/create-for-client` — crea restaurante (sin owner), genera Stripe Payment Link con `metadata {owner_email, restaurant_id, plan=founder_39|founder_69|standard, source='staff'}` (`getStripeKeys` mapea `founder_39→STRIPE_PRICE_FOUNDER_SETUP` 39€, `founder_69→STRIPE_PRICE_FOUNDER_69_SETUP` 69€), devuelve `checkout_url` o `sent:true`
 - [x] Edge Function `POST /stripe/create-checkout-session`
 - [x] Edge Function `POST /stripe/create-customer-portal-session`
 - [x] Edge Function `POST /stripe/webhook` (recibir eventos de Stripe):
-  - `checkout.session.completed` → leer `metadata`, invitar dueño via `auth.admin.inviteUserByEmail`, crear `restaurant_admins`, asignar `owner_id`, activar restaurante
-  - `invoice.paid` → renovar período
+  - `checkout.session.completed` → leer `metadata.plan` (`founder_39` 39€ / `founder_69` 69€ pago único hasta 2026-12-31 + `founder_rank`, `standard` 29€ suscripción) → invitar dueño via `auth.admin.inviteUserByEmail`, crear `restaurant_admins`, asignar `owner_id`, activar restaurante, email `payment_receipt` con precio dinámico
+  - `invoice.paid` → renovar período (solo `standard`)
   - `customer.subscription.deleted` → desactivar
 - [x] Edge Function `POST /stripe/verify` (verificar estado suscripción para frontend)
 

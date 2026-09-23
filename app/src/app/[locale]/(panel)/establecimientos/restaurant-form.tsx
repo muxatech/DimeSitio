@@ -107,9 +107,10 @@ interface RestaurantFormProps {
   staffMode?: boolean
   hideBackButton?: boolean
   backHref?: string
+  initialFounderVariant?: 'founder_39' | 'founder_69' | null
 }
 
-export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, staffMode, hideBackButton, backHref }: RestaurantFormProps) {
+export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, staffMode, hideBackButton, backHref, initialFounderVariant }: RestaurantFormProps) {
   const t = useTranslations('RestaurantForm')
   const tCommon = useTranslations('Common')
   const tQuestions = useTranslations('Questions')
@@ -131,7 +132,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
     is_demo: z.boolean().optional(),
     category_ids: z.array(z.string()),
     owner_email: z.string().email(t('ownerEmailInvalid')).optional().or(z.literal('')),
-    plan_type: z.enum(['standard', 'founder']),
+    plan_type: z.enum(['standard', 'founder', 'founder_39', 'founder_69']),
     payment_method: z.enum(['redirect', 'email']),
   })
 
@@ -142,6 +143,8 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
     { value: 2, label: tQuestions('normal') },
     { value: 3, label: tQuestions('expensive') },
   ]
+
+  const isFounderVariant = (p: string) => p === 'founder' || p === 'founder_39' || p === 'founder_69'
 
   const queryClient = useQueryClient()
   const [error, setError] = useState('')
@@ -187,7 +190,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
       instagram_url: defaultValues?.instagram_url ?? '',
       active: defaultValues?.active ?? false,
       is_demo: defaultValues?.is_demo ?? false,
-      plan_type: defaultValues?.plan_type ?? 'standard',
+      plan_type: (initialFounderVariant ?? defaultValues?.plan_type ?? 'standard') as FormValues['plan_type'],
       payment_method: 'redirect',
       category_ids: defaultValues?.restaurant_categories?.map((c: { category_id: string }) => c.category_id) ?? [],
     },
@@ -691,31 +694,39 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
           </section>
         )}
 
-        {staffMode && (
-          <section>
-            <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">{t('plan')}</h2>
-            <div className="flex flex-col gap-3">
-              <label className={`flex cursor-pointer items-center rounded-2xl border p-4 shadow-sm transition-all sm:p-5 ${watch('plan_type') === 'standard' ? 'border-stone-900 bg-stone-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
-                <div className="flex flex-1 items-center gap-3">
-                  <input type="radio" value="standard" {...register('plan_type')} className="h-4 w-4 border-stone-300 text-stone-900 focus:ring-stone-900" />
-                  <div>
-                    <p className="text-sm font-medium text-stone-900 sm:text-base">{t('standardPlan')}</p>
-                    <p className="mt-0.5 text-sm text-stone-400">{t('standardPlanDesc')}</p>
+        {staffMode && (() => {
+          const founderVariant = initialFounderVariant ?? 'founder_39'
+          const founderValue = founderVariant as 'founder_39' | 'founder_69'
+          const founderLabel = founderVariant === 'founder_69' ? t('founder_69') : t('founder_39')
+          const founderDesc = founderVariant === 'founder_69' ? t('founder_69Desc') : t('founder_39Desc')
+          const isStandard = watch('plan_type') === 'standard'
+          const isFounder = watch('plan_type') === founderValue
+          return (
+            <section>
+              <h2 className="mb-4 text-lg font-bold text-stone-900 sm:text-xl">{t('plan')}</h2>
+              <div className="flex flex-col gap-3">
+                <label className={`flex cursor-pointer items-center rounded-2xl border p-4 shadow-sm transition-all sm:p-5 ${isStandard ? 'border-stone-900 bg-stone-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                  <div className="flex flex-1 items-center gap-3">
+                    <input type="radio" value="standard" {...register('plan_type')} className="h-4 w-4 border-stone-300 text-stone-900 focus:ring-stone-900" />
+                    <div>
+                      <p className="text-sm font-medium text-stone-900 sm:text-base">{t('standardPlan')}</p>
+                      <p className="mt-0.5 text-sm text-stone-400">{t('standardPlanDesc')}</p>
+                    </div>
                   </div>
-                </div>
-              </label>
-              <label className={`flex cursor-pointer items-center rounded-2xl border p-4 shadow-sm transition-all sm:p-5 ${watch('plan_type') === 'founder' ? 'border-amber-400 bg-amber-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
-                <div className="flex flex-1 items-center gap-3">
-                  <input type="radio" value="founder" {...register('plan_type')} className="h-4 w-4 border-stone-300 text-amber-600 focus:ring-amber-500" />
-                  <div>
-                    <p className="text-sm font-medium text-stone-900 sm:text-base">{t('founderPlan')}</p>
-                    <p className="mt-0.5 text-sm text-stone-400">{t('founderPlanDesc')}</p>
+                </label>
+                <label className={`flex cursor-pointer items-center rounded-2xl border p-4 shadow-sm transition-all sm:p-5 ${isFounder ? 'border-amber-400 bg-amber-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                  <div className="flex flex-1 items-center gap-3">
+                    <input type="radio" value={founderValue} {...register('plan_type')} className="h-4 w-4 border-stone-300 text-amber-600 focus:ring-amber-500" />
+                    <div>
+                      <p className="text-sm font-medium text-stone-900 sm:text-base">{founderLabel}</p>
+                      <p className="mt-0.5 text-sm text-stone-400">{founderDesc}</p>
+                    </div>
                   </div>
-                </div>
-              </label>
-            </div>
-          </section>
-        )}
+                </label>
+              </div>
+            </section>
+          )
+        })()}
 
         {staffMode && (
           <section>
@@ -964,8 +975,10 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                 : staffMode
                   ? watch('payment_method') === 'email'
                     ? t('createAndSendEmail')
-                    : watch('plan_type') === 'founder'
-                      ? t('createAndCharge39')
+                    : isFounderVariant(watch('plan_type'))
+                      ? watch('plan_type') === 'founder_69'
+                        ? t('createAndCharge69')
+                        : t('createAndCharge39')
                       : t('createAndSendPayment')
                   : t('createEstablishment')
             )}

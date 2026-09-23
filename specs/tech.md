@@ -95,9 +95,9 @@ Sin autenticación.
 # Pagos
 
 Stripe:
-- suscripciones recurrentes
+- `standard` 29€/mes suscripción, `founder_39` 39€ y `founder_69` 69€ pago único hasta 2026-12-31 (paymentLinks, `founder_rank` si <100)
 - billing portal
-- webhooks
+- webhooks (`checkout.session.completed` con `metadata.plan` `founder_39|founder_69|standard`)
 
 ---
 
@@ -199,8 +199,10 @@ Variables:
 - NEXT_PUBLIC_SUPABASE_URL
 - NEXT_PUBLIC_SUPABASE_ANON_KEY
 - SUPABASE_SERVICE_ROLE_KEY
-- STRIPE_SECRET_KEY
-- STRIPE_WEBHOOK_SECRET
+- STRIPE_SECRET_KEY (+ `STRIPE_SECRET_KEY_TEST` si `STRIPE_FOUNDER_MODE=test`)
+- STRIPE_WEBHOOK_SECRET (+ `STRIPE_WEBHOOK_SECRET_TEST`)
+- STRIPE_PRICE_ID (`standard` 29€/mes) + `STRIPE_PRICE_FOUNDER_SETUP` (39€) + `STRIPE_PRICE_FOUNDER_69_SETUP` (69€) y `_TEST` variantes
+- PUBLIC_SITE_URL
 - **RESEND_API_KEY**
 - **RESEND_FROM** (opcional)
 

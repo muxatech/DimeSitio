@@ -239,7 +239,7 @@ export default function SuscripcionPage() {
                     )}
                     {!isPending && !isTimeout && (
                       <p className="mt-0.5 text-sm text-stone-400">
-                        {r.plan_type === 'founder' ? t('founderPlan') : t('standardPlan')}
+                        {r.plan_type === 'founder_69' ? t('founder_69Plan') : r.plan_type === 'founder_39' || r.plan_type === 'founder' ? t('founderPlan') : t('standardPlan')}
                       </p>
                     )}
                   </div>

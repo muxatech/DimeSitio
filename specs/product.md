@@ -50,8 +50,9 @@ La app:
 
 ## Onboarding presencial (staff)
 - Staff de DimeSitio capta clientes en visitas presenciales
+- Staff pulsa `Crear para un cliente` → interstitial elige `Founder 39€ (founder_39)` o `Founder 69€ (founder_69)` antes de entrar al formulario — el cliente solo ve una founder al girar el iPad
 - Staff rellena los datos del restaurante en iPad, dueño confirma
-- Dueño paga 29€/mes en el momento vía Stripe Checkout (gira el iPad)
+- Dueño paga según variante elegida (29€/mes `standard`, 39€ `founder_39` o 69€ `founder_69` pago único hasta 2026-12-31) vía Stripe Payment Link (QR o email)
 - Dueño recibe email con invitación para crear contraseña y gestionar su perfil
 - Staff se identifica mediante tabla `staff_users`
 
@@ -59,9 +60,9 @@ La app:
 
 # Modelo de negocio
 
-- 29€/mes por establecimiento
-- Suscripción recurrente mensual
-- Gestión mediante Stripe
+- `standard` 29€/mes por establecimiento (suscripción mensual)
+- `founder_39` 39€ pago único y `founder_69` 69€ pago único hasta 2026-12-31 (founder_rank si <100)
+- Gestión mediante Stripe (paymentLinks)
 - Sin coste para usuarios finales
 
 ---

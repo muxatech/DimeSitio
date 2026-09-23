@@ -37,8 +37,16 @@ export interface CategoryGroup {
   categoryNames: string[]
 }
 
-export type PlanType = 'standard' | 'founder'
+export type PlanType = 'standard' | 'founder' | 'founder_39' | 'founder_69'
 export type PaymentMethod = 'redirect' | 'email'
+export const FOUNDER_VARIANTS: PlanType[] = ['founder', 'founder_39', 'founder_69']
+export function isFounderPlan(plan?: string | null): boolean {
+  return plan === 'founder' || plan === 'founder_39' || plan === 'founder_69'
+}
+export function founderPriceLabel(plan?: string | null): string {
+  if (plan === 'founder_69') return 'Founder — 69€ (pago único)'
+  return 'Founder — 39€ (pago único)'
+}
 
 export type FlowStep = 'landing' | 'questions' | 'top5' | 'battle' | 'winner'
 

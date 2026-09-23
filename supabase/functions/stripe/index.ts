@@ -39,6 +39,25 @@ function getStripe(): Stripe {
 
 const PRICE_ID = Deno.env.get('STRIPE_PRICE_ID') ?? ''
 
+function isFounderVariant(plan: string | null | undefined): boolean {
+  return plan === 'founder' || plan === 'founder_39' || plan === 'founder_69'
+}
+function founderLabel(plan: string | null | undefined): string {
+  if (plan === 'founder_69') return 'Plan Founder — 69€ (pago único)'
+  return 'Plan Founder — 39€ (pago único)'
+}
+function getFounderPriceId(planType: string): string {
+  const isTest = Deno.env.get('STRIPE_FOUNDER_MODE') === 'test'
+  if (planType === 'founder_69') {
+    return isTest
+      ? Deno.env.get('STRIPE_PRICE_FOUNDER_69_SETUP_TEST') ?? Deno.env.get('STRIPE_PRICE_FOUNDER_69_TEST') ?? Deno.env.get('STRIPE_PRICE_FOUNDER_69') ?? ''
+      : Deno.env.get('STRIPE_PRICE_FOUNDER_69_SETUP') ?? Deno.env.get('STRIPE_PRICE_FOUNDER_69') ?? ''
+  }
+  return isTest
+    ? Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP_TEST') ?? ''
+    : Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP') ?? ''
+}
+
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
@@ -183,12 +202,8 @@ async function handleCreatePaymentLink(
 
   const stripe = getStripe()
 
-  const isFounder = body.plan_type === 'founder'
-  const priceId = isFounder
-    ? (Deno.env.get('STRIPE_FOUNDER_MODE') === 'test'
-        ? Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP_TEST') ?? ''
-        : Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP') ?? '')
-    : PRICE_ID
+  const isFounder = isFounderVariant(body.plan_type)
+  const priceId = isFounder ? getFounderPriceId(body.plan_type) : PRICE_ID
 
   if (!priceId) {
     return fail('Price not configured', 500)
@@ -296,7 +311,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
         return ok({ received: true })
       }
 
-      const isFounder = session.metadata?.plan === 'founder'
+      const isFounder = isFounderVariant(session.metadata?.plan)
 
       // Founder plan = one-time payment (mode: 'payment')
       if (isFounder) {
@@ -384,6 +399,10 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
         const rName = escapeHtml(rData?.name ?? 'tu restaurante')
         const locale = founderLocale
         const siteUrl = founderSiteUrl
+        const founderPlan = (session.metadata?.plan as string) ?? 'founder_39'
+        const founderPriceText = founderPlan === 'founder_69'
+          ? (locale === 'en' ? 'One-time payment of €69 — no fees until January 2027. You will receive an invitation email to create your account and manage your profile.' : 'Pago único de 69€ — sin cuotas hasta enero de 2027. Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil.')
+          : (locale === 'en' ? 'One-time payment of €39 — no fees until January 2027. You will receive an invitation email to create your account and manage your profile.' : 'Pago único de 39€ — sin cuotas hasta enero de 2027. Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil.')
 
         try {
           await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
@@ -407,7 +426,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 <tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr>
 <tr><td style="padding:24px 24px 8px;text-align:center;">
 <p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${rName}</strong> ${locale === 'en' ? 'is now active on DimeSitio.' : 'ya está activo en DimeSitio.'}</p>
-<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${locale === 'en' ? 'One-time payment of €39 — no fees until January 2027. You will receive an invitation email to create your account and manage your profile.' : 'Pago único de 39€ — sin cuotas hasta enero de 2027. Recibirás un email de invitación para crear tu cuenta y gestionar tu perfil.'}</p>
+<p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${founderPriceText}</p>
 </td></tr>
 <tr><td align="center" style="padding:24px;">
 <a href="${siteUrl}/${locale}/set-password" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">${locale === 'en' ? 'Go to dashboard' : 'Ir al panel'}</a>
@@ -450,7 +469,7 @@ async function handleWebhook(supabase: ReturnType<typeof createClient>, rawBody:
 
       const restaurantName = escapeHtml(restaurantData?.name ?? 'tu restaurante')
       const planType = restaurantData?.plan_type ?? 'standard'
-      const planLabel = planType === 'founder' ? 'Plan Founder — 39€ (pago único)' : '29€/mes'
+      const planLabel = isFounderVariant(planType) ? founderLabel(planType) : '29€/mes'
       const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
       const headers = {
         'Content-Type': 'application/json',

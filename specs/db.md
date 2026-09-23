@@ -32,8 +32,8 @@ Campos:
 - zone (text)
 - active (boolean, default false — se activa vía suscripción Stripe)
 - is_demo (boolean, not null default false — true = restaurante ficticio/demo, false = real; usado para excluir de stats globales y sitemap)
-- founder_rank (integer, unique partial where not null — solo reales con plan_type=founder)
-- plan_type (text: 'standard' | 'founder')
+- founder_rank (integer, unique partial where not null — solo reales con plan_type founder_39/founder_69)
+- plan_type (text: 'standard' | 'founder' | 'founder_39' | 'founder_69' — 'founder' legacy = 39€, migrado a founder_39 en 20260802000001)
 - created_at (timestamptz)
 
 Indices: active, city, owner_id, zone, price_level, is_demo, founder_rank
@@ -62,7 +62,7 @@ Roles:
 Cada restaurante es autónomo:
 - Perfil propio (nombre, descripción, fotos, categorías, etc.)
 - Estadísticas propias (impresiones, selecciones, llamadas)
-- Suscripción propia (Fase 3 — Stripe, cada restaurante paga 29€/mes)
+- Suscripción propia (Fase 3 — Stripe: `standard` 29€/mes suscripción, `founder_39` 39€ pago único y `founder_69` 69€ pago único hasta 2026-12-31)
 
 ---
 

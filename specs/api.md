@@ -166,7 +166,7 @@ Output:
 
 ## POST /staff/create-for-client
 
-Crea un restaurante en nombre de un cliente y genera un Stripe Checkout Session para que el dueño pague.
+Crea un restaurante en nombre de un cliente y genera un Stripe Payment Link para que el dueño pague. El staff elige antes en interstitial `Founder 39€ (founder_39)` o `Founder 69€ (founder_69)` — el formulario ya solo muestra una Founder y el cliente no ve la otra.
 
 **Auth**: Requiere que el usuario autenticado esté en `staff_users`.
 
@@ -181,6 +181,9 @@ Input:
 - image_url
 - menu_url
 - category_ids (array de category_id)
+- plan_type (required: 'standard' | 'founder' | 'founder_39' | 'founder_69' — founder_39=39€, founder_69=69€ pago único)
+- payment_method ('redirect' | 'email')
+- locale (es|en)
 
 Output:
 ```json
@@ -193,9 +196,11 @@ Output:
 }
 ```
 
-El checkout session incluye en `metadata`:
+El payment link incluye en `metadata`:
 - `owner_email`
 - `restaurant_id`
+- `plan` (`standard` | `founder_39` | `founder_69` — distingue Stripe Price 39/69 y emails)
+- `source: 'staff'`, `locale`
 
 ---
 
@@ -217,9 +222,9 @@ Generar portal de gestión de suscripción para el dueño.
 
 Eventos:
 - `checkout.session.completed`:
-  - Si viene de `POST /staff/create-for-client`: leer `metadata`, invitar dueño, crear `restaurant_admins`, asignar `owner_id`, activar restaurante, crear `subscriptions`
-  - Si viene de autoservicio: crear `subscriptions` y activar restaurante
-- `invoice.paid` → renovar período
+  - Si viene de `POST /staff/create-for-client`: leer `metadata.plan` (`founder_39`→39€, `founder_69`→69€ pago único, `standard`→29€/mes), invitar dueño, crear `restaurant_admins`, asignar `owner_id`, `founder_rank`, activar restaurante, crear `subscriptions`
+  - Si viene de autoservicio: crear `subscriptions` y activar restaurante (mismo mapping de `plan`)
+- `invoice.paid` → renovar período (solo `standard`)
 - `customer.subscription.deleted` → desactivar restaurante
 
 ---

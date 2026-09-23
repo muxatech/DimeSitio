@@ -34,8 +34,21 @@ async function getUser(authHeader: string | null, supabase: ReturnType<typeof cr
 const PRICE_ID = Deno.env.get('STRIPE_PRICE_ID') ?? ''
 
 const VALID_PRICE_LEVELS = new Set([1, 2, 3])
-const VALID_PLAN_TYPES = new Set(['standard', 'founder'])
+const VALID_PLAN_TYPES = new Set(['standard', 'founder', 'founder_39', 'founder_69'])
 const VALID_PAYMENT_METHODS = new Set(['redirect', 'email'])
+
+function isFounderVariant(plan: string): boolean {
+  return plan === 'founder' || plan === 'founder_39' || plan === 'founder_69'
+}
+function normalizeFounderPlan(plan: string): string {
+  if (plan === 'founder_39' || plan === 'founder_69') return plan
+  if (plan === 'founder') return 'founder_39'
+  return plan
+}
+function founderLabel(plan: string): string {
+  if (plan === 'founder_69') return 'Plan Founder — 69€ (pago único)'
+  return 'Plan Founder — 39€ (pago único)'
+}
 
 function validateCreate(body: Record<string, unknown>) {
   const errors: string[] = []
@@ -76,7 +89,7 @@ function validateCreate(body: Record<string, unknown>) {
     errors.push('is_demo must be a boolean')
   }
   if (body.plan_type && !VALID_PLAN_TYPES.has(body.plan_type as string)) {
-    errors.push('plan_type must be "standard" or "founder"')
+    errors.push('plan_type must be "standard", "founder", "founder_39" or "founder_69"')
   }
   if (body.payment_method && !VALID_PAYMENT_METHODS.has(body.payment_method as string)) {
     errors.push('payment_method must be "redirect" or "email"')
@@ -127,16 +140,20 @@ async function assignFounderRank(supabase: ReturnType<typeof createClient>, rest
 }
 
 function getStripeKeys(planType: string) {
-  const isFounderTest = planType === 'founder' && Deno.env.get('STRIPE_FOUNDER_MODE') === 'test'
+  const isFounder = isFounderVariant(planType)
+  const isFounderTest = isFounder && Deno.env.get('STRIPE_FOUNDER_MODE') === 'test'
+  const founderPriceId = planType === 'founder_69'
+    ? (isFounderTest
+        ? Deno.env.get('STRIPE_PRICE_FOUNDER_69_SETUP_TEST') ?? Deno.env.get('STRIPE_PRICE_FOUNDER_69_TEST') ?? ''
+        : Deno.env.get('STRIPE_PRICE_FOUNDER_69_SETUP') ?? Deno.env.get('STRIPE_PRICE_FOUNDER_69') ?? '')
+    : (isFounderTest
+        ? Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP_TEST') ?? ''
+        : Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP') ?? '')
   return {
     secretKey: isFounderTest
       ? Deno.env.get('STRIPE_SECRET_KEY_TEST') ?? ''
       : Deno.env.get('STRIPE_SECRET_KEY') ?? '',
-    priceId: planType === 'founder'
-      ? (isFounderTest
-          ? Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP_TEST') ?? ''
-          : Deno.env.get('STRIPE_PRICE_FOUNDER_SETUP') ?? '')
-      : PRICE_ID,
+    priceId: isFounder ? founderPriceId : PRICE_ID,
   }
 }
 
@@ -148,7 +165,7 @@ async function sendPaymentLinkEmail(
   planType: string,
   locale: string = 'es',
 ) {
-  const planLabel = planType === 'founder' ? 'Plan Founder — 39€ (pago único)' : 'Plan Normal — 29€/mes'
+  const planLabel = isFounderVariant(planType) ? founderLabel(planType) : 'Plan Normal — 29€/mes'
   const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
   const headers = {
     'Content-Type': 'application/json',
@@ -198,7 +215,7 @@ async function sendPaymentReminderEmail(
   planType: string,
   locale: string = 'es',
 ) {
-  const planLabel = planType === 'founder' ? 'Plan Founder — 39€ (pago único)' : 'Plan Normal — 29€/mes'
+  const planLabel = isFounderVariant(planType) ? founderLabel(planType) : 'Plan Normal — 29€/mes'
   const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`
   const headers = {
     'Content-Type': 'application/json',
@@ -263,9 +280,9 @@ async function handleSendReminder(
     .from('restaurants').select('id, name, plan_type, active')
     .eq('id', restaurantId).single()
   if (rErr || !restaurant) return fail('Restaurant not found', 404)
-  if (restaurant.plan_type !== 'founder') return fail('Not a founder plan')
+  if (!isFounderVariant(restaurant.plan_type)) return fail('Not a founder plan')
 
-  const { secretKey, priceId } = getStripeKeys('founder')
+  const { secretKey, priceId } = getStripeKeys(restaurant.plan_type)
   if (!secretKey || !priceId) return fail('Stripe not configured', 500)
 
   const stripe = new Stripe(secretKey, {
@@ -287,7 +304,7 @@ async function handleSendReminder(
       restaurant_id: restaurantId,
       owner_email: ownerEmail,
       source: 'staff',
-      plan: 'founder',
+      plan: restaurant.plan_type,
     }
     const newLink = await stripe.paymentLinks.create({
       line_items: [{ price: priceId, quantity: 1 }],
@@ -298,7 +315,7 @@ async function handleSendReminder(
     console.log('staff: created new payment link for reminder', { restaurantId, paymentLinkId: newLink.id })
   }
 
-  await sendPaymentReminderEmail(supabase, ownerEmail, restaurant.name, paymentLinkUrl, 'founder')
+  await sendPaymentReminderEmail(supabase, ownerEmail, restaurant.name, paymentLinkUrl, restaurant.plan_type)
 
   return ok({ sent: true, payment_link_url: paymentLinkUrl })
 }
@@ -326,10 +343,10 @@ async function handleRegeneratePaymentLink(
     .from('restaurants').select('id, name, plan_type, active')
     .eq('id', restaurantId).single()
   if (rErr || !restaurant) return fail('Restaurant not found', 404)
-  if (restaurant.plan_type !== 'founder') return fail('Not a founder plan')
+  if (!isFounderVariant(restaurant.plan_type)) return fail('Not a founder plan')
   if (restaurant.active) return fail('Restaurant is already active')
 
-  const { secretKey, priceId } = getStripeKeys('founder')
+  const { secretKey, priceId } = getStripeKeys(restaurant.plan_type)
   if (!secretKey || !priceId) return fail('Stripe not configured', 500)
 
   const stripe = new Stripe(secretKey, {
@@ -351,7 +368,7 @@ async function handleRegeneratePaymentLink(
     restaurant_id: restaurantId,
     owner_email: ownerEmail,
     source: 'staff',
-    plan: 'founder',
+    plan: restaurant.plan_type,
   }
 
   const paymentLink = await stripe.paymentLinks.create({
@@ -362,7 +379,7 @@ async function handleRegeneratePaymentLink(
 
   console.log('staff: new payment link created', { restaurantId, paymentLinkId: paymentLink.id })
 
-  await sendPaymentLinkEmail(supabase, ownerEmail, restaurant.name, paymentLink.url, 'founder')
+  await sendPaymentLinkEmail(supabase, ownerEmail, restaurant.name, paymentLink.url, restaurant.plan_type)
 
   return ok({ payment_link_url: paymentLink.url, sent: true })
 }
@@ -428,7 +445,7 @@ async function handleCreateForClient(
     return fail('Failed to create restaurant', 500)
   }
 
-  if (planType === 'founder') {
+  if (isFounderVariant(planType)) {
     await assignFounderRank(supabase, restaurant.id)
   }
 
@@ -474,7 +491,7 @@ async function handleCreateForClient(
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [{ price: priceId, quantity: 1 }],
       metadata,
-      ...(planType === 'founder' ? {
+      ...(isFounderVariant(planType) ? {
         payment_intent_data: {
           setup_future_usage: 'off_session',
         },
@@ -495,7 +512,7 @@ async function handleCreateForClient(
   const paymentLink = await stripe.paymentLinks.create({
     line_items: [{ price: priceId, quantity: 1 }],
     metadata,
-    ...(planType === 'founder' ? {
+    ...(isFounderVariant(planType) ? {
       payment_intent_data: {
         setup_future_usage: 'off_session',
       },
