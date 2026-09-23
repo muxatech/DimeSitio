@@ -498,6 +498,7 @@
     "createEstablishment": "Crear establecimiento",
     "preview": "Vista previa",
     "errorSaving": "Error al guardar",
+    "productNotConfigured": "Producto no configurado",
     "newCategoryNamePlaceholder": "Ej: Kebab"
   },
   "StaffRestaurants": {

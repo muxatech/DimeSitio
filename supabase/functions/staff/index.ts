@@ -470,6 +470,10 @@ async function handleCreateForClient(
     console.error('staff: Stripe secret key not configured')
     return fail('Payment is not configured', 500)
   }
+  if (!priceId) {
+    console.error('staff: Stripe price not configured for plan', planType)
+    return fail('Producto no configurado', 500)
+  }
 
   const stripe = new Stripe(secretKey, {
     apiVersion: '2026-04-22.dahlia',

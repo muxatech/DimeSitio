@@ -498,6 +498,7 @@
     "createEstablishment": "Create establishment",
     "preview": "Preview",
     "errorSaving": "Error saving",
+    "productNotConfigured": "Product not configured",
     "newCategoryNamePlaceholder": "e.g. Kebab"
   },
   "StaffRestaurants": {

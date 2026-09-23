@@ -206,7 +206,7 @@ async function handleCreatePaymentLink(
   const priceId = isFounder ? getFounderPriceId(body.plan_type) : PRICE_ID
 
   if (!priceId) {
-    return fail('Price not configured', 500)
+    return fail('Producto no configurado', 500)
   }
 
   const paymentLink = await stripe.paymentLinks.create({
