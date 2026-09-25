@@ -375,11 +375,15 @@
     "qrAlt": "Payment QR",
     "sendLinkByEmail": "Send link by email",
     "founderPlanLabel": "Founder Plan — €39 (one-time payment)",
-    "standardPlanLabel": "Standard Plan — €29/month",
     "founder69PlanLabel": "Founder Plan — €69 (one-time payment)",
+    "standardPlanLabel": "Standard Plan — €29/month",
     "founderChoiceTitle": "Which founder will you offer?",
     "founderChoiceDesc": "Choose the rate before filling the form. The client will only see the selected option.",
-    "founderChoiceHint": "You can change it by going back to this screen."
+    "founderChoiceHint": "You can change it by going back to this screen.",
+    "cashSuccessTitle": "Cash payment registered!",
+    "cashSuccessDesc": "Restaurant activated ({planLabel}). Owner can now access.",
+    "cashActiveHint": "Activated and email sent to",
+    "cashSuccessHint": "No Stripe payment needed."
   },
   "Dashboard": {
     "title": "Dashboard",
@@ -458,6 +462,9 @@
     "payNowDesc": "Show payment link for the customer to pay immediately",
     "emailPayment": "Send link by email",
     "emailPaymentDesc": "The owner receives an email with a secure payment link",
+    "cashPayment": "Cash",
+    "cashPaymentDesc": "Staff collects cash and the restaurant is activated instantly",
+    "createAndActivateCash": "Create and activate (cash)",
     "linksMedia": "Links & media",
     "menuUrl": "Menu URL",
     "imageUrl": "Image URL",

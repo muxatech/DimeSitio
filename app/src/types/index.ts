@@ -38,7 +38,7 @@ export interface CategoryGroup {
 }
 
 export type PlanType = 'standard' | 'founder' | 'founder_39' | 'founder_69'
-export type PaymentMethod = 'redirect' | 'email'
+export type PaymentMethod = 'redirect' | 'email' | 'cash'
 export const FOUNDER_VARIANTS: PlanType[] = ['founder', 'founder_39', 'founder_69']
 export function isFounderPlan(plan?: string | null): boolean {
   return plan === 'founder' || plan === 'founder_39' || plan === 'founder_69'

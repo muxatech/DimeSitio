@@ -133,7 +133,7 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
     category_ids: z.array(z.string()),
     owner_email: z.string().email(t('ownerEmailInvalid')).optional().or(z.literal('')),
     plan_type: z.enum(['standard', 'founder', 'founder_39', 'founder_69']),
-    payment_method: z.enum(['redirect', 'email']),
+    payment_method: z.enum(['redirect', 'email', 'cash']),
   })
 
   type FormValues = z.infer<typeof restaurantSchema>
@@ -750,6 +750,15 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
                   </div>
                 </div>
               </label>
+              <label className={`flex cursor-pointer items-center rounded-2xl border p-4 shadow-sm transition-all sm:p-5 ${watch('payment_method') === 'cash' ? 'border-emerald-600 bg-emerald-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                <div className="flex flex-1 items-center gap-3">
+                  <input type="radio" value="cash" {...register('payment_method')} className="h-4 w-4 border-stone-300 text-emerald-600 focus:ring-emerald-600" />
+                  <div>
+                    <p className="text-sm font-medium text-stone-900 sm:text-base">{t('cashPayment')}</p>
+                    <p className="mt-0.5 text-sm text-stone-400">{t('cashPaymentDesc')}</p>
+                  </div>
+                </div>
+              </label>
             </div>
           </section>
         )}
@@ -973,13 +982,15 @@ export default function RestaurantForm({ defaultValues, onSubmit, isSubmitting, 
               isEditing
                 ? t('saveChanges')
                 : staffMode
-                  ? watch('payment_method') === 'email'
-                    ? t('createAndSendEmail')
-                    : isFounderVariant(watch('plan_type'))
-                      ? watch('plan_type') === 'founder_69'
-                        ? t('createAndCharge69')
-                        : t('createAndCharge39')
-                      : t('createAndSendPayment')
+                  ? watch('payment_method') === 'cash'
+                    ? t('createAndActivateCash')
+                    : watch('payment_method') === 'email'
+                      ? t('createAndSendEmail')
+                      : isFounderVariant(watch('plan_type'))
+                        ? watch('plan_type') === 'founder_69'
+                          ? t('createAndCharge69')
+                          : t('createAndCharge39')
+                        : t('createAndSendPayment')
                   : t('createEstablishment')
             )}
           </motion.button>

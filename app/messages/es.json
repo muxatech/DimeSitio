@@ -375,11 +375,15 @@
     "qrAlt": "QR de pago",
     "sendLinkByEmail": "Enviar enlace por email",
     "founderPlanLabel": "Plan Founder — 39€ (pago único)",
-    "standardPlanLabel": "Plan Normal — 29€/mes",
     "founder69PlanLabel": "Plan Founder — 69€ (pago único)",
+    "standardPlanLabel": "Plan Normal — 29€/mes",
     "founderChoiceTitle": "¿Qué founder vas a ofrecer?",
     "founderChoiceDesc": "Elige la tarifa antes de rellenar el formulario. El cliente solo verá la opción seleccionada.",
-    "founderChoiceHint": "Podrás cambiarlo volviendo a esta pantalla."
+    "founderChoiceHint": "Podrás cambiarlo volviendo a esta pantalla.",
+    "cashSuccessTitle": "¡Cobro en efectivo registrado!",
+    "cashSuccessDesc": "Restaurante activado ({planLabel}). El propietario ya puede acceder.",
+    "cashActiveHint": "Activado y email enviado a",
+    "cashSuccessHint": "No necesita pago Stripe."
   },
   "Dashboard": {
     "title": "Panel de control",
@@ -458,6 +462,9 @@
     "payNowDesc": "Mostrar enlace de pago para que el cliente pague en el momento",
     "emailPayment": "Enviar enlace por email",
     "emailPaymentDesc": "El propietario recibe un email con un enlace seguro para pagar",
+    "cashPayment": "Efectivo",
+    "cashPaymentDesc": "El staff cobra en efectivo y el restaurante se activa al instante",
+    "createAndActivateCash": "Crear y activar (efectivo)",
     "linksMedia": "Enlaces y medios",
     "menuUrl": "URL del menú",
     "imageUrl": "URL de la imagen",

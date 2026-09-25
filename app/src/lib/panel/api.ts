@@ -156,8 +156,8 @@ export async function createPaymentLink(restaurantId: string, planType: PlanType
 
 // ─── Staff ──────────────────────────────────────────────────
 
-export async function createForClient(data: StaffCreateData, locale: string = 'es'): Promise<{ restaurant_id: string; checkout_url: string | null; sent: boolean }> {
-  const res = await invoke<{ success: boolean; data: { restaurant_id: string; checkout_url: string | null; sent: boolean } }>('POST', '/', { ...data, locale }, 'staff')
+export async function createForClient(data: StaffCreateData, locale: string = 'es'): Promise<{ restaurant_id: string; checkout_url: string | null; sent: boolean; cash?: boolean; payment_method?: string }> {
+  const res = await invoke<{ success: boolean; data: { restaurant_id: string; checkout_url: string | null; sent: boolean; cash?: boolean; payment_method?: string } }>('POST', '/', { ...data, locale }, 'staff')
   return res.data
 }
 

@@ -17,7 +17,7 @@ export default function CrearParaClientePage() {
   const searchParams = useSearchParams()
   const founderParam = searchParams.get('founder')
   const initialFounderVariant: PlanType | null = founderParam === '69' ? 'founder_69' : founderParam === '39' ? 'founder_39' : null
-  const [result, setResult] = useState<{ restaurant_id: string; checkout_url: string | null; sent: boolean } | null>(null)
+  const [result, setResult] = useState<{ restaurant_id: string; checkout_url: string | null; sent: boolean; cash?: boolean } | null>(null)
   const [ownerEmail, setOwnerEmail] = useState('')
   const [planType, setPlanType] = useState<string>(initialFounderVariant ?? 'standard')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -65,7 +65,27 @@ export default function CrearParaClientePage() {
 
   if (result) {
     const planLabel = planType === 'founder_69' ? t('founder69PlanLabel') : planType === 'founder_39' || planType === 'founder' ? t('founderPlanLabel') : t('standardPlanLabel')
+    const isCash = (result as { cash?: boolean }).cash === true
     const isEmail = result.sent
+    if (isCash) {
+      return (
+        <div className="flex flex-col items-center gap-6 py-16 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-600">
+            <CheckCircle className="h-8 w-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-stone-900 sm:text-3xl">{t('cashSuccessTitle')}</h1>
+            <p className="mt-2 text-sm text-stone-400 sm:text-base">{t('cashSuccessDesc', { planLabel })} </p>
+          </div>
+          <div className="rounded-2xl bg-emerald-50 px-6 py-4 text-sm text-emerald-800">
+            {t('cashActiveHint')} <strong>{ownerEmail}</strong>
+          </div>
+          <Link href="/establecimientos" className="mt-4 text-sm font-medium text-stone-400 transition-colors hover:text-stone-600">
+            {tCommon('backToEstablishments')}
+          </Link>
+        </div>
+      )
+    }
     return (
       <div className="flex flex-col items-center gap-6 py-16 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900">

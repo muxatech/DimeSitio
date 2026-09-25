@@ -96,6 +96,7 @@ Sin autenticación.
 
 Stripe:
 - `standard` 29€/mes suscripción, `founder_39` 39€ y `founder_69` 69€ pago único hasta 2026-12-31 (paymentLinks, `founder_rank` si <100)
+- Efectivo: `payment_method='cash'` cobra staff en el momento, activa sin Stripe (`subscriptions.payment_method='cash'`, `status:active`, `stripe_customer_id=null`)
 - billing portal
 - webhooks (`checkout.session.completed` con `metadata.plan` `founder_39|founder_69|standard`)
 

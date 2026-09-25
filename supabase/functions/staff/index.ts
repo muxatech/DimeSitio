@@ -35,7 +35,7 @@ const PRICE_ID = Deno.env.get('STRIPE_PRICE_ID') ?? ''
 
 const VALID_PRICE_LEVELS = new Set([1, 2, 3])
 const VALID_PLAN_TYPES = new Set(['standard', 'founder', 'founder_39', 'founder_69'])
-const VALID_PAYMENT_METHODS = new Set(['redirect', 'email'])
+const VALID_PAYMENT_METHODS = new Set(['redirect', 'email', 'cash'])
 
 function isFounderVariant(plan: string): boolean {
   return plan === 'founder' || plan === 'founder_39' || plan === 'founder_69'
@@ -92,7 +92,7 @@ function validateCreate(body: Record<string, unknown>) {
     errors.push('plan_type must be "standard", "founder", "founder_39" or "founder_69"')
   }
   if (body.payment_method && !VALID_PAYMENT_METHODS.has(body.payment_method as string)) {
-    errors.push('payment_method must be "redirect" or "email"')
+    errors.push('payment_method must be "redirect", "email" or "cash"')
   }
   if (body.category_ids !== undefined) {
     if (!Array.isArray(body.category_ids)) {
@@ -462,6 +462,82 @@ async function handleCreateForClient(
     if (catError) {
       console.error('staff: insert categories failed', JSON.stringify(catError))
     }
+  }
+
+  // Cash: immediate activation without Stripe
+  if (paymentMethod === 'cash') {
+    const periodEnd = isFounderVariant(planType)
+      ? new Date('2026-12-31T23:59:59Z').toISOString()
+      : new Date(Date.now() + 30 * 86400000).toISOString()
+    const { error: cashSubError } = await supabase.from('subscriptions').upsert({
+      restaurant_id: restaurant.id,
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+      status: 'active',
+      current_period_end: periodEnd,
+      payment_method: 'cash',
+    }, { onConflict: 'restaurant_id' })
+    if (cashSubError) {
+      console.error('staff: cash subscription upsert failed', JSON.stringify(cashSubError))
+      return fail('Failed to create cash subscription', 500)
+    }
+    await supabase.from('restaurants').update({ active: true }).eq('id', restaurant.id)
+    // Invite owner and create admin
+    const cashLocale = locale
+    const cashSiteUrl = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://dimesitio.es'
+    let cashOwnerUserId: string | undefined
+    try {
+      const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(ownerEmail, {
+        redirectTo: `${cashSiteUrl}/${cashLocale}/auth/invite`,
+        data: { onboarded: true },
+      })
+      if (inviteError) console.error('staff: cash invite failed', JSON.stringify(inviteError))
+      cashOwnerUserId = inviteData?.user?.id
+      if (!cashOwnerUserId) {
+        const { data: usersData } = await supabase.auth.admin.listUsers()
+        const existing = usersData?.users?.find((u) => u.email === ownerEmail)
+        if (existing) cashOwnerUserId = existing.id
+      }
+      if (cashOwnerUserId) {
+        const { error: adminError } = await supabase.from('restaurant_admins').insert({
+          restaurant_id: restaurant.id,
+          user_id: cashOwnerUserId,
+          role: 'owner',
+        })
+        if (adminError) console.error('staff: cash admin insert failed', JSON.stringify(adminError))
+        else await supabase.from('restaurants').update({ owner_id: cashOwnerUserId }).eq('id', restaurant.id)
+      }
+    } catch (e) {
+      console.error('staff: cash invite flow failed', e instanceof Error ? e.message : String(e))
+    }
+    // Send receipt email (same as Stripe)
+    try {
+      const planLabelCash = isFounderVariant(planType) ? founderLabel(planType) : 'Plan Normal — 29€/mes'
+      const cashLabel = planLabelCash + ' — Efectivo'
+      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+        },
+        body: JSON.stringify({
+          to: ownerEmail,
+          type: 'payment_receipt',
+          restaurant_id: restaurant.id,
+          subject: cashLocale === 'en' ? 'Your restaurant is now active on DimeSitio! (Cash)' : '¡Tu restaurante ya está activo en DimeSitio! (Efectivo)',
+          html: `<!DOCTYPE html><html lang="${cashLocale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${cashLocale === 'en' ? 'Restaurant active' : 'Restaurante activo'}</title></head><body style="margin:0;padding:0;background-color:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafaf9;"><tr><td align="center" style="padding:40px 16px;"><table role="presentation" width="100%" style="max-width:480px;background-color:#fff;border-radius:16px;"><tr><td style="padding:32px 24px 0;text-align:center;"><h1 style="margin:0;font-size:24px;font-weight:700;color:#1c1917;">DimeSitio</h1></td></tr><tr><td style="padding:24px 24px 8px;text-align:center;"><p style="margin:0;font-size:15px;color:#44403c;line-height:1.5;"><strong>${sanitized.name as string}</strong> ${cashLocale === 'en' ? 'is now active on DimeSitio.' : 'ya está activo en DimeSitio.'}</p><p style="margin:12px 0 0;font-size:14px;color:#57534e;line-height:1.5;">${cashLocale === 'en' ? `${cashLabel} — cash payment registered by staff. No further action needed.` : `${cashLabel} — pago en efectivo registrado por el staff. No necesitas hacer nada más.`}</p></td></tr><tr><td align="center" style="padding:24px;"><a href="${cashSiteUrl}/${cashLocale}/set-password" style="display:inline-block;padding:14px 32px;background-color:#292524;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:16px;">${cashLocale === 'en' ? 'Go to dashboard' : 'Ir al panel'}</a></td></tr><tr><td style="padding:24px;text-align:center;border-top:1px solid #e7e5e4;"><p style="margin:0;font-size:12px;color:#a8a29e;">&copy; 2026 DimeSitio &mdash; Valencia</p></td></tr></table></td></tr></table></body></html>`,
+        }),
+      })
+    } catch (emailErr) {
+      console.error('staff: cash receipt email failed', emailErr instanceof Error ? emailErr.message : String(emailErr))
+    }
+    return ok({
+      restaurant_id: restaurant.id,
+      checkout_url: null,
+      sent: false,
+      cash: true,
+      payment_method: 'cash',
+    })
   }
 
   // Stripe keys
