@@ -11,7 +11,6 @@ import LandingHero from '@/components/landing-hero'
 import { QuestionCategoryGroups, QuestionPrice } from '@/components/question-step'
 import ProgressBar from '@/components/progress-bar'
 import Top5Grid from '@/components/top5-grid'
-import BattleView from '@/components/battle-view'
 import WinnerView from '@/components/winner-view'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -55,10 +54,7 @@ function persistFlowState() {
     locationRadius: store.locationRadius,
     filteredRestaurants: store.filteredRestaurants,
     top5: store.top5,
-    battleChampion: store.battleChampion,
-    battleChallenger: store.battleChallenger,
-    battlePool: store.battlePool,
-    battleRound: store.battleRound,
+    favoriteId: store.favoriteId,
     winner: store.winner,
   }
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data))
@@ -66,8 +62,6 @@ function persistFlowState() {
 
 function stepBack(store: ReturnType<typeof useFlowStore.getState>) {
   if (store.step === 'winner') {
-    store.setStep('battle')
-  } else if (store.step === 'battle') {
     store.setStep('top5')
   } else if (store.step === 'top5') {
     store.setStep('questions')
@@ -97,7 +91,9 @@ export default function FlowPage() {
     if (raw) {
       try {
         const saved = JSON.parse(raw) as FlowDataState
-        useFlowStore.getState().hydrate(saved)
+        // Guardas de una versión anterior guardaban step: 'battle', que ya no existe.
+        const step = saved.step === ('battle' as FlowStep) ? 'top5' : saved.step
+        useFlowStore.getState().hydrate({ ...saved, step })
       } catch { /* ignore corrupt data */ }
     }
 
@@ -362,7 +358,6 @@ export default function FlowPage() {
             )}
 
             {step === 'top5' && <Top5Grid />}
-            {step === 'battle' && <BattleView />}
             {step === 'winner' && <WinnerView />}
           </motion.div>
         </AnimatePresence>

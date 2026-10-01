@@ -239,14 +239,10 @@
     "changeFilters": "Cambiar filtros",
     "selected": "Hemos seleccionado {count} opciones para ti.",
     "subtitle": "Ahora te ayudaremos a elegir el mejor.",
-    "chooseFavorite": "Elegir favorito"
-  },
-  "Battle": {
-    "errorDesc": "No pudimos cargar la comparación. Vuelve a empezar.",
-    "chooseFavorite": "Elige tu favorito",
-    "choose": "Elegir",
-    "question": "¿Cuál te convence más?",
-    "round": "Ronda {current} de {total}"
+    "pickOne": "Toca el que más te guste.",
+    "confirm": "Elegir {name}",
+    "confirmPlaceholder": "Elige uno para continuar",
+    "selectedBadge": "Seleccionado"
   },
   "Winner": {
     "noSelection": "No se ha seleccionado ningún restaurante",

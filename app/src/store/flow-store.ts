@@ -17,10 +17,7 @@ export interface FlowDataState {
   locationRadius: number | null
   filteredRestaurants: Restaurant[]
   top5: Restaurant[]
-  battleChampion: Restaurant | null
-  battleChallenger: Restaurant | null
-  battlePool: Restaurant[]
-  battleRound: number
+  favoriteId: string | null
   winner: Restaurant | null
 }
 
@@ -35,10 +32,7 @@ interface FlowStore {
   locationRadius: number | null
   filteredRestaurants: Restaurant[]
   top5: Restaurant[]
-  battleChampion: Restaurant | null
-  battleChallenger: Restaurant | null
-  battlePool: Restaurant[]
-  battleRound: number
+  favoriteId: string | null
   winner: Restaurant | null
 
   setStep: (step: FlowStep) => void
@@ -51,8 +45,8 @@ interface FlowStore {
   setLocationRadius: (radius: number | null) => void
   setFilteredRestaurants: (restaurants: Restaurant[]) => void
   setTop5: (restaurants: Restaurant[]) => void
-  initBattle: () => void
-  selectBattleWinner: (winner: Restaurant) => void
+  setFavorite: (id: string | null) => void
+  confirmFavorite: () => void
   setWinner: (restaurant: Restaurant) => void
   resetQuestionState: () => void
   goBackToQuestions: () => void
@@ -72,10 +66,7 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
   locationRadius: null,
   filteredRestaurants: [],
   top5: [],
-  battleChampion: null,
-  battleChallenger: null,
-  battlePool: [],
-  battleRound: 0,
+  favoriteId: null,
   winner: null,
 
   setStep: (step) => set({ step }),
@@ -98,44 +89,13 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
 
   setTop5: (restaurants) => set({ top5: restaurants }),
 
-  initBattle: () => {
-    const { top5 } = get()
-    if (top5.length < 2) return
+  setFavorite: (id) => set({ favoriteId: id }),
 
-    const pool = [...top5]
-    const champion = pool.shift()!
-    const challenger = pool.shift()!
-
-    set({
-      step: 'battle',
-      battleChampion: champion,
-      battleChallenger: challenger,
-      battlePool: pool,
-      battleRound: 1,
-      winner: null,
-    })
-  },
-
-  selectBattleWinner: (winner) => {
-    const state = get()
-    const pool = [...state.battlePool]
-
-    if (pool.length === 0) {
-      set({
-        winner,
-        step: 'winner',
-        battlePool: [],
-      })
-      return
-    }
-
-    const nextChallenger = pool.shift()!
-    set({
-      battleChampion: winner,
-      battleChallenger: nextChallenger,
-      battlePool: pool,
-      battleRound: state.battleRound + 1,
-    })
+  confirmFavorite: () => {
+    const { top5, favoriteId } = get()
+    const winner = top5.find((r) => r.id === favoriteId)
+    if (!winner) return
+    set({ winner, step: 'winner' })
   },
 
   setWinner: (restaurant) => set({ winner: restaurant, step: 'winner' }),
@@ -150,10 +110,7 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       locationRadius: null,
       filteredRestaurants: [],
       top5: [],
-      battleChampion: null,
-      battleChallenger: null,
-      battlePool: [],
-      battleRound: 0,
+      favoriteId: null,
       winner: null,
     }),
 
@@ -171,10 +128,7 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       locationRadius: null,
       filteredRestaurants: [],
       top5: [],
-      battleChampion: null,
-      battleChallenger: null,
-      battlePool: [],
-      battleRound: 0,
+      favoriteId: null,
       winner: null,
     }),
 
@@ -190,10 +144,7 @@ export const useFlowStore = create<FlowStore>((set, get) => ({
       locationRadius: null,
       filteredRestaurants: [],
       top5: [],
-      battleChampion: null,
-      battleChallenger: null,
-      battlePool: [],
-      battleRound: 0,
+      favoriteId: null,
       winner: null,
     }),
 

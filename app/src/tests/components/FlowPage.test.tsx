@@ -71,7 +71,7 @@ function resetStore() {
     selectedCategoryIds: [], selectedPriceLevel: null, selectedZoneIds: [],
     locationCenter: null, locationRadius: null,
     filteredRestaurants: [], top5: [],
-    battleChampion: null, battleChallenger: null, battlePool: [], battleRound: 0,
+    favoriteId: null,
     winner: null,
   })
 }
@@ -138,19 +138,16 @@ describe('FlowPage', () => {
       expect(screen.getByText(/opciones/)).toBeInTheDocument()
     })
 
-    it('renders BattleView when step is battle', () => {
+    it('renders the favorite picker when step is top5', () => {
       useFlowStore.setState({
-        step: 'battle',
-        battleChampion: mockRestaurants[0],
-        battleChallenger: mockRestaurants[1],
-        battleRound: 1,
+        step: 'top5',
         top5: mockRestaurants,
       })
       mockUseQuery
         .mockReturnValueOnce({ data: [{ id: 'cat-1', name: 'Italiana' }], isLoading: false, isError: false })
         .mockReturnValueOnce({ data: mockRestaurants, isLoading: false, isError: false })
       render(<FlowPage />, { wrapper: TestWrapper })
-      expect(screen.getByText('¿Cuál te convence más?')).toBeInTheDocument()
+      expect(screen.getByText('Toca el que más te guste.')).toBeInTheDocument()
     })
 
     it('renders WinnerView when step is winner', () => {

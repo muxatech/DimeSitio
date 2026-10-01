@@ -51,10 +51,7 @@ describe('Navbar', () => {
       selectedZoneIds: [],
       filteredRestaurants: [],
       top5: [],
-      battleChampion: null,
-      battleChallenger: null,
-      battlePool: [],
-      battleRound: 0,
+      favoriteId: null,
     })
   })
 

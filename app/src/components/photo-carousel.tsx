@@ -153,7 +153,6 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
     lockedDir.current = null
     setDragging(false)
     setDragOffset(0)
-    wasDragged.current = false
   }
 
   function onClickCapture(e: React.MouseEvent<HTMLDivElement>) {

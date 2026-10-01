@@ -48,7 +48,7 @@ export function founderPriceLabel(plan?: string | null): string {
   return 'Founder — 39€ (pago único)'
 }
 
-export type FlowStep = 'landing' | 'questions' | 'top5' | 'battle' | 'winner'
+export type FlowStep = 'landing' | 'questions' | 'top5' | 'winner'
 
 export interface RestaurantAdmin {
   id: string

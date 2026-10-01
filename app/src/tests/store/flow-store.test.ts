@@ -68,48 +68,43 @@ describe('flow-store', () => {
     expect(useFlowStore.getState().top5).toEqual(r)
   })
 
-  it('initBattle moves to battle step with champion and challenger', () => {
+  it('setFavorite stores the picked id', () => {
+    useFlowStore.getState().setFavorite('b')
+    expect(useFlowStore.getState().favoriteId).toBe('b')
+  })
+
+  it('setFavorite accepts null to clear the selection', () => {
+    useFlowStore.getState().setFavorite('b')
+    useFlowStore.getState().setFavorite(null)
+    expect(useFlowStore.getState().favoriteId).toBeNull()
+  })
+
+  it('confirmFavorite declares the selected top5 as winner', () => {
     const r = [makeRestaurant('a'), makeRestaurant('b'), makeRestaurant('c')]
     useFlowStore.getState().setTop5(r)
-    useFlowStore.getState().initBattle()
+    useFlowStore.getState().setFavorite('c')
 
-    const state = useFlowStore.getState()
-    expect(state.step).toBe('battle')
-    expect(state.battleChampion?.id).toBe('a')
-    expect(state.battleChallenger?.id).toBe('b')
-    expect(state.battlePool).toHaveLength(1)
-    expect(state.battleRound).toBe(1)
-  })
-
-  it('initBattle does nothing with less than 2 top5', () => {
-    useFlowStore.getState().setTop5([makeRestaurant('a')])
-    useFlowStore.getState().initBattle()
-
-    expect(useFlowStore.getState().step).not.toBe('battle')
-  })
-
-  it('selectBattleWinner declares winner when pool is empty', () => {
-    const r = [makeRestaurant('a'), makeRestaurant('b')]
-    useFlowStore.getState().setTop5(r)
-    useFlowStore.getState().initBattle()
-
-    useFlowStore.getState().selectBattleWinner(r[0])
+    useFlowStore.getState().confirmFavorite()
     const state = useFlowStore.getState()
     expect(state.step).toBe('winner')
-    expect(state.winner?.id).toBe('a')
+    expect(state.winner?.id).toBe('c')
   })
 
-  it('selectBattleWinner continues with next challenger when pool has items', () => {
-    const r = [makeRestaurant('a'), makeRestaurant('b'), makeRestaurant('c')]
-    useFlowStore.getState().setTop5(r)
-    useFlowStore.getState().initBattle()
+  it('confirmFavorite does nothing without a selection', () => {
+    useFlowStore.getState().setTop5([makeRestaurant('a'), makeRestaurant('b')])
 
-    useFlowStore.getState().selectBattleWinner(r[0])
+    useFlowStore.getState().confirmFavorite()
     const state = useFlowStore.getState()
-    expect(state.step).toBe('battle')
-    expect(state.battleChampion?.id).toBe('a')
-    expect(state.battleChallenger?.id).toBe('c')
-    expect(state.battleRound).toBe(2)
+    expect(state.step).not.toBe('winner')
+    expect(state.winner).toBeNull()
+  })
+
+  it('confirmFavorite does nothing when the favorite is not in top5', () => {
+    useFlowStore.getState().setTop5([makeRestaurant('a'), makeRestaurant('b')])
+    useFlowStore.getState().setFavorite('ghost')
+
+    useFlowStore.getState().confirmFavorite()
+    expect(useFlowStore.getState().winner).toBeNull()
   })
 
   it('setWinner sets winner and step', () => {
@@ -163,13 +158,13 @@ describe('flow-store', () => {
 
   it('hydrate restores partial state', () => {
     useFlowStore.getState().hydrate({
-      step: 'battle',
+      step: 'top5',
       qIndex: 2,
       locationCenter: { lat: 39.4699, lng: -0.3763 },
       locationRadius: 2000,
     })
     const state = useFlowStore.getState()
-    expect(state.step).toBe('battle')
+    expect(state.step).toBe('top5')
     expect(state.qIndex).toBe(2)
     expect(state.locationCenter).toEqual({ lat: 39.4699, lng: -0.3763 })
     expect(state.locationRadius).toBe(2000)
@@ -212,8 +207,6 @@ describe('flow-store', () => {
     expect(state.top5).toEqual([])
     expect(state.locationCenter).toBeNull()
     expect(state.locationRadius).toBeNull()
-    expect(state.battleChampion).toBeNull()
-    expect(state.battlePool).toEqual([])
-    expect(state.battleRound).toBe(0)
+    expect(state.favoriteId).toBeNull()
   })
 })

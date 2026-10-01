@@ -237,16 +237,12 @@
     "emptyTitle": "No restaurants found with those filters",
     "emptyDesc": "Try changing the cuisine type, budget, or area.",
     "changeFilters": "Change filters",
-    "selected": "We've selected {count} options for you.",
-    "subtitle": "Now we'll help you choose the best one.",
-    "chooseFavorite": "Choose favorite"
-  },
-  "Battle": {
-    "errorDesc": "We couldn't load the matchup. Start over.",
-    "chooseFavorite": "Choose your favorite",
-    "choose": "Choose",
-    "question": "Which one convinces you more?",
-    "round": "Round {current} of {total}"
+    "selected": "We selected {count} options for you.",
+    "subtitle": "Now we'll help you pick the best one.",
+    "pickOne": "Tap the one you like most.",
+    "confirm": "Choose {name}",
+    "confirmPlaceholder": "Pick one to continue",
+    "selectedBadge": "Selected"
   },
   "Winner": {
     "noSelection": "No restaurant was selected",
