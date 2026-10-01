@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { useFlowStore } from '@/store/flow-store'
@@ -10,6 +10,15 @@ import type { Restaurant } from '@/types'
 import { MapPin, Sparkles, Swords, RotateCcw, Crown } from 'lucide-react'
 import PhotoCarousel from '@/components/photo-carousel'
 
+// Única fuente de verdad para el ancho de la tarjeta: si el CSS y la
+// aritmética de centrado se desincronizan, el centrado se rompe.
+const CARD_RATIO = 0.78
+const CARD_GAP = 16
+const SWIPE_THRESHOLD = 56
+const AXIS_LOCK_PX = 8
+const EDGE_DAMPING = 0.3
+const MAX_DRAG = 140
+
 export default function BattleView() {
   const t = useTranslations('Battle')
   const tCommon = useTranslations('Common')
@@ -17,30 +26,99 @@ export default function BattleView() {
   const [picking, setPicking] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [centerIndex, setCenterIndex] = useState(0)
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([])
+  const [dragOffset, setDragOffset] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const [metrics, setMetrics] = useState({ base: 0, step: 0 })
+  const trackRef = useRef<HTMLDivElement>(null)
   const totalRounds = useFlowStore((s) => s.top5.length) - 1
 
   const champion = battleChampion
   const challenger = battleChallenger
 
-  useEffect(() => {
-    setCenterIndex(0)
-    if (scrollRef.current) scrollRef.current.scrollLeft = 0
-  }, [battleRound])
+  const startX = useRef<number | null>(null)
+  const startY = useRef<number | null>(null)
+  const lockedDir = useRef<'h' | 'v' | null>(null)
+  const wasDragged = useRef(false)
 
-  const scrollTo = useCallback((idx: number) => {
-    setCenterIndex(idx)
-    try { cardRefs.current[idx]?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest', inline: 'center' } as unknown as ScrollIntoViewOptions) } catch {}
+  // Reset the carousel when the round changes. Adjusting state during render is
+  // React's supported pattern here; doing it in an effect would paint the new
+  // round's cards at the previous round's offset for one frame.
+  const [prevRound, setPrevRound] = useState(battleRound)
+  if (prevRound !== battleRound) {
+    setPrevRound(battleRound)
+    setCenterIndex(0)
+    setDragOffset(0)
+  }
+
+  useLayoutEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+    const measure = () => {
+      const w = el.clientWidth
+      if (w <= 0) return
+      const card = w * CARD_RATIO
+      setMetrics({ base: (w - card) / 2, step: card + CARD_GAP })
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [battleRound, champion?.id, challenger?.id])
+
+  const onTrackPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse') return
+    startX.current = e.clientX
+    startY.current = e.clientY
+    lockedDir.current = null
+    wasDragged.current = false
+    setDragging(true)
   }, [])
 
-  const onScroll = useCallback(() => {
-    const el = scrollRef.current
-    if (!el) return
-    const max = el.scrollWidth - el.clientWidth
-    if (max <= 0) return
-    const idx = el.scrollLeft > max / 2 ? 1 : 0
-    setCenterIndex((prev) => (prev !== idx ? idx : prev))
+  const onTrackPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (startX.current == null || startY.current == null) return
+    const dx = e.clientX - startX.current
+    const dy = e.clientY - startY.current
+    if (lockedDir.current == null) {
+      if (Math.abs(dx) < AXIS_LOCK_PX && Math.abs(dy) < AXIS_LOCK_PX) return
+      lockedDir.current = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
+    }
+    if (lockedDir.current === 'v') return
+    if (Math.abs(dx) > AXIS_LOCK_PX) {
+      wasDragged.current = true
+      e.stopPropagation()
+    }
+    const atEdge = (centerIndex === 0 && dx > 0) || (centerIndex === 1 && dx < 0)
+    const next = atEdge ? dx * EDGE_DAMPING : dx
+    setDragOffset(Math.max(-MAX_DRAG, Math.min(MAX_DRAG, next)))
+  }, [centerIndex])
+
+  const onTrackPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (startX.current == null) return
+    const dx = e.clientX - startX.current
+    startX.current = null
+    startY.current = null
+    lockedDir.current = null
+    setDragging(false)
+    setDragOffset(0)
+    if (dx <= -SWIPE_THRESHOLD) setCenterIndex(1)
+    else if (dx >= SWIPE_THRESHOLD) setCenterIndex(0)
+  }, [])
+
+  const onTrackPointerCancel = useCallback(() => {
+    startX.current = null
+    startY.current = null
+    lockedDir.current = null
+    wasDragged.current = false
+    setDragging(false)
+    setDragOffset(0)
+  }, [])
+
+  const onTrackClickCapture = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!wasDragged.current) return
+    e.stopPropagation()
+    e.preventDefault()
+    wasDragged.current = false
   }, [])
 
   if (!champion || !challenger) {
@@ -100,45 +178,64 @@ export default function BattleView() {
 
       <div className="flex gap-2 lg:gap-3">
         {Array.from({ length: totalRounds }).map((_, i) => (
-          <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 lg:h-2 ${i < battleRound ? 'bg-stone-900' : i === battleRound - 1 ? 'bg-stone-400' : 'bg-stone-200'}`} />
+          <div
+            key={i}
+            data-testid={`round-bar-${i}`}
+            data-state={i < battleRound - 1 ? 'done' : i === battleRound - 1 ? 'active' : 'upcoming'}
+            className={`h-1.5 flex-1 rounded-full transition-all duration-300 lg:h-2 ${i < battleRound - 1 ? 'bg-stone-900' : i === battleRound - 1 ? 'bg-stone-400' : 'bg-stone-200'}`}
+          />
         ))}
       </div>
 
       <div className="lg:hidden">
         <div
-          ref={scrollRef}
-          onScroll={onScroll}
-          className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-[7%] pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [overscroll-behavior-x:contain] touch-pan-x"
+          ref={trackRef}
+          data-testid="battle-carousel"
+          onPointerDown={onTrackPointerDown}
+          onPointerMove={onTrackPointerMove}
+          onPointerUp={onTrackPointerUp}
+          onPointerCancel={onTrackPointerCancel}
+          onClickCapture={onTrackClickCapture}
+          className="touch-pan-y overflow-hidden select-none"
         >
-          {restaurants.map((r, idx) => {
-            const isCenter = centerIndex === idx
-            const isSelected = selectedId === r.id
-            return (
-              <div
-                key={r.id}
-                ref={(el) => { cardRefs.current[idx] = el }}
-                className="w-[86%] shrink-0 snap-center"
-              >
-                <div className={`transition-all duration-300 ${isCenter ? 'scale-100 opacity-100' : 'scale-[0.96] opacity-100'}`}>
+          <div
+            className="flex items-stretch"
+            style={{
+              gap: `${CARD_GAP}px`,
+              transform: `translateX(${metrics.base - centerIndex * metrics.step + dragOffset}px)`,
+              transition: dragging ? 'none' : 'transform 350ms cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+          >
+            {restaurants.map((r, idx) => {
+              const isCenter = centerIndex === idx
+              const isSelected = selectedId === r.id
+              return (
+                <div
+                  key={r.id}
+                  data-testid={`battle-slide-${idx}`}
+                  style={{ width: `${CARD_RATIO * 100}%` }}
+                  className={`shrink-0 transition-all duration-300 ${isCenter ? 'scale-100 opacity-100' : 'scale-[0.95] opacity-60'}`}
+                >
                   <BattleCard
                     restaurant={r}
                     onPick={handlePick}
                     isSelected={isSelected}
                     isCenter={isCenter}
                     disabled={picking}
-                    onCenterTap={() => scrollTo(idx)}
+                    onCenterTap={() => setCenterIndex(idx)}
                   />
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
         <div className="mt-3 flex justify-center gap-1.5">
           {[0, 1].map((i) => (
             <button
               key={i}
-              onClick={() => scrollTo(i)}
+              onClick={() => setCenterIndex(i)}
               aria-label={`Ver opción ${i + 1}`}
+              aria-current={centerIndex === i ? 'true' : undefined}
               className={`h-1.5 rounded-full transition-all ${centerIndex === i ? 'w-6 bg-stone-900' : 'w-1.5 bg-stone-300'}`}
             />
           ))}
@@ -188,11 +285,8 @@ function BattleCard({
 
   return (
     <div
-      role={!isCenter ? 'button' : undefined}
-      tabIndex={!isCenter ? 0 : undefined}
-      onKeyDown={!isCenter ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCenterTap?.() } } : undefined}
       onClick={!isCenter ? () => onCenterTap?.() : undefined}
-      className={`relative flex flex-col overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition-all ${
+      className={`relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition-all ${
         isSelected ? 'border-stone-900 ring-2 ring-stone-900/10 ring-offset-2' : 'border-stone-200'
       } ${!isCenter ? 'cursor-pointer' : ''} ${disabled && isCenter ? 'opacity-80' : ''}`}
     >
@@ -201,7 +295,6 @@ function BattleCard({
           photos={restaurant.photos?.length ? restaurant.photos : restaurant.image_url ? [restaurant.image_url] : []}
           name={restaurant.name}
         />
-        {!isCenter && <div className="pointer-events-none absolute inset-0 bg-black/20" />}
         {isSelected && isCenter && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/5 backdrop-blur-[2px]">
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }} className="flex h-16 w-16 items-center justify-center rounded-full bg-stone-900 shadow-lg">

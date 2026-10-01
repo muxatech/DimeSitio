@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import BattleView from '@/components/battle-view'
 import { useFlowStore } from '@/store/flow-store'
 import { TestWrapper } from '@/tests/helpers'
@@ -285,6 +285,191 @@ describe('BattleView', () => {
       const { container } = render(<BattleView />, { wrapper: TestWrapper })
       expect(screen.queryByTestId('photo-carousel')).not.toBeInTheDocument()
       expect(container.querySelectorAll('.lucide-utensils-crossed').length).toBeGreaterThanOrEqual(2)
+    })
+
+    it('marks the current round as active, not completed, in the progress bar', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 2,
+        top5: [champion, challenger, { ...champion, id: 'c', name: 'C' }],
+      })
+      render(<BattleView />, { wrapper: TestWrapper })
+      expect(screen.getByTestId('round-bar-0')).toHaveAttribute('data-state', 'done')
+      expect(screen.getByTestId('round-bar-1')).toHaveAttribute('data-state', 'active')
+    })
+
+    it('marks round one as active on the first round', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger, { ...champion, id: 'c', name: 'C' }],
+      })
+      render(<BattleView />, { wrapper: TestWrapper })
+      expect(screen.getByTestId('round-bar-0')).toHaveAttribute('data-state', 'active')
+      expect(screen.getByTestId('round-bar-1')).toHaveAttribute('data-state', 'upcoming')
+    })
+
+    it('centers the first card by default', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      render(<BattleView />, { wrapper: TestWrapper })
+      expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-100')
+      expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-60')
+    })
+
+    it('does not expose the side card as a nested interactive role', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const sideCard = container.querySelector('[data-testid="battle-slide-1"]')
+      expect(sideCard?.querySelector('[role="button"]')).toBeNull()
+    })
+
+    it('shows the placeholder hint only on the side card', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const side = container.querySelector('[data-testid="battle-slide-1"]')
+      expect(side?.textContent).toContain('Desliza para ver')
+    })
+
+    it('brings the side card to center when tapped', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const sideCard = container.querySelector(
+        '[data-testid="battle-slide-1"] .relative.flex.h-full'
+      ) as HTMLElement
+      fireEvent.click(sideCard)
+      expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-100')
+      expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-60')
+      expect(useFlowStore.getState().step).toBe('battle')
+    })
+
+    it('moves to the next option when the dot is clicked', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      render(<BattleView />, { wrapper: TestWrapper })
+      fireEvent.click(screen.getByRole('button', { name: 'Ver opción 2' }))
+      expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-100')
+      expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-60')
+    })
+
+    it('does not center the card when the Instagram link is tapped', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      render(<BattleView />, { wrapper: TestWrapper })
+      fireEvent.click(screen.getAllByText('Ver Instagram')[0])
+      expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-100')
+      expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-60')
+    })
+
+    it('swipes to the next option on a horizontal drag', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const track = container.querySelector('[data-testid="battle-carousel"]') as HTMLElement
+      fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 300, clientY: 200 })
+      fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 205 })
+      fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 180, clientY: 205 })
+      expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-100')
+      expect(useFlowStore.getState().step).toBe('battle')
+    })
+
+    it('ignores a small horizontal drag', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const track = container.querySelector('[data-testid="battle-carousel"]') as HTMLElement
+      fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 300, clientY: 200 })
+      fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 290, clientY: 205 })
+      fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 285, clientY: 205 })
+      expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-100')
+    })
+
+    it('keeps the card in place on a vertical drag', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const track = container.querySelector('[data-testid="battle-carousel"]') as HTMLElement
+      fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 300, clientY: 400 })
+      fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 295, clientY: 300 })
+      fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 290, clientY: 200 })
+      expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-100')
+      expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-60')
+    })
+
+    it('applies no transform transition while dragging', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const track = container.querySelector('[data-testid="battle-carousel"]') as HTMLElement
+      const inner = track.firstElementChild as HTMLElement
+      fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 300, clientY: 200 })
+      fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 240, clientY: 205 })
+      expect(inner.style.transition).toBe('none')
+      fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 180, clientY: 205 })
+      expect(inner.style.transition).toContain('transform')
+    })
+
+    it('resets to the first option on a new round', () => {
+      const third: Restaurant = { ...champion, id: 'e', name: 'Third' }
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger, third],
+        battlePool: [third],
+      })
+      render(<BattleView />, { wrapper: TestWrapper })
+      fireEvent.click(screen.getByRole('button', { name: 'Ver opción 2' }))
+      expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-100')
+      fireEvent.click(screen.getAllByRole('button', { name: 'Elegir' })[0])
+      act(() => { vi.advanceTimersByTime(400) })
+      expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-100')
+      expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-60')
     })
 
     it('shows price level on each card', () => {

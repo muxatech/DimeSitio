@@ -84,6 +84,17 @@ describe('PhotoCarousel', () => {
     expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[2])
   })
 
+  it('recovers after pointerleave interrupts a drag', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+    fireEvent.pointerDown(carousel, { clientX: 200, clientY: 100, pointerId: 1 })
+    fireEvent.pointerMove(carousel, { clientX: 100, clientY: 102, pointerId: 1 })
+    fireEvent.pointerLeave(carousel, { clientX: 100, clientY: 102, pointerId: 1 })
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Ver fotos en grande' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
   it('opens fullscreen viewer when clicking the expand button', () => {
     render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
     fireEvent.click(screen.getByRole('button', { name: 'Ver fotos en grande' }))
