@@ -6,8 +6,8 @@
 2. Empieza preguntas
 3. Sistema filtra restaurantes
 4. Genera Top 5
-5. Usuario elige favoritos
-6. Sistema obtiene ganador
+5. Usuario toca **un** favorito entre los candidatos (selección única, sin rondas)
+6. Sistema confirma el favorito
 7. Usuario llama restaurante
 
 ---
@@ -37,9 +37,9 @@
 Cada aparición:
 - guardar impresión
 
-## Comparador
-Cada selección:
-- guardar ganador
+## Selección de favorito
+Cada confirmación:
+- guardar el restaurante elegido (siempre uno por sesión, `round = 0`)
 
 ## Llamada
 Cada click:

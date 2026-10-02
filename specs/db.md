@@ -141,7 +141,7 @@ Campos:
 
 ## selections
 
-Restaurante seleccionado en batalla 1v1.
+Restaurante elegido como favorito en la pantalla Top 5 (selección única).
 
 Campos:
 - id (uuid, pk)
@@ -149,6 +149,8 @@ Campos:
 - session_id (text)
 - round (int)
 - created_at (timestamptz)
+
+> `round` se conserva por compatibilidad con los datos de las antiguas rondas 1v1, pero desde la selección única siempre vale `0`. Cada sesión genera exactamente una fila. No migrar.
 
 ---
 

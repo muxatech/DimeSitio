@@ -28,6 +28,7 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
 
   const dragStartX = useRef<number | null>(null)
   const dragStartY = useRef<number | null>(null)
+  const capturedId = useRef<number | null>(null)
   const wasDragged = useRef(false)
   const lockedDir = useRef<'h' | 'v' | null>(null)
 
@@ -85,75 +86,79 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
     }
   }
 
-  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (!showControls) return
-    e.stopPropagation()
-    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch {}
-    dragStartX.current = e.clientX
-    dragStartY.current = e.clientY
-    wasDragged.current = false
-    lockedDir.current = null
-    setDragging(true)
-  }
+function releaseCapture(el: HTMLElement) {
+  if (capturedId.current == null) return
+  try { el.releasePointerCapture?.(capturedId.current) } catch {}
+  capturedId.current = null
+}
 
-  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (dragStartX.current == null || dragStartY.current == null) return
-    const dx = e.clientX - dragStartX.current
-    const dy = e.clientY - dragStartY.current
-    if (lockedDir.current == null) {
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return
-      lockedDir.current = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
-      if (lockedDir.current === 'h') {
-        ;(e.currentTarget as HTMLElement).style.touchAction = 'none'
-        try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch {}
-      }
-    }
-    if (lockedDir.current === 'v') return
-    e.stopPropagation()
-    if (Math.abs(dx) > 8) wasDragged.current = true
-    const clamped = Math.max(-MAX_DRAG_OFFSET, Math.min(MAX_DRAG_OFFSET, dx))
-    setDragOffset(clamped)
-  }
+function resetDrag(el: HTMLElement) {
+  releaseCapture(el)
+  dragStartX.current = null
+  dragStartY.current = null
+  lockedDir.current = null
+  setDragging(false)
+  setDragOffset(0)
+}
 
-  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
-    if (dragStartX.current == null) return
-    e.stopPropagation()
-    try { (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId) } catch {}
-    ;(e.currentTarget as HTMLElement).style.touchAction = ''
-    const dx = e.clientX - dragStartX.current
-    dragStartX.current = null
-    dragStartY.current = null
-    lockedDir.current = null
-    setDragging(false)
-    if (Math.abs(dx) > SWIPE_THRESHOLD) {
-      paginate(dx < 0 ? 1 : -1)
+function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+  if (!showControls) return
+  e.stopPropagation()
+  resetDrag(e.currentTarget)
+  wasDragged.current = false
+  dragStartX.current = e.clientX
+  dragStartY.current = e.clientY
+  setDragging(true)
+}
+
+function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+  if (dragStartX.current == null || dragStartY.current == null) return
+  const dx = e.clientX - dragStartX.current
+  const dy = e.clientY - dragStartY.current
+  if (lockedDir.current == null) {
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // Gesto horizontal: aqui es seguro capturar. La clase `touch-pan-y` ya cede
+      // el eje X al componente, y el navegador no ha iniciado ningun scroll.
+      lockedDir.current = 'h'
+      try {
+        ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+        capturedId.current = e.pointerId
+      } catch {}
     } else {
-      setDragOffset(0)
+      // Gesto vertical: sin capturar, el navegador conserva su scroll nativo.
+      lockedDir.current = 'v'
     }
   }
+  if (lockedDir.current === 'v') return
+  e.stopPropagation()
+  if (Math.abs(dx) > 8) wasDragged.current = true
+  const clamped = Math.max(-MAX_DRAG_OFFSET, Math.min(MAX_DRAG_OFFSET, dx))
+  setDragOffset(clamped)
+}
 
-  function onPointerCancel(e: React.PointerEvent<HTMLDivElement>) {
-    if (dragStartX.current == null) return
-    try { (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId) } catch {}
-    ;(e.currentTarget as HTMLElement).style.touchAction = ''
-    dragStartX.current = null
-    dragStartY.current = null
-    lockedDir.current = null
-    setDragging(false)
-    setDragOffset(0)
-    wasDragged.current = false
-  }
+function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+  if (dragStartX.current == null) return
+  const dx = e.clientX - dragStartX.current
+  const horizontal = lockedDir.current === 'h'
+  if (horizontal) e.stopPropagation()
+  resetDrag(e.currentTarget)
+  if (horizontal && Math.abs(dx) > SWIPE_THRESHOLD) paginate(dx < 0 ? 1 : -1)
+}
 
-  function onPointerLeave(e: React.PointerEvent<HTMLDivElement>) {
-    if (dragStartX.current == null) return
-    try { (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId) } catch {}
-    ;(e.currentTarget as HTMLElement).style.touchAction = ''
-    dragStartX.current = null
-    dragStartY.current = null
-    lockedDir.current = null
-    setDragging(false)
-    setDragOffset(0)
-  }
+function onPointerCancel(e: React.PointerEvent<HTMLDivElement>) {
+  if (dragStartX.current == null) return
+  resetDrag(e.currentTarget)
+  // Un gesto cancelado no genera click, asi que hay que limpiar el flag para
+  // que no se trague el siguiente click legitimo.
+  wasDragged.current = false
+}
+
+function onPointerLeave(e: React.PointerEvent<HTMLDivElement>) {
+  if (dragStartX.current == null) return
+  resetDrag(e.currentTarget)
+  wasDragged.current = false
+}
 
   function onClickCapture(e: React.MouseEvent<HTMLDivElement>) {
     if (wasDragged.current) {
@@ -200,6 +205,7 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
         type="button"
         aria-label={t('openFullscreen')}
         onClick={(e) => {
+          // Puede vivir dentro de un role="radio" (tarjeta seleccionable).
           e.stopPropagation()
           setFullscreen(true)
         }}
@@ -246,6 +252,7 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
                 type="button"
                 aria-label={t('photoLabel', { n: i + 1 })}
                 onClick={(e) => {
+                  // Puede vivir dentro de un role="radio" (tarjeta seleccionable).
                   e.stopPropagation()
                   goTo(i)
                 }}
@@ -349,6 +356,7 @@ export default function PhotoCarousel({ photos, name, className = '', showArrows
                     type="button"
                     aria-label={t('photoLabel', { n: i + 1 })}
                     onClick={(e) => {
+                      // Puede vivir dentro de un role="radio" (tarjeta seleccionable).
                       e.stopPropagation()
                       goTo(i)
                     }}

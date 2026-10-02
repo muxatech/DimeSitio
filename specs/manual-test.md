@@ -27,15 +27,19 @@
 - Seleccionar categoría(s) → avanza a precio
 - Seleccionar precio → avanza a zona
 - Seleccionar zona → ver resultados
-- Battle: votar entre dos restaurantes → avanza al siguiente par
-- Winner: ver restaurante ganador con nombre, descripción, precio, zona, categorías
+- Top 5: aparece un grid con hasta 5 tarjetas
+- Tocar una tarjeta la selecciona (solo una a la vez, la anterior se desmarca)
+- Tocar la tarjeta ya seleccionada la deselecciona
+- El botón de confirmar está deshabilitado hasta que haya selección
+- Confirmar lleva a la pantalla de resultado con el restaurante elegido
+- Volver atrás desde el resultado → vuelve al Top 5 con la selección intacta
+- "Cambiar filtros" → vuelve a preguntas manteniendo la selección
+- Winner: ver restaurante con nombre, descripción, precio, zona, categorías
 - Badge "Fundador" visible si el restaurante tiene founder_rank
 - Badge "Demo" visible si el restaurante tiene is_demo = true
 - Los restaurantes demo aparecen después que los reales
 - "Cómo llegar" abre Google Maps con la dirección del restaurante
-- "Menú" / "Reservas" enlaces funcionan si están configurados
-- Volver atrás desde resultados → mantiene selecciones anteriores
-- Top 5 grid muestra los badges correctamente
+- "Menú" / "Reservas" / "Instagram" enlaces funcionan si están configurados
 
 🏪 Panel del restaurante (dueño)
 
@@ -69,9 +73,22 @@
 - Webhook actualiza el estado de suscripción
 - Ver en panel que la suscripción aparece como activa
 
+🖼️ Carrusel de fotos (regresión, 2026-10-01)
+
+- Con más de una foto: deslizar horizontal cambia de foto
+- Con una sola foto: no aparece swipe ni dots
+- **Scroll vertical empezando sobre una foto → la página hace scroll normal**
+- El scroll vertical nunca cambia de foto ni engancha el puntero
+- Tras un scroll vertical, el swipe horizontal sigue funcionando
+- Dots, flechas y Maximize no seleccionan la tarjeta que los contiene
+- Abrir Maximize y cerrar con X / Escape
+- Verificar también en la ficha (`/sitio/[id]`) y en las cards del panel
+
 📱 Responsive / UX
 
 - Todas las páginas anteriores en móvil (320px), tablet, desktop
+- Barra de confirmación pegada abajo, con borde superior y sombra visible
+- La barra llega a los bordes de la pantalla sin hueco lateral
 - Modales se cierran con botón X y con clic fuera
 - Botones de carga/loading states se muestran durante operaciones lentas
 - Errores de red se muestran como toast o mensaje en pantalla

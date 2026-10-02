@@ -2,7 +2,7 @@
 
 ## Visión
 
-DimeSitio ayuda a usuarios indecisos a elegir restaurante mediante un sistema de preguntas rápidas y selección estilo Tinder.
+DimeSitio ayuda a usuarios indecisos a elegir restaurante mediante un sistema de preguntas rápidas y una selección única entre los mejores candidatos.
 
 El objetivo es reducir la fricción de decidir dónde comer o cenar.
 
@@ -29,8 +29,8 @@ La app:
 1. Pregunta preferencias al usuario
 2. Filtra restaurantes compatibles
 3. Genera un Top 5
-4. Permite elegir mediante enfrentamientos 1vs1 tipo Tinder
-5. Devuelve un ganador final
+4. Permite elegir **un único favorito** tocando la tarjeta deseada (sin rondas ni enfrentamientos)
+5. Devuelve el restaurante elegido como resultado final
 6. Permite llamar directamente
 
 ---
@@ -73,7 +73,7 @@ La app:
 - Landing simple
 - Flujo de preguntas
 - Sistema Top 5
-- Comparador tipo Tinder
+- Selección única de favorito
 - Panel restaurante
 - Métricas básicas
 - Suscripciones Stripe
@@ -97,7 +97,7 @@ La app:
 
 ## Restaurante
 - Veces en Top 5
-- Veces ganador final
+- Veces elegido como favorito
 - CTR botón llamar
 
 ---

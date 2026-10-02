@@ -12,7 +12,7 @@ Nunca acceder directamente a lógica sensible.
 
 # Endpoints MVP
 
-> **Nota**: El filtrado de restaurantes, generación del Top 5 y lógica de batalla 1v1 se ejecutan **completamente en cliente** (React + TanStack Query + Zustand). No existen Edge Functions para search/battle. Solo se usan Edge Functions para eventos y CRUD del panel restaurante.
+> **Nota**: El filtrado de restaurantes, generación del Top 5 y selección del favorito se ejecutan **completamente en cliente** (React + TanStack Query + Zustand). No existen Edge Functions para search/selección. Solo se usan Edge Functions para eventos y CRUD del panel restaurante.
 
 ## Supabase queries directas (cliente público)
 
@@ -28,7 +28,7 @@ Registra que un restaurante apareció en el Top 5 de un usuario.
 
 ### POST /events/selection
 
-Registra que un restaurante fue seleccionado como favorito en batalla.
+Registra el restaurante elegido como favorito. Una fila por confirmación, siempre con `round = 0`.
 
 ### POST /events/call
 

@@ -23,7 +23,7 @@ El frontend nunca accede directamente a lógica sensible.
 
 ## Usuario
 - Registrar analytics (impresiones, selecciones, llamadas)
-- **Nota**: El filtrado de restaurantes, generación del Top 5 y lógica de batalla se ejecutan **en cliente** (React + Zustand), no en Edge Functions.
+- **Nota**: El filtrado de restaurantes, generación del Top 5 y selección del favorito se ejecutan **en cliente** (React + Zustand), no en Edge Functions.
 
 ## Restaurantes
 - CRUD de establecimientos (crear, editar, eliminar, listar)

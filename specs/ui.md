@@ -6,7 +6,7 @@
 - Minimalista
 - Ultra rápida
 - Pocos clicks
-- Diseño tipo TikTok/Tinder
+- Diseño tipo TikTok
 
 ---
 
@@ -34,25 +34,25 @@ Respuesta rápida:
 
 # Resultado Top 5
 
-Mostrar:
-- Imagen
+Selección única: el usuario toca **una** tarjeta y confirma. Sin rondas, sin enfrentamientos, sin pantalla de "VS".
+
+Tarjeta (`FavoriteCard`):
+- Carrusel de fotos (`PhotoCarousel`) — swipe horizontal entre fotos
+- Badges: Fundador / Demo
 - Nombre
-- Zona
-- Precio
+- Zona · Precio
+- CTA "Ver Instagram" (solo si el restaurante tiene `instagram_url`)
+
+Cada tarjeta es `role="radio"` dentro de un `role="radiogroup"`, navegable con teclado (Enter / Espacio).
+
+**Barra de confirmación**: fija abajo (`sticky bottom-0`), con borde superior y sombra hacia arriba para separarla del contenido. Sus márgenes negativos replican el padding del contenedor (`px-5 sm:px-8 lg:px-12`) para llegar a los bordes de la pantalla. Botón deshabilitado hasta que haya selección.
+
+**Regla de interacción del carrusel dentro de una tarjeta seleccionable**:
+- El gesto horizontal lo gestiona el carrusel.
+- El gesto vertical debe quedárselo al navegador para que la página siga haciendo scroll. El componente **no** captura el puntero hasta saber que el gesto es horizontal (`touch-pan-y` en CSS cede el eje X; capturar antes rompe el scroll vertical de la página).
+- Todo control interno del carrusel (dots, Maximize, flechas) hace `stopPropagation()` para no disparar la selección de la tarjeta.
 
 No se muestra distancia ni rating interno en MVP.
-
----
-
-# Comparador estilo Tinder
-
-Pantalla:
-- Restaurante A vs Restaurante B
-- Usuario elige uno
-- Animaciones rápidas
-
-Objetivo:
-- Obtener restaurante favorito final
 
 ---
 
@@ -142,7 +142,7 @@ Deferido:
 - Grandes imágenes
 
 ## Inspiraciones
-- Tinder
+- TikTok
 - Airbnb
 - Uber Eats
 - Linear

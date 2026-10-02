@@ -23,7 +23,7 @@
 
 | Clase | Hex | Uso |
 |-------|-----|-----|
-| `stone-900` | `#1c1917` | Fondos primarios, texto headings, bordes seleccionados, badges de ranking, indicador VS |
+| `stone-900` | `#1c1917` | Fondos primarios, texto headings, bordes seleccionados, check de tarjeta seleccionada |
 | `stone-800` | `#292524` | Botones primarios (Continuar, Empezar, Guardar, Elegir favorito) |
 | `stone-700` | `#44403c` | Headings en estados de error/vacío, texto secundario fuerte |
 | `stone-600` | `#57534e` | Texto en opciones no seleccionadas |
@@ -111,9 +111,10 @@ textShadow: '0 1px 12px rgba(0,0,0,0.25)'  /* subtítulo */
 |-------|-----|
 | `shadow-sm` | Cards en reposo, inputs, botones secundarios |
 | `shadow-md` | Hover de cards y opciones seleccionables |
-| `shadow-lg` | Botones primarios, navbar "Empezar", VS circle |
+| `shadow-lg` | Botones primarios, navbar "Empezar" |
 | `shadow-xl` | Solo bottom CTA |
 | `shadow-lg shadow-stone-200/50` | Botones primarios con tono cálido |
+| `shadow-[0_-8px_24px_-12px_rgba(28,25,23,0.18)]` | Barra fija de confirmación (elevación hacia arriba) |
 
 **Regla**: `shadow-sm` para todo en reposo. `shadow-lg` solo para elementos que necesitan destacar (CTAs principales).
 
@@ -184,7 +185,7 @@ transition={{ duration: 0.5 }}
 ```
 
 ### Reglas de animación
-- Duración estándar: **250ms** (página y batallas), **400ms** (progreso), **500ms** (entrada), **600ms** (carrusel)
+- Duración estándar: **250ms** (página y transiciones), **400ms** (progreso), **500ms** (entrada), **600ms** (carrusel)
 - Easing estándar: `easeInOut` o `[0.25, 0.1, 0.25, 1]` (carrusel)
 - `AnimatePresence mode="wait"` para transiciones de contenido que cambia
 - No animar más de 100ms de retardo entre elementos hijos (staggerChildren: 0.04-0.08)
@@ -228,12 +229,22 @@ className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-
 className="flex items-center gap-4 overflow-hidden rounded-2xl border border-stone-200 bg-white pr-4 shadow-sm transition-all hover:shadow-md sm:flex-col sm:gap-0 sm:p-0 sm:pr-0"
 ```
 
-### Card batalla
+### Card seleccionable (Top 5)
 ```tsx
-className="relative w-full overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition-all sm:flex-1"
+className="relative cursor-pointer overflow-hidden rounded-2xl border-2 bg-white text-left shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2"
 ```
-- Seleccionada: `border-stone-900 ring-2 ring-stone-200 ring-offset-2`
-- No seleccionada: `border-stone-200 hover:shadow-md`
+- Seleccionada: `border-stone-900`, con check circular sobre la foto
+- No seleccionada: `border-transparent hover:border-stone-200`, y `opacity-50` si ya hay otra seleccionada
+
+Es `role="radio"` dentro de un `role="radiogroup"`. Todo control interactivo interno (CTA de Instagram, carrusel) debe llamar a `stopPropagation()` para no disparar la selección.
+
+### Barra de confirmación fija
+```tsx
+className="sticky bottom-0 z-20 -mx-5 flex flex-col gap-2 border-t border-stone-200 bg-white/95 px-5 pb-4 pt-3 shadow-[0_-8px_24px_-12px_rgba(28,25,23,0.18)] backdrop-blur sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12"
+```
+- La sombra va **hacia arriba**: separa la barra del contenido sin introduce color fuera de la paleta stone.
+- Los márgenes negativos replican el padding del contenedor (`px-5 sm:px-8 lg:px-12`) para que la barra llegue a los bordes de la pantalla.
+- `z-20` para quedar por encima de las tarjetas.
 
 ### Card info (winner)
 ```tsx

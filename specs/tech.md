@@ -43,9 +43,8 @@ Componentes reutilizables y accesibles.
 
 ### Framer Motion
 Animaciones suaves para:
-- comparador Tinder
-- transiciones
-- microinteracciones
+- transiciones de pantalla
+- microinteracciones (selección de tarjetas)
 
 ---
 

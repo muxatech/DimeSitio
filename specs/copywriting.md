@@ -209,33 +209,29 @@ Buscando los mejores restaurantes para ti...
 # Top 5 (top5-grid.tsx)
 
 Badge:
-Tus mejores opciones
+Hemos seleccionado {count} opciones para ti.
 
-Título:
-Restaurantes que encajan contigo
+Subtítulo:
+Toca el que más te guste.
 
 Vacío:
 No encontramos restaurantes con esos filtros.
-Prueba cambiando alguna opción.
+Prueba cambiando el tipo de cocina, el presupuesto o la zona.
 
-Botón:
-Elegir favorito
+Botón de confirmación (con selección):
+Elegir {name}
 
----
+Botón de confirmación (sin selección):
+Elige uno para continuar
 
-# Battle view (battle-view.tsx)
+Secondary:
+Cambiar filtros
 
-Badge:
-Elige tu favorito
+Badge de tarjeta seleccionada:
+Seleccionado
 
-Título:
-¿Cuál te convence más?
-
-Ronda:
-Ronda {n} de {total}
-
-Separador:
-VS
+CTA de tarjeta:
+Ver Instagram (reutiliza `Common.viewInstagram`, igual que `winner-view` y `sitio-cta`)
 
 ---
 

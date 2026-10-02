@@ -45,19 +45,20 @@ Guardar:
 
 ---
 
-## battle_completed
+## favorite_selected
 
-Cuando usuario elige restaurante.
+Cuando el usuario confirma su favorito en el Top 5.
 
 Guardar:
-- restaurante ganador
-- restaurante perdedor
+- restaurante favorito (uno solo, `round = 0`)
+
+> Antes se llamaba `battle_completed` y guardaba ganador + perdedor de rondas 1v1. Desde la selección única no hay perdedor: cada sesión produce exactamente una fila en `selections`.
 
 ---
 
 ## final_winner
 
-Restaurante final elegido.
+Restaurante final elegido. Se emite junto a `favorite_selected` al llegar a la pantalla de resultado; la fuente de verdad para métricas es la tabla `selections`.
 
 ---
 
@@ -74,14 +75,14 @@ Evento más importante del MVP.
 ## Impresiones
 Veces en Top 5.
 
-## Wins
-Veces ganador final.
+## Favorites
+Veces elegido como favorito.
 
 ## Call CTR
 Clicks llamar / impresiones.
 
 ## Conversion rate
-Ganador final / impresiones.
+Favoritos / impresiones.
 
 ---
 

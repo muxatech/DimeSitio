@@ -51,12 +51,13 @@
   - [x] "¿Cuánto quieres gastar?" → rango precio
   - [ ] "¿Qué ambiente buscas?" → tags *(deferido — post-MVP)*
   - [ ] "¿Cuánta distancia aceptas?" → slider/radio *(deferido — post-MVP)*
-- [x] **Top 5**: grid de 5 tarjetas con imagen, nombre, tipo, distancia, precio, rating
-- [x] **Comparador Tinder 1v1**:
-  - [x] Mostrar Restaurante A vs Restaurante B
+- [x] **Top 5**: grid de hasta 5 tarjetas con imagen, nombre, tipo, precio
+- [x] **Selección única de favorito** *(sustituye al comparador Tinder 1v1, retirado el 2026-10-01)*:
+  - [x] Grid de tarjetas seleccionables (`role="radio"`)
   - [x] Tap/click para elegir favorito
-  - [x] Animación de transición
-  - [x] Eliminatoria hasta que queda 1
+  - [x] Barra fija de confirmación
+  - [x] CTA "Ver Instagram" por tarjeta
+  - [x] Volver atrás para cambiar la elección
 - [x] **Pantalla resultado final**:
   - [x] Restaurante ganador (imagen grande, nombre, tipo, precio, distancia)
   - [x] Botón "Llamar" (tel://)

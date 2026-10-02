@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { motion } from 'framer-motion'
 import Top5Grid from '@/components/top5-grid'
 import { useFlowStore } from '@/store/flow-store'
+import { trackCta } from '@/lib/tracking'
 import { TestWrapper } from '@/tests/helpers'
 import type { Restaurant } from '@/types'
 
@@ -220,6 +221,121 @@ describe('Top5Grid', () => {
     it('shows the empty state in English', () => {
       render(<Top5Grid />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
       expect(screen.getByText('No restaurants found with those filters')).toBeInTheDocument()
+    })
+  })
+
+  describe('Instagram link', () => {
+    it('shows the link when the finalist has an Instagram profile', () => {
+      useFlowStore.setState({ top5: [makeRestaurant('a', { instagram_url: 'https://instagram.com/alfa' })] })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+
+      const link = screen.getByRole('link', { name: /ver instagram/i })
+      expect(link).toHaveAttribute('href', 'https://instagram.com/alfa')
+      expect(link).toHaveAttribute('target', '_blank')
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+    })
+
+    it('omits the link when the finalist has no Instagram profile', () => {
+      useFlowStore.setState({ top5: [r1] })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+      expect(screen.queryByRole('link', { name: /ver instagram/i })).not.toBeInTheDocument()
+    })
+
+    it('does not select the card when tapping the link', () => {
+      useFlowStore.setState({ top5: [makeRestaurant('a', { instagram_url: 'https://instagram.com/alfa' })] })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+
+      fireEvent.click(screen.getByRole('link', { name: /ver instagram/i }))
+      expect(useFlowStore.getState().favoriteId).toBeNull()
+    })
+
+    it('does not deselect an already selected card when tapping its link', () => {
+      useFlowStore.setState({
+        top5: [makeRestaurant('a', { instagram_url: 'https://instagram.com/alfa' })],
+        favoriteId: 'a',
+      })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+
+      fireEvent.click(screen.getByRole('link', { name: /ver instagram/i }))
+      expect(useFlowStore.getState().favoriteId).toBe('a')
+    })
+
+    it('tracks the instagram click', () => {
+      useFlowStore.setState({ top5: [makeRestaurant('a', { instagram_url: 'https://instagram.com/alfa' })] })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+
+      fireEvent.click(screen.getByRole('link', { name: /ver instagram/i }))
+      expect(trackCta).toHaveBeenCalledWith('a', 'instagram')
+    })
+
+    it('renders the link in English', () => {
+      useFlowStore.setState({ top5: [makeRestaurant('a', { instagram_url: 'https://instagram.com/alfa' })] })
+      render(<Top5Grid />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
+      expect(screen.getByRole('link', { name: /view instagram/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('photo carousel inside a card', () => {
+    const multi = makeRestaurant('a', {
+      photos: [
+        'https://dimesitio.es/images/restaurants/a/1.webp',
+        'https://dimesitio.es/images/restaurants/a/2.webp',
+      ],
+      instagram_url: 'https://instagram.com/alfa',
+    })
+
+    it('swipes between photos', () => {
+      useFlowStore.setState({ top5: [multi] })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+
+      const carousel = screen.getByTestId('photo-carousel')
+      fireEvent.pointerDown(carousel, { clientX: 200, clientY: 200, pointerId: 1 })
+      fireEvent.pointerMove(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+      fireEvent.pointerUp(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+
+      expect(screen.getByRole('img')).toHaveAttribute('src', multi.photos?.[1])
+    })
+
+    it('does not select the card when swiping photos', () => {
+      useFlowStore.setState({ top5: [multi] })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+
+      const carousel = screen.getByTestId('photo-carousel')
+      fireEvent.pointerDown(carousel, { clientX: 200, clientY: 200, pointerId: 1 })
+      fireEvent.pointerMove(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+      fireEvent.pointerUp(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+      fireEvent.click(carousel)
+
+      expect(useFlowStore.getState().favoriteId).toBeNull()
+    })
+
+    it('does not hijack the vertical page scroll starting on a photo', () => {
+      useFlowStore.setState({ top5: [multi] })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+
+      const carousel = screen.getByTestId('photo-carousel')
+      const setPointerCapture = vi.fn()
+      ;(carousel as unknown as Record<string, unknown>).setPointerCapture = setPointerCapture
+
+      fireEvent.pointerDown(carousel, { clientX: 150, clientY: 300, pointerId: 1 })
+      fireEvent.pointerMove(carousel, { clientX: 150, clientY: 100, pointerId: 1 })
+      fireEvent.pointerUp(carousel, { clientX: 150, clientY: 100, pointerId: 1 })
+
+      expect(setPointerCapture).not.toHaveBeenCalled()
+      expect(screen.getByRole('img')).toHaveAttribute('src', multi.photos?.[0])
+    })
+
+    it('keeps the card selectable after swiping photos', () => {
+      useFlowStore.setState({ top5: [multi] })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+
+      const carousel = screen.getByTestId('photo-carousel')
+      fireEvent.pointerDown(carousel, { clientX: 200, clientY: 200, pointerId: 1 })
+      fireEvent.pointerMove(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+      fireEvent.pointerUp(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+
+      fireEvent.click(screen.getByText('Resto a'))
+      expect(useFlowStore.getState().favoriteId).toBe('a')
     })
   })
 

@@ -155,6 +155,101 @@ describe('PhotoCarousel', () => {
     expect(within(dialog).getByRole('img')).toHaveAttribute('src', photos[0])
   })
 
+  it('does not capture the pointer on a vertical gesture, so the page keeps scrolling', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+    const setPointerCapture = vi.fn()
+    const releasePointerCapture = vi.fn()
+    ;(carousel as unknown as Record<string, unknown>).setPointerCapture = setPointerCapture
+    ;(carousel as unknown as Record<string, unknown>).releasePointerCapture = releasePointerCapture
+
+    fireEvent.pointerDown(carousel, { clientX: 150, clientY: 300, pointerId: 1 })
+    expect(setPointerCapture).not.toHaveBeenCalled()
+
+    fireEvent.pointerMove(carousel, { clientX: 152, clientY: 180, pointerId: 1 })
+    expect(setPointerCapture).not.toHaveBeenCalled()
+    expect(releasePointerCapture).not.toHaveBeenCalled()
+  })
+
+  it('does not page on a vertical gesture even when the horizontal delta is large', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+
+    fireEvent.pointerDown(carousel, { clientX: 150, clientY: 300, pointerId: 1 })
+    // dy domina: es un scroll vertical, aunque dx supere el umbral de swipe.
+    fireEvent.pointerMove(carousel, { clientX: 20, clientY: 60, pointerId: 1 })
+    fireEvent.pointerUp(carousel, { clientX: 20, clientY: 60, pointerId: 1 })
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[0])
+  })
+
+  it('never mutates touch-action inline, leaving it to the CSS class', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+
+    fireEvent.pointerDown(carousel, { clientX: 200, clientY: 200, pointerId: 1 })
+    fireEvent.pointerMove(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+    expect((carousel as HTMLElement).style.getPropertyValue('touch-action')).toBe('')
+
+    fireEvent.pointerUp(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+    expect((carousel as HTMLElement).style.getPropertyValue('touch-action')).toBe('')
+  })
+
+  it('captures the pointer only once a horizontal gesture is locked', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+    const setPointerCapture = vi.fn()
+    ;(carousel as unknown as Record<string, unknown>).setPointerCapture = setPointerCapture
+
+    fireEvent.pointerDown(carousel, { clientX: 200, clientY: 200, pointerId: 7 })
+    expect(setPointerCapture).not.toHaveBeenCalled()
+
+    fireEvent.pointerMove(carousel, { clientX: 200, clientY: 205, pointerId: 7 })
+    expect(setPointerCapture).not.toHaveBeenCalled()
+
+    fireEvent.pointerMove(carousel, { clientX: 120, clientY: 200, pointerId: 7 })
+    expect(setPointerCapture).toHaveBeenCalledWith(7)
+  })
+
+  it('releases the capture with the pointer id it was taken with', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+    const releasePointerCapture = vi.fn()
+    ;(carousel as unknown as Record<string, unknown>).setPointerCapture = vi.fn()
+    ;(carousel as unknown as Record<string, unknown>).releasePointerCapture = releasePointerCapture
+
+    fireEvent.pointerDown(carousel, { clientX: 200, clientY: 200, pointerId: 7 })
+    fireEvent.pointerMove(carousel, { clientX: 120, clientY: 200, pointerId: 7 })
+    fireEvent.pointerUp(carousel, { clientX: 120, clientY: 200, pointerId: 7 })
+    expect(releasePointerCapture).toHaveBeenCalledWith(7)
+  })
+
+  it('does not capture the pointer when there is only one photo', () => {
+    render(<PhotoCarousel photos={[photos[0]]} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+    const setPointerCapture = vi.fn()
+    ;(carousel as unknown as Record<string, unknown>).setPointerCapture = setPointerCapture
+
+    fireEvent.pointerDown(carousel, { clientX: 200, clientY: 200, pointerId: 1 })
+    fireEvent.pointerMove(carousel, { clientX: 50, clientY: 200, pointerId: 1 })
+    fireEvent.pointerUp(carousel, { clientX: 50, clientY: 200, pointerId: 1 })
+    expect(setPointerCapture).not.toHaveBeenCalled()
+  })
+
+  it('still swipes after a vertical gesture did not hijack the pointer', () => {
+    render(<PhotoCarousel photos={photos} name="Resto" />, { wrapper: TestWrapper })
+    const carousel = screen.getByTestId('photo-carousel')
+
+    fireEvent.pointerDown(carousel, { clientX: 150, clientY: 300, pointerId: 1 })
+    fireEvent.pointerMove(carousel, { clientX: 152, clientY: 120, pointerId: 1 })
+    fireEvent.pointerUp(carousel, { clientX: 152, clientY: 120, pointerId: 1 })
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[0])
+
+    fireEvent.pointerDown(carousel, { clientX: 200, clientY: 200, pointerId: 1 })
+    fireEvent.pointerMove(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+    fireEvent.pointerUp(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+    expect((screen.getByRole('img') as HTMLImageElement).src).toBe(photos[1])
+  })
+
   it('does not propagate a click that follows a real drag', () => {
     const onClick = vi.fn()
     render(
