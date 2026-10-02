@@ -27,7 +27,15 @@
 - Seleccionar categoría(s) → avanza a precio
 - Seleccionar precio → avanza a zona
 - Seleccionar zona → ver resultados
-- Battle: votar entre dos restaurantes → avanza al siguiente par
+- Top 5: botón "Elegir favorito" → arranca la battle
+- Battle: tarjeta con la foto principal de fondo y el nombre encima
+- Tocar la tarjeta → abre la modal con el carrusel completo
+- Modal: deslizar cambia de foto, dots y flechas también, botón de pantalla completa funciona
+- Modal: Instagram, dirección, teléfono, menú y reservas funcionan si están configurados
+- Modal: cerrar con X, con clic en el fondo y con Escape
+- Modal: el scroll de la página queda bloqueado mientras está abierta y vuelve al cerrar
+- Modal: al elegir, se cierra antes de pasar de ronda
+- Battle: deslizar cambia entre las dos tarjetas, la centrada es la que se elige
 - Winner: ver restaurante ganador con nombre, descripción, precio, zona, categorías
 - Badge "Fundador" visible si el restaurante tiene founder_rank
 - Badge "Demo" visible si el restaurante tiene is_demo = true
@@ -81,6 +89,19 @@
 - /terminos — se renderiza sin errores
 - /privacidad — se renderiza sin errores
 - /aviso-legal — datos correctos (CIF, dirección)
+
+🖼️ Carrusel de fotos (regresión)
+
+- Con más de una foto: deslizar horizontal cambia de foto
+- Con una sola foto: no aparece swipe ni dots
+- **Scroll vertical empezando sobre una foto → la página hace scroll normal**
+- El scroll vertical nunca cambia de foto ni captura el puntero
+- Tras un scroll vertical, el swipe horizontal sigue funcionando
+- Dots, flechas y Maximize no seleccionan la tarjeta que los contiene
+- Abrir Maximize y cerrar con X / Escape
+- Verificar también en la ficha (`/sitio/[id]`), en la modal de la battle y en las cards del panel
+
+**Las tarjetas de batalla no llevan carrusel**: si aparece uno, es un regresión.
 
 🔁 Regresión general
 

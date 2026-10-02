@@ -232,10 +232,37 @@ Título:
 ¿Cuál te convence más?
 
 Ronda:
-Ronda {n} de {total}
+Ronda {current} de {total}
 
 Separador:
 VS
+
+Affordance de tarjeta:
+Ver detalles
+
+Botón de elegir (centrada):
+Elegir
+
+Botón de elegir (ya elegida):
+¡Elegido!
+
+Botón de elegir (fuera de centro):
+Desliza para ver
+
+Ayuda móvil:
+Desliza para ver la otra opción — la centrada se elige
+
+Ayuda dots móvil:
+Toca el lateral oscurecido para traerlo al centro
+
+---
+
+# RestaurantModal (restaurant-modal.tsx)
+
+Cerrar:
+Cerrar
+
+Las acciones (Llamar / Cómo llegar / Ver menú / Reservar / Ver Instagram) reutilizan `Common`, igual que `winner-view.tsx` y `sitio-cta.tsx`.
 
 ---
 

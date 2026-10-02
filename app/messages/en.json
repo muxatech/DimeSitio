@@ -246,7 +246,10 @@
     "chooseFavorite": "Choose your favorite",
     "choose": "Choose",
     "question": "Which one convinces you more?",
-    "round": "Round {current} of {total}"
+    "round": "Round {current} of {total}",
+    "seeDetails": "See details",
+    "chosen": "Chosen!",
+    "swipeToSee": "Swipe to see"
   },
   "Winner": {
     "noSelection": "No restaurant was selected",
@@ -662,5 +665,8 @@
         }
       ]
     }
+  },
+  "RestaurantModal": {
+    "close": "Close"
   }
 }

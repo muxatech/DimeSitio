@@ -246,7 +246,10 @@
     "chooseFavorite": "Elige tu favorito",
     "choose": "Elegir",
     "question": "¿Cuál te convence más?",
-    "round": "Ronda {current} de {total}"
+    "round": "Ronda {current} de {total}",
+    "seeDetails": "Ver detalles",
+    "chosen": "¡Elegido!",
+    "swipeToSee": "Desliza para ver"
   },
   "Winner": {
     "noSelection": "No se ha seleccionado ningún restaurante",
@@ -662,5 +665,8 @@
         }
       ]
     }
+  },
+  "RestaurantModal": {
+    "close": "Cerrar"
   }
 }

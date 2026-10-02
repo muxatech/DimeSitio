@@ -48,11 +48,37 @@ No se muestra distancia ni rating interno en MVP.
 
 Pantalla:
 - Restaurante A vs Restaurante B
-- Usuario elige uno
+- Usuario elige uno con el botón "Elegir" o deslizando
 - Animaciones rápidas
 
 Objetivo:
 - Obtener restaurante favorito final
+
+## Tarjeta de batalla (`BattleCard`)
+
+**La tarjeta NO lleva carrusel.** Solo la imagen principal como fondo a pantalla completa con el nombre encima.
+
+- `min-h-[26rem] sm:min-h-[30rem]`, la imagen es `object-cover` con `scale-105` en hover
+- Gradiente inferior `from-black/85 via-black/45` para que el texto sea legible sobre cualquier foto
+- Nombre en `h3` blanco con `drop-shadow`, zona y precio debajo
+- Badges Fundador / Demo arriba a la izquierda
+- Affordance "Ver detalles"
+- Botón "Elegir" **debajo de la tarjeta**, no dentro: el tap en la tarjeta abre la modal, el botón elige
+
+Sin dots ni contador de fotos en la tarjeta: la portada es siempre `photos[0]` (o `image_url` como fallback) y las demás fotos solo se ven en la modal.
+
+Motivo: el carrusel con swipe horizontal dentro de una tarjeta que a su vez vive en un swipe horizontal de dos cartas produce gestos ambiguos. Sacando el carrusel a la modal, cada gesto tiene un único dueño.
+
+## Modal de detalle (`RestaurantModal`)
+
+Se abre al pulsar la tarjeta. `role="dialog"`, `aria-modal`, portal a `document.body`.
+
+- Carrusel completo con `showArrows`, dots, contador y pantalla completa
+- Badges, nombre, descripción, dirección, zona, precio
+- Acciones: Llamar (`tel:`), Cómo llegar, Ver menú, Reservar, Ver Instagram — cada una solo si el dato existe
+- Cierre: botón X, clic en el fondo, o `Escape`
+- Bloquea el scroll del body mientras está abierta y lo restaura al cerrar
+- Layout: hoja inferior en móvil (`rounded-t-3xl`), centrada en `sm+`
 
 ---
 
@@ -63,6 +89,8 @@ Mostrar:
 - Botón llamar
 - Cómo llegar
 - Ver menú
+- Reservar
+- Ver Instagram
 - Reiniciar búsqueda
 
 ---

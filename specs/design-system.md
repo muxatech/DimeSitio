@@ -229,11 +229,26 @@ className="flex items-center gap-4 overflow-hidden rounded-2xl border border-sto
 ```
 
 ### Card batalla
+Foto principal a sangre con el nombre encima:
 ```tsx
-className="relative w-full overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition-all sm:flex-1"
+className="group relative flex h-full min-h-[26rem] cursor-pointer flex-col justify-end overflow-hidden rounded-2xl border bg-stone-200 text-left shadow-sm transition-all sm:min-h-[30rem]"
 ```
-- Seleccionada: `border-stone-900 ring-2 ring-stone-200 ring-offset-2`
-- No seleccionada: `border-stone-200 hover:shadow-md`
+- Imagen: `absolute inset-0 h-full w-full object-cover` + `group-hover:scale-105`
+- Gradiente: `bg-gradient-to-t from-black/85 via-black/45 to-transparent` sobre el 60% inferior
+- Nombre: `text-white drop-shadow` sobre el gradiente
+- Seleccionada: `border-stone-900 ring-2 ring-stone-900/10 ring-offset-2` + check circular centrado
+- No seleccionada: `border-stone-200`
+- **El botón "Elegir" va debajo de la tarjeta**, no dentro: el cuerpo es la zona que abre la modal de detalle
+
+### Modal de detalle
+```tsx
+className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+```
+```tsx
+className="relative flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-3xl"
+```
+- Hoja inferior en móvil, centrada en `sm+`
+- Cabecera de imagen `h-56 sm:h-72`, cuerpo con `overflow-y-auto`
 
 ### Card info (winner)
 ```tsx

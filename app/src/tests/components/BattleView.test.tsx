@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { render, screen, fireEvent, act, within } from '@testing-library/react'
 import BattleView from '@/components/battle-view'
 import { useFlowStore } from '@/store/flow-store'
 import { TestWrapper } from '@/tests/helpers'
@@ -9,6 +9,7 @@ vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: Record<string, unknown>) => <div {...props}>{children}</div>,
     button: ({ children, ...props }: Record<string, unknown>) => <button {...props}>{children}</button>,
+    a: ({ children, ...props }: Record<string, unknown>) => <a {...props}>{children}</a>,
   },
   AnimatePresence: ({ children }: Record<string, unknown>) => <>{children}</>,
 }))
@@ -62,6 +63,88 @@ describe('BattleView', () => {
     vi.useRealTimers()
   })
 
+  describe('card layout', () => {
+    const withPhoto: Restaurant = { ...champion, image_url: 'https://x.test/cover.webp' }
+
+    beforeEach(() => {
+      useFlowStore.setState({
+        battleChampion: withPhoto,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [withPhoto, challenger],
+      })
+    })
+
+    it('uses the main photo as the card background', () => {
+      render(<BattleView />, { wrapper: TestWrapper })
+      const covers = screen.getAllByRole('img') as HTMLImageElement[]
+      expect(covers.length).toBeGreaterThanOrEqual(2)
+      expect(covers[0].src).toBe('https://x.test/cover.webp')
+    })
+
+    it('overlays the name on top of the photo', () => {
+      render(<BattleView />, { wrapper: TestWrapper })
+      const name = screen.getAllByText('Champion')[0]
+      expect(name.tagName).toBe('H3')
+      expect(name.className).toContain('text-white')
+      expect(name.className).toContain('drop-shadow')
+    })
+
+    it('has no carousel controls on the card', () => {
+      render(<BattleView />, { wrapper: TestWrapper })
+      expect(screen.queryByTestId('photo-carousel')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Ver fotos en grande' })).not.toBeInTheDocument()
+    })
+
+    it('invites to see details', () => {
+      render(<BattleView />, { wrapper: TestWrapper })
+      expect(screen.getAllByText('Ver detalles').length).toBeGreaterThanOrEqual(1)
+    })
+
+    it('opens the modal when tapping the card', () => {
+      render(<BattleView />, { wrapper: TestWrapper })
+      expect(screen.queryByTestId('restaurant-modal')).not.toBeInTheDocument()
+      fireEvent.click(screen.getAllByText('Champion').at(-1)!)
+      const modal = screen.getByTestId('restaurant-modal')
+      expect(within(modal).getByRole('heading', { name: 'Champion' })).toBeInTheDocument()
+      expect(within(modal).getByText('Champion desc')).toBeInTheDocument()
+    })
+
+    it('shows a placeholder when there are no photos', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      expect(container.querySelectorAll('.lucide-utensils-crossed').length).toBeGreaterThanOrEqual(2)
+    })
+
+    it('does not open the modal when picking', () => {
+      render(<BattleView />, { wrapper: TestWrapper })
+      fireEvent.click(screen.getAllByRole('button', { name: 'Elegir' })[0])
+      expect(screen.queryByTestId('restaurant-modal')).not.toBeInTheDocument()
+      act(() => { vi.advanceTimersByTime(500) })
+    })
+
+    it('centers the off-center card instead of opening its modal', () => {
+      render(<BattleView />, { wrapper: TestWrapper })
+      fireEvent.click(screen.getAllByText('Challenger')[0])
+      expect(screen.queryByTestId('restaurant-modal')).not.toBeInTheDocument()
+      expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-100')
+    })
+
+    it('closes the modal and returns to the battle', () => {
+      render(<BattleView />, { wrapper: TestWrapper })
+      fireEvent.click(screen.getAllByText('Champion').at(-1)!)
+      fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
+      expect(screen.queryByTestId('restaurant-modal')).not.toBeInTheDocument()
+      expect(useFlowStore.getState().step).toBe('battle')
+      expect(useFlowStore.getState().winner).toBeNull()
+    })
+  })
+
   describe('Spanish (default)', () => {
     it('shows error state when no champion or challenger', () => {
       render(<BattleView />, { wrapper: TestWrapper })
@@ -103,7 +186,7 @@ describe('BattleView', () => {
       expect(screen.getByText(/Ronda 2 de 2/)).toBeInTheDocument()
     })
 
-    it('shows description on cards', () => {
+    it('keeps the description out of the card and shows it in the modal', () => {
       useFlowStore.setState({
         battleChampion: champion,
         battleChallenger: challenger,
@@ -111,11 +194,13 @@ describe('BattleView', () => {
         top5: [champion, challenger],
       })
       render(<BattleView />, { wrapper: TestWrapper })
-      expect(screen.getAllByText('Champion desc').length).toBeGreaterThanOrEqual(1)
-      expect(screen.getAllByText('Challenger desc').length).toBeGreaterThanOrEqual(1)
+      expect(screen.queryByText('Champion desc')).not.toBeInTheDocument()
+
+      fireEvent.click(screen.getAllByText('Champion')[0])
+      expect(screen.getByText('Champion desc')).toBeInTheDocument()
     })
 
-    it('shows Instagram link when restaurant has instagram_url', () => {
+    it('shows the Instagram link in the modal when restaurant has instagram_url', () => {
       useFlowStore.setState({
         battleChampion: champion,
         battleChallenger: challenger,
@@ -123,10 +208,13 @@ describe('BattleView', () => {
         top5: [champion, challenger],
       })
       render(<BattleView />, { wrapper: TestWrapper })
-      const igLinks = screen.getAllByText('Ver Instagram')
-      expect(igLinks.length).toBeGreaterThanOrEqual(1)
-      expect(igLinks[0].closest('a')).toHaveAttribute('href', 'https://instagram.com/challenger')
-      expect(igLinks[0].closest('a')).toHaveAttribute('target', '_blank')
+      expect(screen.queryByText('Ver Instagram')).not.toBeInTheDocument()
+
+      fireEvent.click(screen.getAllByText('Challenger').at(-1)!)
+      const igLink = within(screen.getByTestId('restaurant-modal')).getByText('Ver Instagram').closest('a') as HTMLAnchorElement
+      expect(igLink).toHaveAttribute('href', 'https://instagram.com/challenger')
+      expect(igLink).toHaveAttribute('target', '_blank')
+      expect(igLink).toHaveAttribute('rel', 'noopener noreferrer')
     })
 
     it('does not show Instagram link when restaurant has no instagram_url', () => {
@@ -236,7 +324,7 @@ describe('BattleView', () => {
       expect(imgs[0].src).toBe('https://example.com/img.jpg')
     })
 
-    it('shows a photo carousel on each battle card when restaurants have photos', () => {
+    it('keeps no carousel on the cards and shows it in the modal instead', () => {
       const champ: Restaurant = {
         ...champion,
         photos: ['https://r2.example/restaurants/a/1.webp', 'https://r2.example/restaurants/a/2.webp'],
@@ -252,13 +340,19 @@ describe('BattleView', () => {
         top5: [champ, chall],
       })
       render(<BattleView />, { wrapper: TestWrapper })
-      expect(screen.getAllByTestId('photo-carousel').length).toBeGreaterThanOrEqual(2)
-      expect(screen.getAllByRole('button', { name: 'Ver fotos en grande' }).length).toBeGreaterThanOrEqual(2)
+
+      // Sin carrusel en la tarjeta: solo la imagen de portada.
+      expect(screen.queryByTestId('photo-carousel')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Ver fotos en grande' })).not.toBeInTheDocument()
       const imgs = screen.getAllByRole('img') as HTMLImageElement[]
       expect(imgs[0].src).toBe('https://r2.example/restaurants/a/1.webp')
+
+      fireEvent.click(screen.getAllByText('Champion')[0])
+      expect(screen.getByTestId('photo-carousel')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Ver fotos en grande' })).toBeInTheDocument()
     })
 
-    it('navigates the battle card carousel without picking the card', () => {
+    it('swipes the modal carousel without picking the card', () => {
       const champ: Restaurant = {
         ...champion,
         photos: ['https://r2.example/restaurants/a/1.webp', 'https://r2.example/restaurants/a/2.webp'],
@@ -270,9 +364,35 @@ describe('BattleView', () => {
         top5: [champ, challenger],
       })
       render(<BattleView />, { wrapper: TestWrapper })
-      fireEvent.click(screen.getAllByRole('button', { name: 'Foto 2' })[0])
-      expect((screen.getAllByRole('img') as HTMLImageElement[])[0].src).toBe('https://r2.example/restaurants/a/2.webp')
+
+      fireEvent.click(screen.getAllByText('Champion').at(-1)!)
+      const carousel = within(screen.getByTestId('restaurant-modal')).getByTestId('photo-carousel')
+      fireEvent.pointerDown(carousel, { clientX: 200, clientY: 200, pointerId: 1 })
+      fireEvent.pointerMove(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+      fireEvent.pointerUp(carousel, { clientX: 100, clientY: 200, pointerId: 1 })
+
+      const imgs = within(screen.getByTestId('restaurant-modal')).getAllByRole('img')
+      expect(imgs.some((i) => i.getAttribute('src') === 'https://r2.example/restaurants/a/2.webp')).toBe(true)
       expect(useFlowStore.getState().step).toBe('battle')
+    })
+
+    it('always uses the first photo as the card cover', () => {
+      const champ: Restaurant = {
+        ...champion,
+        photos: ['https://r2.example/restaurants/a/1.webp', 'https://r2.example/restaurants/a/2.webp'],
+      }
+      useFlowStore.setState({
+        battleChampion: champ,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champ, challenger],
+      })
+      render(<BattleView />, { wrapper: TestWrapper })
+
+      // Sin dots ni contador en la tarjeta: el resto de fotos viven en la modal.
+      expect(screen.queryByRole('button', { name: 'Foto 2' })).not.toBeInTheDocument()
+      expect(screen.queryByText('1 / 2')).not.toBeInTheDocument()
+      expect((screen.getAllByRole('img') as HTMLImageElement[])[0].src).toBe('https://r2.example/restaurants/a/1.webp')
     })
 
     it('shows placeholder carousels when battle cards have no photos', () => {
@@ -285,6 +405,7 @@ describe('BattleView', () => {
       const { container } = render(<BattleView />, { wrapper: TestWrapper })
       expect(screen.queryByTestId('photo-carousel')).not.toBeInTheDocument()
       expect(container.querySelectorAll('.lucide-utensils-crossed').length).toBeGreaterThanOrEqual(2)
+      expect(screen.queryByText('1 / 2')).not.toBeInTheDocument()
     })
 
     it('marks the current round as active, not completed, in the progress bar', () => {
@@ -377,7 +498,7 @@ describe('BattleView', () => {
       expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-60')
     })
 
-    it('does not center the card when the Instagram link is tapped', () => {
+    it('does not center the card when the Instagram link is tapped in the modal', () => {
       useFlowStore.setState({
         battleChampion: champion,
         battleChallenger: challenger,
@@ -385,7 +506,8 @@ describe('BattleView', () => {
         top5: [champion, challenger],
       })
       render(<BattleView />, { wrapper: TestWrapper })
-      fireEvent.click(screen.getAllByText('Ver Instagram')[0])
+      fireEvent.click(screen.getAllByText('Challenger').at(-1)!)
+      fireEvent.click(within(screen.getByTestId('restaurant-modal')).getByText('Ver Instagram'))
       expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-100')
       expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-60')
     })
@@ -514,7 +636,8 @@ describe('BattleView', () => {
         top5: [champion, challenger],
       })
       render(<BattleView />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
-      expect(screen.getAllByText('View Instagram').length).toBeGreaterThanOrEqual(1)
+      fireEvent.click(screen.getAllByText('Challenger').at(-1)!)
+      expect(within(screen.getByTestId('restaurant-modal')).getByText('View Instagram')).toBeInTheDocument()
     })
 
     it('shows Founder badge in English', () => {
