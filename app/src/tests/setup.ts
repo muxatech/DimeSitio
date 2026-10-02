@@ -20,3 +20,22 @@ Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
   configurable: true,
   get: () => 800,
 })
+
+// jsdom no implementa matchMedia; el hook de media query lo necesita para decidir
+// entre la hoja inferior de móvil y el pop centrado de escritorio.
+if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    writable: true,
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener() {},
+      removeEventListener() {},
+      addListener() {},
+      removeListener() {},
+      dispatchEvent: () => false,
+    }),
+  })
+}

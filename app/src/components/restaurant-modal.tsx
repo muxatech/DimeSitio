@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, type ComponentType } from 'react'
+import { useEffect, useRef, type ComponentType } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
@@ -8,6 +8,7 @@ import { getPriceLabel } from '@/lib/utils'
 import { trackCta } from '@/lib/tracking'
 import { MapPin, Crown, X } from 'lucide-react'
 import PhotoCarousel from '@/components/photo-carousel'
+import { useIsMobile } from '@/hooks/use-media-query'
 import type { Restaurant } from '@/types'
 
 export function restaurantPhotos(r: Restaurant): string[] {
@@ -24,6 +25,13 @@ export default function RestaurantModal({
 }) {
   const t = useTranslations('RestaurantModal')
   const tCommon = useTranslations('Common')
+  const isMobile = useIsMobile()
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  // Móvil: la hoja sube desde el borde inferior completo, como una hoja nativa.
+  // Escritorio: mantiene el pop centrado con escala suave que ya estaba aprobado.
+  const sheetOffset = isMobile ? '100%' : 40
+  const backdropOpacity = isMobile ? 0.72 : 0.6
 
   useEffect(() => {
     if (!restaurant) return
@@ -33,11 +41,26 @@ export default function RestaurantModal({
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
+
+    // iOS ignora overflow hidden en body, así que hace falta fijarlo.
+    if (isMobile) {
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+    }
+
     return () => {
       document.body.style.overflow = prevOverflow
       window.removeEventListener('keydown', onKey)
+      if (isMobile) {
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.width = ''
+        window.scrollTo(0, scrollY)
+      }
     }
-  }, [restaurant, onClose])
+  }, [restaurant, onClose, isMobile])
 
   if (typeof document === 'undefined') return null
 
@@ -54,14 +77,16 @@ export default function RestaurantModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           onClick={onClose}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+          style={{ backgroundColor: `rgba(0,0,0,${backdropOpacity})` }}
+          className="fixed inset-0 z-50 flex items-end justify-center p-0 backdrop-blur-sm sm:items-center sm:p-6"
         >
           <motion.div
+            ref={panelRef}
             onClick={(e) => e.stopPropagation()}
-            initial={{ y: 40, scale: 0.98 }}
+            initial={{ y: sheetOffset, scale: isMobile ? 1 : 0.98 }}
             animate={{ y: 0, scale: 1 }}
-            exit={{ y: 40, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ y: sheetOffset, scale: isMobile ? 1 : 0.98 }}
+            transition={{ type: 'tween', duration: isMobile ? 0.32 : 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="relative flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-3xl"
           >
             <button

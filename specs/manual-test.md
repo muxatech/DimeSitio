@@ -36,6 +36,15 @@
 - Modal: no aparecen botones de Llamar, Cómo llegar, Ver menú ni Reservar
 - Modal: cerrar con X, con clic en el fondo y con Escape
 - Modal: el scroll de la página queda bloqueado mientras está abierta y vuelve al cerrar
+
+📱 Móvil — hoja inferior
+
+- Abrir la ficha: sube desde el borde inferior, sin encogerse, con el fondo oscureciéndose
+- Cerrar la ficha: baja de vuelta al borde inferior
+- El fondo se ve claramente oscurecido y no se ve la batalla detrás
+- Al cerrar, la página queda en la misma posición de scroll que antes de abrir
+- Abrir/cerrar varias veces seguidas: no queda el body fijado ni el scroll saltando
+- Escritorio: la ficha sigue saliendo centrada y con escala, sin cambios
 - Modal: al elegir, se cierra antes de pasar de ronda
 - Battle: deslizar cambia entre las dos tarjetas, la centrada es la que se elige
 - Winner: ver restaurante ganador con nombre, descripción, precio, zona, categorías
@@ -100,6 +109,17 @@
 - El scroll vertical nunca cambia de foto ni captura el puntero
 - Tras un scroll vertical, el swipe horizontal sigue funcionando
 - Dots, flechas y Maximize no seleccionan la tarjeta que los contiene
+
+📱 Móvil — swipe entre las dos cartas
+
+- Deslizar a la izquierda/derecha cambia de carta; la centrada es la que se elige
+- Deslizar en vertical no cambia de carta y hace scroll normal
+- Arrastrar en el borde se frena (no se sale del track)
+- Los indicadores de abajo reflejan la carta activa y saltan al tocarlos
+- Tocar la carta lateral la trae al centro en vez de abrir su ficha
+- Tras un swipe, el primer tap en "Elegir" elige (no hace falta tocar dos veces)
+- Tras un swipe, un tap en la tarjeta no abre la ficha
+- Los avisos de ayuda y las etiquetas de las tarjetas salen traducidos en inglés
 - Abrir Maximize y cerrar con X / Escape
 - Verificar también en la ficha (`/sitio/[id]`), en la modal de la battle y en las cards del panel
 

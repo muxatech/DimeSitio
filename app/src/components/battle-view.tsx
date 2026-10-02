@@ -22,6 +22,7 @@ const MAX_DRAG = 140
 export default function BattleView() {
   const t = useTranslations('Battle')
   const tCommon = useTranslations('Common')
+  const tModal = useTranslations('RestaurantModal')
   const { battleChampion, battleChallenger, battleRound, selectBattleWinner, reset } = useFlowStore()
   const [picking, setPicking] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -115,11 +116,15 @@ export default function BattleView() {
     setDragOffset(0)
   }, [])
 
+  // Tras arrastrar, el click que cierra el gesto no debe abrir la ficha. Pero el
+  // botón "Elegir" sí debe responder: si no, el primer tap tras un swipe se
+  // perdería y el usuario tendría que tocar dos veces.
   const onTrackClickCapture = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!wasDragged.current) return
+    wasDragged.current = false
+    if ((e.target as HTMLElement).closest('[data-battle-pick]')) return
     e.stopPropagation()
     e.preventDefault()
-    wasDragged.current = false
   }, [])
 
   if (!champion || !challenger) {
@@ -170,7 +175,7 @@ export default function BattleView() {
           <h2 className="text-xl font-bold tracking-tight text-stone-900 sm:text-2xl">
             {t('question')}
           </h2>
-          <p className="text-sm text-stone-500 lg:hidden">Desliza para ver la otra opción — la centrada se elige</p>
+          <p className="text-sm text-stone-500 lg:hidden">{tModal('swipeHelp')}</p>
         </div>
         <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white lg:self-auto lg:px-4 lg:py-1.5 lg:text-sm">
           <Sparkles className="h-3 w-3" />
@@ -237,13 +242,13 @@ export default function BattleView() {
             <button
               key={i}
               onClick={() => setCenterIndex(i)}
-              aria-label={`Ver opción ${i + 1}`}
+              aria-label={tModal('optionLabel', { n: i + 1 })}
               aria-current={centerIndex === i ? 'true' : undefined}
               className={`h-1.5 rounded-full transition-all ${centerIndex === i ? 'w-6 bg-stone-900' : 'w-1.5 bg-stone-300'}`}
             />
           ))}
         </div>
-        <p className="mt-2 text-center text-xs text-stone-400">Toca el lateral oscurecido para traerlo al centro</p>
+        <p className="mt-2 text-center text-xs text-stone-400">{tModal('centerHint')}</p>
       </div>
 
       <AnimatePresence mode="wait">
@@ -373,6 +378,7 @@ function BattleCard({
       </div>
 
       <button
+        data-battle-pick
         onClick={(e) => { e.stopPropagation(); handlePickWrapper() }}
         disabled={disabled || !isCenter}
         className={`mt-3 inline-flex w-full items-center justify-center rounded-2xl px-4 py-3.5 text-[15px] font-semibold shadow-md transition-all ${

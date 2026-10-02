@@ -264,6 +264,17 @@ Cerrar
 
 El único CTA de la modal es Instagram, con la etiqueta `Common.viewInstagram` que ya usan `winner-view.tsx` y `sitio-cta.tsx`. No hay Llamar / Cómo llegar / Ver menú / Reservar aquí: esos viven en el resultado final y en la página del sitio.
 
+Avisos del swipe móvil, traducibles:
+
+swipeHelp:
+Desliza para ver la otra opción — la centrada se elige
+
+centerHint:
+Toca el lateral oscurecido para traerlo al centro
+
+optionLabel:
+Ver opción {n}
+
 ---
 
 # Winner view (winner-view.tsx)

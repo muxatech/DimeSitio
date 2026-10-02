@@ -78,8 +78,32 @@ Se abre al pulsar la tarjeta. `role="dialog"`, `aria-modal`, portal a `document.
 - **Única acción: botón de Instagram** (a ancho completo, primario `bg-stone-900`), solo si hay `instagram_url`
 - Sin Llamar, Cómo llegar, Ver menú ni Reservar: en la batalla la ficha es para mirar, los CTAs viven en el resultado final y en la página del sitio
 - Cierre: botón X, clic en el fondo, o `Escape`
-- Bloquea el scroll del body mientras está abierta y lo restaura al cerrar
 - Layout: hoja inferior en móvil (`rounded-t-3xl`), centrada en `sm+`
+
+### Adaptación a móvil
+
+En escritorio la ficha es un pop centrado. En móvil es una hoja nativa:
+
+| | Móvil (`<lg`) | Escritorio (`>=lg`) |
+|---|---|---|
+| Entrada | `y: '100%'`, sin escala, `tween 0.32s` | `y: 40`, `scale: 0.98`, `0.25s` |
+| Fondo | `rgba(0,0,0,0.72)` | `rgba(0,0,0,0.6)` |
+| Bloqueo de scroll | `overflow: hidden` + `position: fixed` con compensate de `scrollY` | solo `overflow: hidden` |
+
+El `position: fixed` en móvil es por iOS, que ignora `overflow: hidden` en `body`. Al cerrar se restaura la posición del scroll con `window.scrollTo`.
+
+El hook `useIsMobile` (`src/hooks/use-media-query.ts`) usa `useLayoutEffect` a propósito: con un efecto normal el navegador pintaría un frame con el valor de escritorio y la hoja daría un salto visible antes de corregirse. El primer render asume el valor conservador (`false`) para que el HTML de servidor coincida.
+
+## Swipe móvil entre las dos cartas
+
+El track móvil ya existía; estas son sus reglas:
+
+- `CARD_RATIO = 0.78`, `CARD_GAP = 16`, `SWIPE_THRESHOLD = 56`, `AXIS_LOCK_PX = 8`, `EDGE_DAMPING = 0.3`, `MAX_DRAG = 140`
+- Bloqueo de eje tras 8px: si el gesto es vertical no cambia de carta y la página hace scroll
+- En los bordes (`centerIndex` 0 y 1) el arrastre se amortigua al 30%
+- El click de cierre del gesto no abre la ficha, **pero el botón "Elegir" sí responde**: lleva `data-battle-pick` y el guardia de click lo deja pasar. Sin esto el primer tap tras un swipe se perdería.
+- Indicadores de posición bajo el track, con `aria-current` en el activo
+- Avisos de ayuda traducidos en es/en (`RestaurantModal.swipeHelp`, `centerHint`, `optionLabel`)
 
 ---
 

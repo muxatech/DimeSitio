@@ -667,6 +667,9 @@
     }
   },
   "RestaurantModal": {
-    "close": "Close"
+    "close": "Close",
+    "swipeHelp": "Swipe to see the other option — the centered one gets picked",
+    "centerHint": "Tap the darkened side to bring it to the center",
+    "optionLabel": "See option {n}"
   }
 }

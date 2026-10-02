@@ -663,5 +663,124 @@ describe('BattleView', () => {
       const badges = screen.getAllByText('Demo')
       expect(badges.length).toBeGreaterThanOrEqual(1)
     })
+
+    it('translates the mobile swipe hints and option labels', () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+      })
+      render(<BattleView />, { wrapper: (p) => <TestWrapper locale="en" {...p} /> })
+      expect(screen.getByText('Swipe to see the other option — the centered one gets picked')).toBeInTheDocument()
+      expect(screen.getByText('Tap the darkened side to bring it to the center')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'See option 1' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'See option 2' })).toBeInTheDocument()
+    })
+  })
+
+  describe('mobile swipe', () => {
+    const setBattle = () => {
+      useFlowStore.setState({
+        battleChampion: champion,
+        battleChallenger: challenger,
+        battleRound: 1,
+        top5: [champion, challenger],
+        battlePool: [],
+        winner: null,
+        step: 'battle',
+      })
+    }
+
+    it('shows the swipe hints and the two option indicators', () => {
+      setBattle()
+      render(<BattleView />, { wrapper: TestWrapper })
+      expect(screen.getByText('Desliza para ver la otra opción — la centrada se elige')).toBeInTheDocument()
+      expect(screen.getByText('Toca el lateral oscurecido para traerlo al centro')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Ver opción 1' })).toHaveAttribute('aria-current', 'true')
+      expect(screen.getByRole('button', { name: 'Ver opción 2' })).not.toHaveAttribute('aria-current')
+    })
+
+    it('centers the second option when its indicator is tapped', () => {
+      setBattle()
+      render(<BattleView />, { wrapper: TestWrapper })
+      fireEvent.click(screen.getByRole('button', { name: 'Ver opción 2' }))
+      expect(screen.getByTestId('battle-slide-1')).toHaveClass('opacity-100')
+      expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-60')
+    })
+
+    it('swipes back to the first option', () => {
+      setBattle()
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const track = container.querySelector('[data-testid="battle-carousel"]') as HTMLElement
+      fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 100, clientY: 200 })
+      fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 205 })
+      fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 220, clientY: 205 })
+      expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-100')
+    })
+
+    it('keeps the selection explicit: swiping does not pick', () => {
+      setBattle()
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const track = container.querySelector('[data-testid="battle-carousel"]') as HTMLElement
+      fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 300, clientY: 200 })
+      fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 205 })
+      fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 180, clientY: 205 })
+      expect(useFlowStore.getState().step).toBe('battle')
+      expect(useFlowStore.getState().winner).toBeNull()
+    })
+
+    it('does not open the modal after a swipe drag', () => {
+      setBattle()
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const track = container.querySelector('[data-testid="battle-carousel"]') as HTMLElement
+      fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 300, clientY: 200 })
+      fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 205 })
+      fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 180, clientY: 205 })
+      fireEvent.click(screen.getByTestId('battle-slide-1').querySelector('h3')!)
+      expect(screen.queryByTestId('restaurant-modal')).not.toBeInTheDocument()
+    })
+
+    it('picks with the button after swiping', () => {
+      setBattle()
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const track = container.querySelector('[data-testid="battle-carousel"]') as HTMLElement
+      fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 300, clientY: 200 })
+      fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 205 })
+      fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 180, clientY: 205 })
+
+      // El botón vive dentro de la tarjeta centrada del swipe móvil.
+      fireEvent.click(within(screen.getByTestId('battle-slide-1')).getByRole('button', { name: 'Elegir' }))
+      act(() => { vi.advanceTimersByTime(400) })
+      expect(useFlowStore.getState().winner?.id).toBe('b')
+    })
+
+    it('picks on the first tap after a swipe, not the second', () => {
+      setBattle()
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const track = container.querySelector('[data-testid="battle-carousel"]') as HTMLElement
+      fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 300, clientY: 200 })
+      fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 205 })
+      fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 180, clientY: 205 })
+
+      // El guardia anti-apinchazo no debe tragarse el click del botón.
+      fireEvent.click(within(screen.getByTestId('battle-slide-1')).getByRole('button', { name: 'Elegir' }))
+      act(() => { vi.advanceTimersByTime(400) })
+      expect(useFlowStore.getState().winner?.id).toBe('b')
+    })
+
+    it('damps the drag at the first edge', () => {
+      setBattle()
+      const { container } = render(<BattleView />, { wrapper: TestWrapper })
+      const track = container.querySelector('[data-testid="battle-carousel"]') as HTMLElement
+      const inner = track.firstElementChild as HTMLElement
+      fireEvent.pointerDown(track, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 200 })
+      fireEvent.pointerMove(track, { pointerId: 1, pointerType: 'touch', clientX: 260, clientY: 205 })
+      // base = (375 - 292.5)/2 = 41.25px, y los 60px de gesto se amortiguan
+      // al 30% -> 18px. Sin amortiguación el transform sería 101.25px.
+      expect(inner.style.transform).toBe('translateX(59.25px)')
+      fireEvent.pointerUp(track, { pointerId: 1, pointerType: 'touch', clientX: 260, clientY: 205 })
+      expect(screen.getByTestId('battle-slide-0')).toHaveClass('opacity-100')
+    })
   })
 })
