@@ -5,8 +5,8 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { getPriceLabel } from '@/lib/utils'
-import { trackCall, trackCta } from '@/lib/tracking'
-import { MapPin, Phone, Navigation, Menu, Calendar, Crown, X } from 'lucide-react'
+import { trackCta } from '@/lib/tracking'
+import { MapPin, Crown, X } from 'lucide-react'
 import PhotoCarousel from '@/components/photo-carousel'
 import type { Restaurant } from '@/types'
 
@@ -115,48 +115,14 @@ export default function RestaurantModal({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {restaurant.phone && (
-                  <ModalAction
-                    href={`tel:${restaurant.phone}`}
-                    label={tCommon('call')}
-                    icon={Phone}
-                    onTrack={() => trackCall(restaurant.id)}
-                  />
-                )}
-                {(restaurant.google_maps_url || restaurant.address) && (
-                  <ModalAction
-                    href={restaurant.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address + ', Valencia')}`}
-                    label={tCommon('directions')}
-                    icon={Navigation}
-                    onTrack={() => trackCta(restaurant.id, 'maps')}
-                  />
-                )}
-                {restaurant.menu_url && (
-                  <ModalAction
-                    href={restaurant.menu_url}
-                    label={tCommon('viewMenu')}
-                    icon={Menu}
-                    onTrack={() => trackCta(restaurant.id, 'menu')}
-                  />
-                )}
-                {restaurant.reservations_url && (
-                  <ModalAction
-                    href={restaurant.reservations_url}
-                    label={tCommon('reserve')}
-                    icon={Calendar}
-                    onTrack={() => trackCta(restaurant.id, 'reservations')}
-                  />
-                )}
-                {restaurant.instagram_url && (
-                  <ModalAction
-                    href={restaurant.instagram_url}
-                    label={tCommon('viewInstagram')}
-                    icon={InstagramIcon}
-                    onTrack={() => trackCta(restaurant.id, 'instagram')}
-                  />
-                )}
-              </div>
+              {restaurant.instagram_url && (
+                <ModalAction
+                  href={restaurant.instagram_url}
+                  label={tCommon('viewInstagram')}
+                  icon={InstagramIcon}
+                  onTrack={() => trackCta(restaurant.id, 'instagram')}
+                />
+              )}
             </div>
           </motion.div>
         </motion.div>
@@ -185,7 +151,7 @@ function ModalAction({
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
       onClick={onTrack}
-      className="inline-flex items-center justify-center gap-2.5 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-700 shadow-sm transition-all hover:bg-stone-50 hover:shadow-md"
+      className="inline-flex w-full items-center justify-center gap-2.5 rounded-2xl bg-stone-900 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-stone-800 active:scale-[0.98]"
     >
       <Icon className="h-4 w-4 shrink-0" />
       {label}

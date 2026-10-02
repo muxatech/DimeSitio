@@ -13,7 +13,6 @@ vi.mock('framer-motion', () => ({
 }))
 
 vi.mock('@/lib/tracking', () => ({
-  trackCall: vi.fn(),
   trackCta: vi.fn(),
 }))
 
@@ -85,41 +84,30 @@ describe('RestaurantModal', () => {
     expect(screen.getAllByText('Demo').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('shows every available action', () => {
+  it('shows Instagram as the only action', () => {
     render(<RestaurantModal restaurant={base} onClose={() => {}} />, { wrapper: TestWrapper })
     const modal = screen.getByTestId('restaurant-modal')
-    expect(within(modal).getByRole('link', { name: /Llamar/ })).toHaveAttribute('href', 'tel:963000000')
-    expect(within(modal).getByRole('link', { name: /Cómo llegar/ })).toHaveAttribute('href', 'https://maps.google.com/?q=1')
-    expect(within(modal).getByRole('link', { name: /Ver menú/ })).toHaveAttribute('href', 'https://x.test/menu')
-    expect(within(modal).getByRole('link', { name: /Reservar/ })).toHaveAttribute('href', 'https://x.test/reservas')
-    expect(within(modal).getByRole('link', { name: /Ver Instagram/ })).toHaveAttribute('href', 'https://instagram.com/alfa')
+    const links = within(modal).getAllByRole('link')
+    expect(links).toHaveLength(1)
+    expect(links[0]).toHaveAttribute('href', 'https://instagram.com/alfa')
+    expect(links[0]).toHaveAttribute('target', '_blank')
+    expect(links[0]).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
-  it('builds a maps link from the address when there is no google_maps_url', () => {
-    render(<RestaurantModal restaurant={{ ...base, google_maps_url: null }} onClose={() => {}} />, { wrapper: TestWrapper })
-    const link = within(screen.getByTestId('restaurant-modal')).getByRole('link', { name: /Cómo llegar/ })
-    expect(link.getAttribute('href')).toContain('google.com/maps')
-  })
-
-  it('hides actions that are not configured', () => {
-    const bare: Restaurant = { ...base, phone: null, menu_url: null, reservations_url: null, instagram_url: null, google_maps_url: null, address: null }
-    render(<RestaurantModal restaurant={bare} onClose={() => {}} />, { wrapper: TestWrapper })
-    const modal = screen.getByTestId('restaurant-modal')
-    expect(within(modal).queryByRole('link', { name: /Llamar/ })).not.toBeInTheDocument()
-    expect(within(modal).queryByRole('link', { name: /Ver menú/ })).not.toBeInTheDocument()
-    expect(within(modal).queryByRole('link', { name: /Reservar/ })).not.toBeInTheDocument()
-    expect(within(modal).queryByRole('link', { name: /Ver Instagram/ })).not.toBeInTheDocument()
-    expect(within(modal).queryByRole('link', { name: /Cómo llegar/ })).not.toBeInTheDocument()
-  })
-
-  it('opens external links in a new tab and tel links in place', () => {
+  it('does not render call, directions, menu or reservations actions', () => {
     render(<RestaurantModal restaurant={base} onClose={() => {}} />, { wrapper: TestWrapper })
     const modal = screen.getByTestId('restaurant-modal')
-    const call = within(modal).getByRole('link', { name: /Llamar/ })
-    expect(call).not.toHaveAttribute('target')
-    const ig = within(modal).getByRole('link', { name: /Ver Instagram/ })
-    expect(ig).toHaveAttribute('target', '_blank')
-    expect(ig).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(within(modal).queryByText('Llamar')).not.toBeInTheDocument()
+    expect(within(modal).queryByText('Cómo llegar')).not.toBeInTheDocument()
+    expect(within(modal).queryByText('Ver menú')).not.toBeInTheDocument()
+    expect(within(modal).queryByText('Reservar')).not.toBeInTheDocument()
+  })
+
+  it('hides the Instagram action when there is no instagram_url', () => {
+    render(<RestaurantModal restaurant={{ ...base, instagram_url: null }} onClose={() => {}} />, { wrapper: TestWrapper })
+    const modal = screen.getByTestId('restaurant-modal')
+    expect(within(modal).queryByRole('link')).not.toBeInTheDocument()
+    expect(within(modal).getByRole('heading', { name: 'Alfa' })).toBeInTheDocument()
   })
 
   it('closes on the close button, the backdrop and Escape', () => {

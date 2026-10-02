@@ -31,7 +31,9 @@
 - Battle: tarjeta con la foto principal de fondo y el nombre encima
 - Tocar la tarjeta → abre la modal con el carrusel completo
 - Modal: deslizar cambia de foto, dots y flechas también, botón de pantalla completa funciona
-- Modal: Instagram, dirección, teléfono, menú y reservas funcionan si están configurados
+- Modal: nombre, descripción y dirección visibles
+- Modal: botón de Instagram abre el perfil en pestaña nueva; si no hay `instagram_url`, no aparece
+- Modal: no aparecen botones de Llamar, Cómo llegar, Ver menú ni Reservar
 - Modal: cerrar con X, con clic en el fondo y con Escape
 - Modal: el scroll de la página queda bloqueado mientras está abierta y vuelve al cerrar
 - Modal: al elegir, se cierra antes de pasar de ronda

@@ -75,7 +75,8 @@ Se abre al pulsar la tarjeta. `role="dialog"`, `aria-modal`, portal a `document.
 
 - Carrusel completo con `showArrows`, dots, contador y pantalla completa
 - Badges, nombre, descripción, dirección, zona, precio
-- Acciones: Llamar (`tel:`), Cómo llegar, Ver menú, Reservar, Ver Instagram — cada una solo si el dato existe
+- **Única acción: botón de Instagram** (a ancho completo, primario `bg-stone-900`), solo si hay `instagram_url`
+- Sin Llamar, Cómo llegar, Ver menú ni Reservar: en la batalla la ficha es para mirar, los CTAs viven en el resultado final y en la página del sitio
 - Cierre: botón X, clic en el fondo, o `Escape`
 - Bloquea el scroll del body mientras está abierta y lo restaura al cerrar
 - Layout: hoja inferior en móvil (`rounded-t-3xl`), centrada en `sm+`

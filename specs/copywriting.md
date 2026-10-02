@@ -262,7 +262,7 @@ Toca el lateral oscurecido para traerlo al centro
 Cerrar:
 Cerrar
 
-Las acciones (Llamar / Cómo llegar / Ver menú / Reservar / Ver Instagram) reutilizan `Common`, igual que `winner-view.tsx` y `sitio-cta.tsx`.
+El único CTA de la modal es Instagram, con la etiqueta `Common.viewInstagram` que ya usan `winner-view.tsx` y `sitio-cta.tsx`. No hay Llamar / Cómo llegar / Ver menú / Reservar aquí: esos viven en el resultado final y en la página del sitio.
 
 ---
 
