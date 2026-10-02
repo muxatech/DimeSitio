@@ -224,6 +224,78 @@ describe('Top5Grid', () => {
     })
   })
 
+  describe('horizontal row layout', () => {
+    beforeEach(() => {
+      useFlowStore.setState({ top5: all })
+    })
+
+    it('lays the cards out in a single scrollable row', () => {
+      render(<Top5Grid />, { wrapper: TestWrapper })
+      const group = screen.getByRole('radiogroup')
+      expect(group).toHaveClass('flex', 'overflow-x-auto', 'snap-x')
+      expect(group).not.toHaveClass('grid')
+    })
+
+    it('breaks out of the max-width container so the row can use the full viewport', () => {
+      render(<Top5Grid />, { wrapper: TestWrapper })
+      const wrapper = screen.getByRole('radiogroup').parentElement as HTMLElement
+      expect(wrapper).toHaveClass('w-screen')
+    })
+
+    it('gives each card a fixed width so none is squeezed to fit', () => {
+      render(<Top5Grid />, { wrapper: TestWrapper })
+      const cards = screen.getAllByRole('radio')
+      const widths = cards.map((c) => c.className)
+      for (const cls of widths) {
+        expect(cls).toContain('shrink-0')
+        expect(cls).toContain('w-[72vw]')
+      }
+    })
+
+    it('keeps touch-pan-y on each carousel so it only claims the horizontal axis', () => {
+      useFlowStore.setState({
+        top5: [makeRestaurant('a', { photos: ['https://x.test/1.webp', 'https://x.test/2.webp'] })],
+      })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+      const carousel = screen.getByTestId('photo-carousel')
+      expect(carousel.className).toContain('touch-pan-y')
+    })
+  })
+
+  describe('selected badge', () => {
+    it('anchors to a corner the fullscreen button does not use', () => {
+      // jsdom no calcula layout, asi que se comparan las clases de posicion:
+      // el boton de pantalla completa se ancla arriba a la derecha.
+      useFlowStore.setState({
+        top5: [makeRestaurant('a', { photos: ['https://x.test/1.webp', 'https://x.test/2.webp'] })],
+        favoriteId: 'a',
+      })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+
+      const fullscreen = screen.getByRole('button', { name: 'Ver fotos en grande' })
+      const tick = screen.getByText('Seleccionado').parentElement as HTMLElement
+
+      expect(fullscreen).toHaveClass('right-2', 'top-2')
+      expect(tick).toHaveClass('bottom-2', 'left-2')
+      expect(tick.className).not.toContain('right-2')
+      expect(tick.className).not.toContain('top-2')
+    })
+
+    it('renders the tick at the bottom-left of the photo', () => {
+      useFlowStore.setState({ top5: [r1], favoriteId: 'a' })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+
+      const tick = screen.getByText('Seleccionado').parentElement as HTMLElement
+      expect(tick).toHaveClass('bottom-2', 'left-2')
+    })
+
+    it('is not rendered when nothing is selected', () => {
+      useFlowStore.setState({ top5: all })
+      render(<Top5Grid />, { wrapper: TestWrapper })
+      expect(screen.queryByText('Seleccionado')).not.toBeInTheDocument()
+    })
+  })
+
   describe('Instagram link', () => {
     it('shows the link when the finalist has an Instagram profile', () => {
       useFlowStore.setState({ top5: [makeRestaurant('a', { instagram_url: 'https://instagram.com/alfa' })] })

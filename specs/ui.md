@@ -36,12 +36,27 @@ Respuesta rápida:
 
 Selección única: el usuario toca **una** tarjeta y confirma. Sin rondas, sin enfrentamientos, sin pantalla de "VS".
 
+**Layout**: los candidatos van en **una única fila horizontal con scroll lateral**, nunca en un grid de varias filas.
+
+- El carrusel de tarjetas hace `break-out` del contenedor `max-w-*` para usar todo el ancho del viewport.
+- Ancho de tarjeta fijo (`w-[72vw] max-w-[19rem] shrink-0`): **no se reduce el tamaño de la tarjeta** para que quepan todas; las que no caben se desplazan.
+- `snap-x snap-mandatory` + `snap-start` para que al desplazar se queden alineadas.
+- Barra de scroll oculta (`[scrollbar-width:none]`), el arrastre y el scroll con rueda siguen funcionando.
+
 Tarjeta (`FavoriteCard`):
 - Carrusel de fotos (`PhotoCarousel`) — swipe horizontal entre fotos
-- Badges: Fundador / Demo
+- Badges: Fundador / Demo (arriba a la izquierda)
+- Tick de seleccionado (abajo a la izquierda)
 - Nombre
 - Zona · Precio
 - CTA "Ver Instagram" (solo si el restaurante tiene `instagram_url`)
+
+**Regla de anclaje de los overlays de la foto**: cada control ocupa una esquina distinta y no puede solaparse con otro.
+- Arriba a la derecha: botón de pantalla completa
+- Arriba a la izquierda: badges Fundador / Demo
+- Abajo a la izquierda: tick de seleccionado
+- Abajo centro: dots
+- Abajo a la derecha: contador `n / total`
 
 Cada tarjeta es `role="radio"` dentro de un `role="radiogroup"`, navegable con teclado (Enter / Espacio).
 

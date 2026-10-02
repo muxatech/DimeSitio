@@ -229,14 +229,33 @@ className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-
 className="flex items-center gap-4 overflow-hidden rounded-2xl border border-stone-200 bg-white pr-4 shadow-sm transition-all hover:shadow-md sm:flex-col sm:gap-0 sm:p-0 sm:pr-0"
 ```
 
+### Fila horizontal de tarjetas (Top 5)
+```tsx
+className="relative left-1/2 w-screen -translate-x-1/2"
+```
+```tsx
+className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:gap-4 sm:px-8 lg:px-12 [&::-webkit-scrollbar]:hidden"
+```
+- `w-screen` + `-translate-x-1/2` = break-out del contenedor `max-w-*` para usar todo el viewport.
+- Tarjeta: `w-[72vw] max-w-[19rem] shrink-0 snap-start`. El tamaño **no** se sacrifica para que quepan todas:overflow lateral.
+
 ### Card seleccionable (Top 5)
 ```tsx
 className="relative cursor-pointer overflow-hidden rounded-2xl border-2 bg-white text-left shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2"
 ```
-- Seleccionada: `border-stone-900`, con check circular sobre la foto
+- Seleccionada: `border-stone-900`, con tick circular `bottom-2 left-2` sobre la foto + `ring-2 ring-white/80`
 - No seleccionada: `border-transparent hover:border-stone-200`, y `opacity-50` si ya hay otra seleccionada
 
 Es `role="radio"` dentro de un `role="radiogroup"`. Todo control interactivo interno (CTA de Instagram, carrusel) debe llamar a `stopPropagation()` para no disparar la selección.
+
+**Overlays de la foto**: una esquina por control, sin solapes.
+| Esquina | Elemento |
+|---------|----------|
+| Arriba dcha. | Pantalla completa |
+| Arriba izq. | Badges Fundador / Demo |
+| Abajo izq. | Tick de seleccionado |
+| Abajo centro | Dots |
+| Abajo dcha. | Contador `n / total` |
 
 ### Barra de confirmación fija
 ```tsx

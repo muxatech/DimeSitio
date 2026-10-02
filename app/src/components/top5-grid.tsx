@@ -67,20 +67,22 @@ export default function Top5Grid() {
         </p>
       </div>
 
-      <div
-        role="radiogroup"
-        aria-label={t('pickOne')}
-        className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3"
-      >
-        {top5.map((r) => (
-          <FavoriteCard
-            key={r.id}
-            restaurant={r}
-            selected={favoriteId === r.id}
-            anySelected={favoriteId !== null}
-            onSelect={() => setFavorite(favoriteId === r.id ? null : r.id)}
-          />
-        ))}
+      <div className="relative left-1/2 w-screen -translate-x-1/2">
+        <div
+          role="radiogroup"
+          aria-label={t('pickOne')}
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:gap-4 sm:px-8 lg:px-12 [&::-webkit-scrollbar]:hidden"
+        >
+          {top5.map((r) => (
+            <FavoriteCard
+              key={r.id}
+              restaurant={r}
+              selected={favoriteId === r.id}
+              anySelected={favoriteId !== null}
+              onSelect={() => setFavorite(favoriteId === r.id ? null : r.id)}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="sticky bottom-0 z-20 -mx-5 flex flex-col gap-2 border-t border-stone-200 bg-white/95 px-5 pb-4 pt-3 shadow-[0_-8px_24px_-12px_rgba(28,25,23,0.18)] backdrop-blur sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
@@ -141,7 +143,7 @@ function FavoriteCard({
         scale: selected ? 1 : 0.98,
       }}
       transition={{ duration: 0.2 }}
-      className={`relative cursor-pointer overflow-hidden rounded-2xl border-2 bg-white text-left shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2 ${
+      className={`relative w-[72vw] max-w-[19rem] shrink-0 snap-start cursor-pointer overflow-hidden rounded-2xl border-2 bg-white text-left shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2 ${
         selected ? 'border-stone-900' : 'border-transparent hover:border-stone-200'
       }`}
     >
@@ -155,7 +157,7 @@ function FavoriteCard({
           name={restaurant.name}
         />
         {selected && (
-          <span className="pointer-events-none absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-stone-900 text-white shadow-lg">
+          <span className="pointer-events-none absolute bottom-2 left-2 flex h-8 w-8 items-center justify-center rounded-full bg-stone-900 text-white shadow-lg ring-2 ring-white/80">
             <Check className="h-5 w-5" strokeWidth={3} />
             <span className="sr-only">{t('selectedBadge')}</span>
           </span>

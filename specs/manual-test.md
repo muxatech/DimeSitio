@@ -27,7 +27,11 @@
 - Seleccionar categoría(s) → avanza a precio
 - Seleccionar precio → avanza a zona
 - Seleccionar zona → ver resultados
-- Top 5: aparece un grid con hasta 5 tarjetas
+- Top 5: aparece una **fila horizontal** con hasta 5 tarjetas, nunca en varias filas
+- La fila ocupa todo el ancho de la pantalla y hace scroll lateral si no caben todas
+- Ninguna tarjeta se encoge para que quepan: tamaño constante en desktop y móvil
+- Al desplazar, las tarjetas quedan alineadas (snap)
+- El tick de seleccionado no solapa con el botón de pantalla completa
 - Tocar una tarjeta la selecciona (solo una a la vez, la anterior se desmarca)
 - Tocar la tarjeta ya seleccionada la deselecciona
 - El botón de confirmar está deshabilitado hasta que haya selección

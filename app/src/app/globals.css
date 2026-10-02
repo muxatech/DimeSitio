@@ -22,6 +22,10 @@ body {
   font-family: var(--font-jakarta-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Los break-outs a w-screen (100vw) incluyen el ancho de la barra de scroll
+     vertical y pueden desbordar en horizontal. `clip` recorta sin crear un
+     contenedor de scroll, asi que `position: sticky` sigue funcionando. */
+  overflow-x: clip;
 }
 
 /* === Animations === */
